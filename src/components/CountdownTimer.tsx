@@ -6,7 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 
 export function CountdownTimer() {
   const { theme } = useTheme();
-  const { getCurrentUser, updateUserStudyTime } = useUser();
+  const { updateDeviceStudyTime, setTimerActive } = useUser();
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(5);
   const [seconds, setSeconds] = useState(0);
@@ -18,22 +18,22 @@ export function CountdownTimer() {
 
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
+      setTimerActive(true);
       intervalRef.current = setInterval(() => {
         setTimeLeft(prev => prev - 1);
       }, 1000);
       
-      // Update user study time every second
+      // Update device study time every second
       studyTimeRef.current = setInterval(() => {
-        const currentUser = getCurrentUser();
-        if (currentUser) {
-          updateUserStudyTime(currentUser.id, 1); // Add 1 second of study time
-        }
+        updateDeviceStudyTime(1); // Add 1 second of study time
       }, 1000);
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
+      setTimerActive(false);
       // Play notification or alert
       alert('الوقت انتهى!');
     } else {
+      setTimerActive(false);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
@@ -43,6 +43,7 @@ export function CountdownTimer() {
     }
 
     return () => {
+      setTimerActive(false);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
@@ -50,7 +51,7 @@ export function CountdownTimer() {
         clearInterval(studyTimeRef.current);
       }
     };
-  }, [isRunning, timeLeft, getCurrentUser, updateUserStudyTime]);
+  }, [isRunning, timeLeft, updateDeviceStudyTime, setTimerActive]);
 
   const formatTime = (totalSeconds: number) => {
     const h = Math.floor(totalSeconds / 3600);
@@ -83,19 +84,6 @@ export function CountdownTimer() {
 
   return (
     <div className="text-center">
-      {!getCurrentUser() && (
-        <div className={`mb-4 p-3 border-2 rounded-lg ${
-          theme === 'light'
-            ? 'border-yellow-400 bg-yellow-50'
-            : 'border-yellow-600 bg-yellow-900/30'
-        }`}>
-          <p className={`text-sm ${
-            theme === 'light' ? 'text-yellow-800' : 'text-yellow-200'
-          }`}>
-            يرجى اختيار مستخدم لتسجيل وقت الدراسة
-          </p>
-        </div>
-      )}
       {!isSet ? (
         <div className="mb-8">
           <h2 className={`text-2xl font-bold mb-6 ${

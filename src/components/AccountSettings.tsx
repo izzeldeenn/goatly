@@ -8,12 +8,12 @@ import { useUser } from '@/contexts/UserContext';
 export function AccountSettings() {
   const { theme } = useTheme();
   const { coins, level, experience } = useGamification();
-  const { getCurrentUser } = useUser();
+  const { getCurrentDeviceUser } = useUser();
   const [showSettings, setShowSettings] = useState(false);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
 
-  const currentUser = getCurrentUser();
+  const currentUser = getCurrentDeviceUser();
 
   const handleSaveSettings = () => {
     if (username.trim() || email.trim()) {
@@ -43,7 +43,7 @@ export function AccountSettings() {
           <div className={`text-sm ${
             theme === 'light' ? 'text-gray-600' : 'text-gray-400'
           }`}>
-            الحساب:
+            الجهاز:
           </div>
           <div className={`font-medium ${
             theme === 'light' ? 'text-black' : 'text-white'
@@ -102,20 +102,20 @@ export function AccountSettings() {
           }`}>
             <h3 className={`text-lg font-bold mb-4 ${
               theme === 'light' ? 'text-black' : 'text-white'
-            }`}>إعدادات الحساب</h3>
+            }`}>إعدادات الجهاز</h3>
             
             <div className="space-y-4">
               <div>
                 <label className={`block mb-2 text-sm font-medium ${
                   theme === 'light' ? 'text-black' : 'text-white'
                 }`}>
-                  اسم المستخدم
+                  اسم الجهاز
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="أدخل اسم المستخدم"
+                  placeholder="أدخل اسم الجهاز"
                   className={`w-full px-3 py-2 border-2 rounded focus:outline-none ${
                     theme === 'light'
                       ? 'border-gray-300 bg-white text-black focus:border-black'

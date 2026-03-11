@@ -1,0 +1,219 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useUser } from '@/contexts/UserContext';
+
+export function CountdownTimer() {
+  const { theme } = useTheme();
+  const { getCurrentUser, updateUserStudyTime } = useUser();
+  const [hours, setHours] = useState(0);
+  const [minutes, setMinutes] = useState(5);
+  const [seconds, setSeconds] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isSet, setIsSet] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const studyTimeRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (isRunning && timeLeft > 0) {
+      intervalRef.current = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+      
+      // Update user study time every second
+      studyTimeRef.current = setInterval(() => {
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+          updateUserStudyTime(currentUser.id, 1); // Add 1 second of study time
+        }
+      }, 1000);
+    } else if (timeLeft === 0 && isRunning) {
+      setIsRunning(false);
+      // Play notification or alert
+      alert('الوقت انتهى!');
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (studyTimeRef.current) {
+        clearInterval(studyTimeRef.current);
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (studyTimeRef.current) {
+        clearInterval(studyTimeRef.current);
+      }
+    };
+  }, [isRunning, timeLeft, getCurrentUser, updateUserStudyTime]);
+
+  const formatTime = (totalSeconds: number) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleSet = () => {
+    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+    if (totalSeconds > 0) {
+      setTimeLeft(totalSeconds);
+      setIsSet(true);
+      setIsRunning(false);
+    }
+  };
+
+  const handleStart = () => {
+    if (isSet && timeLeft > 0) {
+      setIsRunning(true);
+    }
+  };
+
+  const handleStop = () => setIsRunning(false);
+  const handleReset = () => {
+    setIsRunning(false);
+    setIsSet(false);
+    setTimeLeft(0);
+  };
+
+  return (
+    <div className="text-center">
+      {!getCurrentUser() && (
+        <div className={`mb-4 p-3 border-2 rounded-lg ${
+          theme === 'light'
+            ? 'border-yellow-400 bg-yellow-50'
+            : 'border-yellow-600 bg-yellow-900/30'
+        }`}>
+          <p className={`text-sm ${
+            theme === 'light' ? 'text-yellow-800' : 'text-yellow-200'
+          }`}>
+            يرجى اختيار مستخدم لتسجيل وقت الدراسة
+          </p>
+        </div>
+      )}
+      {!isSet ? (
+        <div className="mb-8">
+          <h2 className={`text-2xl font-bold mb-6 ${
+            theme === 'light' ? 'text-black' : 'text-white'
+          }`}>ضبط المؤقت</h2>
+          <div className="flex justify-center items-center space-x-4 space-x-reverse mb-6">
+            <div className="text-center">
+              <label className={`block mb-2 ${
+                theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+              }`}>ساعات</label>
+              <input
+                type="number"
+                min="0"
+                max="23"
+                value={hours}
+                onChange={(e) => setHours(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
+                className={`w-20 px-3 py-2 border-2 rounded focus:outline-none text-center ${
+                  theme === 'light'
+                    ? 'border-gray-300 bg-white text-black focus:border-black'
+                    : 'border-gray-600 bg-black text-white focus:border-white'
+                }`}
+              />
+            </div>
+            <div className={`text-2xl font-bold ${
+              theme === 'light' ? 'text-black' : 'text-white'
+            }`}>:</div>
+            <div className="text-center">
+              <label className={`block mb-2 ${
+                theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+              }`}>دقائق</label>
+              <input
+                type="number"
+                min="0"
+                max="59"
+                value={minutes}
+                onChange={(e) => setMinutes(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                className={`w-20 px-3 py-2 border-2 rounded focus:outline-none text-center ${
+                  theme === 'light'
+                    ? 'border-gray-300 bg-white text-black focus:border-black'
+                    : 'border-gray-600 bg-black text-white focus:border-white'
+                }`}
+              />
+            </div>
+            <div className={`text-2xl font-bold ${
+              theme === 'light' ? 'text-black' : 'text-white'
+            }`}>:</div>
+            <div className="text-center">
+              <label className={`block mb-2 ${
+                theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+              }`}>ثواني</label>
+              <input
+                type="number"
+                min="0"
+                max="59"
+                value={seconds}
+                onChange={(e) => setSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                className={`w-20 px-3 py-2 border-2 rounded focus:outline-none text-center ${
+                  theme === 'light'
+                    ? 'border-gray-300 bg-white text-black focus:border-black'
+                    : 'border-gray-600 bg-black text-white focus:border-white'
+                }`}
+              />
+            </div>
+          </div>
+          <button
+            onClick={handleSet}
+            className={`px-8 py-3 border-2 rounded-lg font-semibold transition-colors ${
+              theme === 'light'
+                ? 'border-black bg-white text-black hover:bg-black hover:text-white'
+                : 'border-white bg-black text-white hover:bg-white hover:text-black'
+            }`}
+          >
+            ضبط المؤقت
+          </button>
+        </div>
+      ) : (
+        <div>
+          <h1 className={`text-7xl font-bold mb-8 font-mono ${
+            theme === 'light' ? 'text-black' : 'text-white'
+          }`}>
+            {formatTime(timeLeft)}
+          </h1>
+          <div className="space-x-4">
+            <button
+              onClick={handleStart}
+              disabled={isRunning}
+              className={`px-6 py-3 border-2 rounded-lg font-semibold transition-colors ${
+                theme === 'light'
+                  ? 'border-black bg-white text-black hover:bg-black hover:text-white disabled:bg-gray-100 disabled:border-gray-400 disabled:text-gray-400'
+                  : 'border-white bg-black text-white hover:bg-white hover:text-black disabled:bg-gray-800 disabled:border-gray-600 disabled:text-gray-600'
+              } disabled:cursor-not-allowed`}
+            >
+              بدء
+            </button>
+            <button
+              onClick={handleStop}
+              disabled={!isRunning}
+              className={`px-6 py-3 border-2 rounded-lg font-semibold transition-colors ${
+                theme === 'light'
+                  ? 'border-black bg-white text-black hover:bg-black hover:text-white disabled:bg-gray-100 disabled:border-gray-400 disabled:text-gray-400'
+                  : 'border-white bg-black text-white hover:bg-white hover:text-black disabled:bg-gray-800 disabled:border-gray-600 disabled:text-gray-600'
+              } disabled:cursor-not-allowed`}
+            >
+              إيقاف
+            </button>
+            <button
+              onClick={handleReset}
+              className={`px-6 py-3 border-2 rounded-lg font-semibold transition-colors ${
+                theme === 'light'
+                  ? 'border-black bg-white text-black hover:bg-black hover:text-white'
+                  : 'border-white bg-black text-white hover:bg-white hover:text-black'
+              }`}
+            >
+              إعادة ضبط
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

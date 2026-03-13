@@ -5,11 +5,20 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Missing Supabase environment variables:');
-  console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅' : '❌ Missing');
-  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅' : '❌ Missing');
-  console.error('Please check your .env.local file');
+  throw new Error('❌ Missing required Supabase environment variables. Please check your .env.local file.');
 }
+
+// Validate URL format
+if (!supabaseUrl.includes('supabase.co') && !supabaseUrl.includes('localhost:8090')) {
+  throw new Error('❌ Invalid Supabase URL format. Please check your environment variables.');
+}
+
+// Validate key format
+if (supabaseAnonKey.length < 20) {
+  throw new Error('❌ Invalid Supabase key format. Please check your environment variables.');
+}
+
+console.log('✅ Supabase environment variables validated successfully');
 
 // Create Supabase client
 export const supabase = createClient(

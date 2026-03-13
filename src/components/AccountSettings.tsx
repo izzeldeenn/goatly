@@ -10,12 +10,12 @@ export function AccountSettings() {
   const { theme } = useTheme();
   const { t } = useLanguage();
   const { coins, level, experience } = useGamification();
-  const { getCurrentDeviceUser } = useUser();
+  const { getCurrentUser } = useUser();
   const [showSettings, setShowSettings] = useState(false);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
 
-  const currentUser = getCurrentDeviceUser();
+  const currentUser = getCurrentUser();
 
   const handleSaveSettings = () => {
     if (username.trim() || email.trim()) {
@@ -50,7 +50,7 @@ export function AccountSettings() {
           <div className={`font-medium ${
             theme === 'light' ? 'text-black' : 'text-white'
           }`}>
-            {currentUser ? currentUser.name : 'Unknown'}
+            {currentUser ? currentUser.username : 'Unknown'}
           </div>
         </div>
         <button

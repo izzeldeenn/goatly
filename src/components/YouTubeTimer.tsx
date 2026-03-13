@@ -6,7 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 
 export function YouTubeTimer() {
   const { theme } = useTheme();
-  const { getCurrentDeviceUser, updateDeviceStudyTime, setTimerActive } = useUser();
+  const { getCurrentUser, updateUserStudyTime, setTimerActive } = useUser();
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
@@ -57,7 +57,7 @@ export function YouTubeTimer() {
       
       // Update device study time every second
       studyTimeRef.current = setInterval(() => {
-        updateDeviceStudyTime(1); // Add 1 second of study time
+        updateUserStudyTime(1); // Add 1 second of study time
       }, 1000);
     } else {
       setTimerActive(false);
@@ -78,7 +78,7 @@ export function YouTubeTimer() {
         clearInterval(studyTimeRef.current);
       }
     };
-  }, [isRunning, updateDeviceStudyTime, setTimerActive]);
+  }, [isRunning, updateUserStudyTime, setTimerActive]);
 
   const formatTime = (milliseconds: number) => {
     const totalSeconds = Math.floor(milliseconds / 1000);

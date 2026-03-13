@@ -42,6 +42,7 @@ interface UserContextType {
   currentAccountId: string;
   isTimerRunning: boolean;
   getCurrentUser: () => UserAccountFrontend | null;
+  getAllDeviceUsers: () => UserAccountFrontend[];
   updateUserName: (name: string) => void;
   updateUserAvatar: (avatar: string) => void;
   updateUserStudyTime: (additionalTime: number) => void;
@@ -389,6 +390,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       currentAccountId,
       isTimerRunning,
       getCurrentUser,
+      getAllDeviceUsers,
       updateUserName,
       updateUserAvatar,
       updateUserStudyTime,

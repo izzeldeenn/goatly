@@ -25,7 +25,7 @@ export function UserManager() {
         ) : (
           users.map((user) => (
             <div
-              key={user.deviceId}
+              key={user.id}
               className={`flex items-center justify-between p-2 border rounded ${
                 theme === 'light'
                   ? 'border-gray-200 bg-gray-50'
@@ -34,7 +34,7 @@ export function UserManager() {
             >
               <span className={`text-sm ${
                 theme === 'light' ? 'text-black' : 'text-white'
-              }`}>{user.name}</span>
+              }`}>{user.username}</span>
               <span className={`text-xs px-2 py-1 rounded ${
                 theme === 'light'
                   ? 'bg-blue-600 text-white'

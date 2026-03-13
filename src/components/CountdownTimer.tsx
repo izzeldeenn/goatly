@@ -6,7 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 
 export function CountdownTimer() {
   const { theme } = useTheme();
-  const { updateDeviceStudyTime, setTimerActive } = useUser();
+  const { updateUserStudyTime, setTimerActive } = useUser();
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(5);
   const [seconds, setSeconds] = useState(0);
@@ -46,7 +46,7 @@ export function CountdownTimer() {
       
       // Update device study time every second
       studyTimeRef.current = setInterval(() => {
-        updateDeviceStudyTime(1); // Add 1 second of study time
+        updateUserStudyTime(1); // Add 1 second of study time
       }, 1000);
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
@@ -72,7 +72,7 @@ export function CountdownTimer() {
         clearInterval(studyTimeRef.current);
       }
     };
-  }, [isRunning, timeLeft, updateDeviceStudyTime, setTimerActive]);
+  }, [isRunning, timeLeft, updateUserStudyTime, setTimerActive]);
 
   const formatTime = (totalSeconds: number) => {
     const h = Math.floor(totalSeconds / 3600);

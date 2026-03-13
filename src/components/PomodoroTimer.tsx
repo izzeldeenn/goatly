@@ -13,7 +13,7 @@ interface PomodoroSettings {
 
 export function PomodoroTimer() {
   const { theme } = useTheme();
-  const { getCurrentDeviceUser, updateDeviceStudyTime, setTimerActive } = useUser();
+  const { getCurrentUser, updateUserStudyTime, setTimerActive } = useUser();
   const [settings, setSettings] = useState<PomodoroSettings>({
     workMinutes: 25,
     shortBreakMinutes: 5,
@@ -57,7 +57,7 @@ export function PomodoroTimer() {
         
         // Update user study time every second during work session
         if (currentSession === 'work') {
-          updateDeviceStudyTime(1); // Add 1 second of study time
+          updateUserStudyTime(1); // Add 1 second of study time
         }
       }, 1000);
     } else if (timeLeft === 0) {
@@ -75,7 +75,7 @@ export function PomodoroTimer() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, timeLeft, currentSession, updateDeviceStudyTime, setTimerActive]);
+  }, [isRunning, timeLeft, currentSession, updateUserStudyTime, setTimerActive]);
 
   const handleSessionComplete = () => {
     setIsRunning(false);

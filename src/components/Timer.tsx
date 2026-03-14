@@ -65,7 +65,7 @@ export function Timer() {
         clearInterval(studyTimeRef.current);
       }
     };
-  }, [isRunning, updateUserStudyTime, setTimerActive]);
+  }, [isRunning]);
 
   const formatTime = (milliseconds: number) => {
     const totalSeconds = Math.floor(milliseconds / 1000);

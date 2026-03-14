@@ -70,7 +70,21 @@ export function UserRankings() {
 
   const isCurrentUserActive = (user: UserAccount) => {
     // Check if this is the current account and timer is active
-    return isTimerActive();
+    // In a real app, you'd track which user is currently studying
+    // For now, we'll assume the user with currentAccountId is the active one
+    const isActive = isTimerActive();
+    const isCurrent = users.length > 0 && users[0]?.accountId === user.accountId;
+    
+    // Debug logging
+    console.log('UserRankings Debug:', {
+      userId: user.accountId,
+      username: user.username,
+      isActive,
+      isCurrent,
+      result: isActive && isCurrent
+    });
+    
+    return isActive && isCurrent;
   };
 
   return (
@@ -107,20 +121,18 @@ export function UserRankings() {
               >
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-3">
-                    <div 
-                      className="flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold"
+                    <span 
+                      className="text-sm font-bold"
                       style={{
-                        backgroundColor: user.rank === 1 
+                        color: user.rank === 1 
                           ? customTheme.colors.secondary
                           : user.rank % 2 === 0 
                           ? customTheme.colors.primary 
-                          : customTheme.colors.secondary,
-                        color: '#ffffff',
-                        boxShadow: user.rank <= 3 ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none'
+                          : customTheme.colors.secondary
                       }}
                     >
                       {user.rank}
-                    </div>
+                    </span>
                     
                     <div className="text-xl">
                       {user.avatar?.startsWith('http') ? (

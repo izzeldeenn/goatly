@@ -74,11 +74,11 @@ export function UserRankings() {
   };
 
   return (
-    <div className="flex-1 p-4">
+    <div className="flex-1">
       <h2 className={`text-2xl font-bold mb-6 text-center ${
         theme === 'light' ? 'text-black' : 'text-white'
       }`}>{t.rankings}</h2>
-      <div className="h-[calc(100vh-180px)] overflow-y-auto space-y-2 w-full">
+      <div className="h-[calc(100vh-180px)] overflow-y-auto space-y-2">
         {displayUsers.length === 0 ? (
           <p className={`text-center py-12 ${
             theme === 'light' ? 'text-gray-500' : 'text-gray-400'
@@ -95,21 +95,20 @@ export function UserRankings() {
             return (
               <div
                 key={user.accountId}
-                className="p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] bg-white/10 border-2"
+                className="p-3 rounded-xl transition-all duration-300 hover:scale-[1.02]"
                 style={{
-                  borderColor: user.rank === 1 
-                    ? customTheme.colors.secondary
+                  backgroundColor: user.rank === 1 
+                    ? `${customTheme.colors.secondary}20`
                     : user.rank % 2 === 0 
-                    ? customTheme.colors.primary 
-                    : customTheme.colors.secondary,
-                  backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',
+                    ? `${customTheme.colors.primary}10`
+                    : `${customTheme.colors.secondary}10`,
                   boxShadow: user.rank <= 3 ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none'
                 }}
               >
-                <div className="flex items-center mb-2">
+                <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-3">
                     <div 
-                      className="flex items-center justify-center w-10 h-10 rounded-full text-lg font-bold"
+                      className="flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold"
                       style={{
                         backgroundColor: user.rank === 1 
                           ? customTheme.colors.secondary
@@ -122,15 +121,17 @@ export function UserRankings() {
                     >
                       {user.rank}
                     </div>
-                    <div className="text-2xl">{user.avatar || '👤'}</div>
-                    <div className="flex flex-col">
+                    
+                    <div className="text-xl">{user.avatar || '👤'}</div>
+                    
+                    <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <span className={`text-base font-semibold ${
+                        <span className={`text-sm font-semibold ${
                           theme === 'light' ? 'text-black' : 'text-white'
                         }`}>{user.username}</span>
                         {userIsActive && (
                           <span 
-                            className="px-2 py-1 text-xs rounded-full animate-pulse font-medium"
+                            className="px-2 py-0.5 text-xs rounded-full animate-pulse font-medium"
                             style={{
                               backgroundColor: customTheme.colors.primary,
                               color: '#ffffff',
@@ -143,38 +144,14 @@ export function UserRankings() {
                       </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <div 
-                    className="p-2 rounded-lg"
-                    style={{
-                      backgroundColor: theme === 'light' 
-                        ? `${customTheme.colors.primary}20` 
-                        : `${customTheme.colors.primary}40`,
-                    }}
-                  >
-                    <div className="text-sm font-bold" style={{ color: customTheme.colors.primary }}>
-                      {todayTimeFormatted}
-                    </div>
-                    <div className="text-xs" style={{ color: customTheme.colors.primary }}>
-                      {t.timeToday}
-                    </div>
-                  </div>
-                  <div 
-                    className="p-2 rounded-lg"
-                    style={{
-                      backgroundColor: theme === 'light' 
-                        ? `${customTheme.colors.secondary}20` 
-                        : `${customTheme.colors.secondary}40`,
-                    }}
-                  >
-                    <div className="text-sm font-bold" style={{ color: customTheme.colors.secondary }}>
-                      +{todayCoins} {t.coins}
-                    </div>
-                    <div className="text-xs" style={{ color: customTheme.colors.secondary }}>
-                      {t.coinsToday}
-                    </div>
+                  
+                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    theme === 'light'
+                      ? 'bg-gradient-to-r from-yellow-50 to-green-50 text-green-700 border border-yellow-200'
+                      : 'bg-gradient-to-r from-yellow-900/30 to-green-900/30 text-green-300 border border-yellow-700/50'
+                  }`}>
+                    <span className="w-1 h-1 bg-green-500 rounded-full mr-1 animate-pulse"></span>
+                    {Math.floor(user.studyTime / 60)}m ⏱️
                   </div>
                 </div>
               </div>

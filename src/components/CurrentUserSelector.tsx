@@ -41,16 +41,6 @@ export function CurrentUserSelector() {
 
   return (
     <div className="mb-3">
-      <div className={`text-center mb-2 relative`}>
-        <div className={`inline-block px-3 py-0.5 rounded-full text-xs font-medium ${
-          theme === 'light'
-            ? 'bg-gradient-to-r from-yellow-100 to-green-100 text-green-800 border border-yellow-200'
-            : 'bg-gradient-to-r from-yellow-900/30 to-green-900/30 text-green-200 border border-yellow-700/50'
-        }`}>
-          {language === 'ar' ? 'الحساب الحالي' : 'Current Account'}
-        </div>
-      </div>
-      
       {currentUser ? (
         <div className={`relative overflow-hidden group ${
           theme === 'light' ? 'bg-white' : 'bg-gray-900'
@@ -62,9 +52,9 @@ export function CurrentUserSelector() {
           }`} />
           
           <div className="relative p-3">
-            <div className="flex flex-col items-center">
-              <div className="relative mb-2">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold bg-gradient-to-br ${
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold bg-gradient-to-br ${
                   theme === 'light'
                     ? 'from-green-500 via-yellow-500 to-green-600 text-white shadow-md'
                     : 'from-green-600 via-yellow-600 to-green-700 text-white shadow-lg'
@@ -73,63 +63,28 @@ export function CurrentUserSelector() {
                 </div>
                 
                 {isActive && (
-                  <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold animate-pulse shadow-md">
+                  <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold animate-pulse shadow-md">
                     ✓
                   </div>
                 )}
               </div>
-
-              <div className="text-center mb-2">
-                <h2 className={`text-base font-bold mb-0.5 ${
+              
+              <div className="flex-1">
+                <h2 className={`text-base font-bold ${
                   theme === 'light' ? 'text-gray-800' : 'text-gray-100'
                 }`}>
                   {currentUser.username}
                 </h2>
-                
-                <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  theme === 'light'
-                    ? 'bg-gradient-to-r from-yellow-50 to-green-50 text-green-700 border border-yellow-200'
-                    : 'bg-gradient-to-r from-yellow-900/30 to-green-900/30 text-green-300 border border-yellow-700/50'
-                }`}>
-                  <span className="w-1 h-1 bg-green-500 rounded-full mr-1 animate-pulse"></span>
-                  {t.levelText} {level} • {coins} 🪙
-                </div>
               </div>
-
-              <div className={`w-full p-2 rounded-lg mb-2 ${
-                theme === 'light'
-                  ? 'bg-gradient-to-r from-yellow-50 to-green-50/30 border border-yellow-200'
-                  : 'bg-gradient-to-r from-yellow-950/50 to-green-950/20 border border-yellow-800'
-              }`}>
-                <div className="grid grid-cols-2 gap-2 text-center">
-                  <div>
-                    <div className={`text-sm font-bold mb-0.5 ${
-                      theme === 'light' ? 'text-yellow-600' : 'text-yellow-400'
-                    }`}>
-                      {currentUser.score}
-                    </div>
-                    <div className={`text-xs font-medium ${
-                      theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-                    }`}>
-                      {language === 'ar' ? 'النقاط' : 'Points'}
-                    </div>
-                  </div>
-                  <div>
-                    <div className={`text-sm font-bold mb-0.5 ${
-                      theme === 'light' ? 'text-green-600' : 'text-green-400'
-                    }`}>
-                      {Math.floor(currentUser.studyTime / 60)}m
-                    </div>
-                    <div className={`text-xs font-medium ${
-                      theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-                    }`}>
-                      {language === 'ar' ? 'وقت الدراسة' : 'Study Time'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               
+              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                theme === 'light'
+                  ? 'bg-gradient-to-r from-yellow-50 to-green-50 text-green-700 border border-yellow-200'
+                  : 'bg-gradient-to-r from-yellow-900/30 to-green-900/30 text-green-300 border border-yellow-700/50'
+              }`}>
+                <span className="w-1 h-1 bg-green-500 rounded-full mr-1 animate-pulse"></span>
+                {Math.floor((currentUser?.studyTime || 0) / 60)}m ⏱️
+              </div>
             </div>
           </div>
         </div>

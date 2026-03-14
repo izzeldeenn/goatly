@@ -22,19 +22,31 @@ interface UserAccount {
 export function UserRankings() {
   const { theme } = useTheme();
   const { t } = useLanguage();
-  const { users, isTimerActive } = useUser();
+  const { users, isTimerActive, getCurrentUser } = useUser();
   const customTheme = useCustomThemeClasses();
   const [displayUsers, setDisplayUsers] = useState<UserAccount[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    setDisplayUsers(users);
+    // Sort users by study time (highest to lowest) and update ranks
+    const sortedUsers = [...users].sort((a, b) => b.studyTime - a.studyTime);
+    const rankedUsers = sortedUsers.map((user, index) => ({
+      ...user,
+      rank: index + 1
+    }));
+    setDisplayUsers(rankedUsers);
   }, [users]);
 
   useEffect(() => {
     // Update rankings every second for live changes
     const interval = setInterval(() => {
-      setDisplayUsers(users);
+      // Sort users by study time (highest to lowest) and update ranks
+      const sortedUsers = [...users].sort((a, b) => b.studyTime - a.studyTime);
+      const rankedUsers = sortedUsers.map((user, index) => ({
+        ...user,
+        rank: index + 1
+      }));
+      setDisplayUsers(rankedUsers);
       setCurrentTime(new Date());
     }, 1000);
 
@@ -87,6 +99,11 @@ export function UserRankings() {
     return isActive && isCurrent;
   };
 
+  const isCurrentUser = (user: UserAccount) => {
+    const currentUser = getCurrentUser();
+    return currentUser?.accountId === user.accountId;
+  };
+
   return (
     <div className="flex-1">
       <h2 className={`text-2xl font-bold mb-6 text-center ${
@@ -105,21 +122,30 @@ export function UserRankings() {
             const todayTimeFormatted = formatStudyTime(todaySeconds);
             const todayCoins = getCoinsFromStudyTime(todaySeconds);
             const userIsActive = isCurrentUserActive(user);
+            const isCurrent = isCurrentUser(user);
             
             return (
               <div
                 key={user.accountId}
-                className="p-3 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                className={`p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] ${
+                  isCurrent ? 'ring-4 ring-blue-400 ring-offset-2' : ''
+                }`}
                 style={{
-                  backgroundColor: user.rank === 1 
+                  backgroundColor: isCurrent
+                    ? 'rgba(59, 130, 246, 0.4)'
+                    : user.rank === 1 
                     ? `${customTheme.colors.secondary}20`
                     : user.rank % 2 === 0 
                     ? `${customTheme.colors.primary}10`
                     : `${customTheme.colors.secondary}10`,
-                  boxShadow: user.rank <= 3 ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none'
+                  boxShadow: isCurrent 
+                    ? '0 10px 15px -3px rgba(59, 130, 246, 0.5), 0 4px 6px -2px rgba(59, 130, 246, 0.3)' 
+                    : user.rank <= 3 
+                    ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' 
+                    : 'none'
                 }}
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <span 
                       className="text-sm font-bold"
@@ -145,28 +171,14 @@ export function UserRankings() {
                           }}
                         />
                       ) : (
-                        '👤'
+                        user.avatar || '👤'
                       )}
                     </div>
                     
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-sm font-semibold ${
-                          theme === 'light' ? 'text-black' : 'text-white'
-                        }`}>{user.username}</span>
-                        {userIsActive && (
-                          <span 
-                            className="px-2 py-0.5 text-xs rounded-full animate-pulse font-medium"
-                            style={{
-                              backgroundColor: customTheme.colors.primary,
-                              color: '#ffffff',
-                              boxShadow: theme === 'light' ? '0 1px 2px 0 rgba(0, 0, 0, 0.05)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                            }}
-                          >
-                            {t.active}
-                          </span>
-                        )}
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-sm font-semibold ${
+                        theme === 'light' ? 'text-black' : 'text-white'
+                      } truncate`}>{user.username}</span>
                     </div>
                   </div>
                   

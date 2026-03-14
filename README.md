@@ -2,6 +2,28 @@
 
 A smart study time management platform inspired by the wisdom of Mr. Frogo.
 
+## 📋 About
+
+**Frogo** is a revolutionary study time management platform that combines the wisdom of focused productivity with modern web technology. Born from the philosophy of Mr. Frogo - a wise frog who understood that success comes not from jumping frequently, but from jumping purposefully.
+
+### 🎯 Our Mission
+To help students and professionals transform their study habits through:
+- **Focused Learning** - Eliminate distractions and concentrate on what matters
+- **Smart Progress Tracking** - Monitor improvement with real-time analytics
+- **Gamified Experience** - Make productivity enjoyable and rewarding
+- **Community Growth** - Learn and compete with like-minded individuals
+
+### 🐸 The Mr. Frogo Philosophy
+*"The secret isn't in jumping a lot... The secret is in jumping in the right direction."*
+
+This simple yet profound principle guides everything we build - every feature, every timer, every achievement is designed to help you make your next jump count.
+
+### 🚀 Why Frogo?
+- **Science-Based** - Built on proven productivity techniques
+- **Community-Driven** - Shaped by user feedback and real-world usage
+- **Privacy-First** - Your data stays yours, always
+- **Open Source** - Transparent, customizable, and free forever
+
 ## 📖 The Story of Mr. Frogo
 
 On a quiet night beside a small pond, there was a frog different from all the others.

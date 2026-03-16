@@ -511,7 +511,8 @@ export class DailyActivityDB {
           else if (activity.study_minutes >= 180) level = 4; // 3+ hours
           else if (activity.study_minutes >= 120) level = 3; // 2+ hours
           else if (activity.study_minutes >= 60) level = 2; // 1+ hour
-          else if (activity.study_minutes >= 30) level = 1; // 30+ minutes
+          else if (activity.study_minutes >= 15) level = 1; // 15+ minutes
+          else level = 1; // Any activity less than 15 minutes still shows as level 1
         }
 
         return {

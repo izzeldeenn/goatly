@@ -41,6 +41,60 @@ export function ActivityGraph({ contributions, username }: ActivityGraphProps) {
     weeks.push(allDates.slice(i, i + 7));
   }
 
+  // Generate month labels for the top header
+  const generateMonthLabels = () => {
+    if (weeks.length === 0) return [];
+    
+    const labels: { month: string; startWeek: number; spanWeeks: number }[] = [];
+    const isArabic = t.rank === 'ترتيب';
+    
+    const monthNames = isArabic ? [
+      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    ] : [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    
+    let currentMonth = -1;
+    let monthStartWeek = 0;
+    
+    weeks.forEach((week: string[], weekIndex: number) => {
+      if (week.length > 0) {
+        const firstDate = new Date(week[0] + 'T00:00:00');
+        const month = firstDate.getMonth();
+        
+        if (month !== currentMonth) {
+          // Close previous month if exists
+          if (currentMonth !== -1) {
+            const lastLabel = labels[labels.length - 1];
+            lastLabel.spanWeeks = weekIndex - monthStartWeek;
+          }
+          
+          // Start new month
+          labels.push({
+            month: monthNames[month],
+            startWeek: weekIndex,
+            spanWeeks: 1
+          });
+          
+          currentMonth = month;
+          monthStartWeek = weekIndex;
+        }
+      }
+    });
+    
+    // Close last month
+    if (labels.length > 0) {
+      const lastLabel = labels[labels.length - 1];
+      lastLabel.spanWeeks = weeks.length - monthStartWeek;
+    }
+    
+    return labels;
+  };
+
+  const monthLabels = generateMonthLabels();
+
   // Get activity color based on level
   const getActivityColor = (level: number) => {
     if (theme === 'light') {
@@ -174,9 +228,9 @@ export function ActivityGraph({ contributions, username }: ActivityGraphProps) {
           {/* Graph grid */}
           <div className="flex-1 overflow-x-auto">
             <div className="flex gap-1" style={{ minWidth: `${weeks.length * 15}px` }}>
-              {weeks.map((week, weekIndex) => (
+              {weeks.map((week: string[], weekIndex: number) => (
                 <div key={weekIndex} className="grid grid-rows-7 gap-1">
-                  {week.map((date, dayIndex) => {
+                  {week.map((date: string, dayIndex: number) => {
                     const contribution = contributionsMap.get(date);
                     const level = contribution?.level || 0;
                     const isSelected = selectedDate === date;
@@ -184,9 +238,9 @@ export function ActivityGraph({ contributions, username }: ActivityGraphProps) {
                     return (
                       <div
                         key={`${weekIndex}-${dayIndex}`}
-                        className={`w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 ${
-                          isSelected ? 'ring-2 ring-blue-400' : ''
-                        } hover:scale-110`}
+                        className={`w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 border ${
+                          isSelected ? 'ring-2 ring-blue-400 border-blue-400' : 'border-gray-200'
+                        } hover:scale-110 hover:border-gray-400`}
                         style={{
                           backgroundColor: getActivityColor(level),
                           opacity: isSelected ? 1 : (level > 0 ? 0.8 : 0.3)

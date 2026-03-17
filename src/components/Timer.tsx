@@ -116,7 +116,7 @@ export function Timer() {
         clearInterval(realtimeUpdateRef.current);
       }
     };
-  }, [isRunning, getCurrentUser]);
+  }, [isRunning]);
 
   const formatTime = (milliseconds: number) => {
     const totalSeconds = Math.floor(milliseconds / 1000);

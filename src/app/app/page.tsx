@@ -184,6 +184,26 @@ function HomeContent() {
         >
           <Logo />
           <div className="flex items-center space-x-1 space-x-reverse">
+
+          <button
+                onClick={() => setShowThemeSelector(true)}
+                className="p-2 rounded-lg transition-colors"
+                style={{
+                  backgroundColor: 'transparent',
+                  color: customTheme.colors.text
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = customTheme.colors.primary;
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = customTheme.colors.text;
+                }}
+                title={language === 'ar' ? 'تخصيص الثيم' : 'Customize Theme'}
+              >
+                🎨
+              </button>
             <UserProfile />
           </div>
         </div>

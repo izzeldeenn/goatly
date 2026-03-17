@@ -1,30 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useGamification } from '@/contexts/GamificationContext';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
+import { useCustomTheme } from '@/contexts/CustomThemeContext';
 
-const AVATARS = [
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar1',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar2',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar3',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar4',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar5',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar6',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar7',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar8',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar9',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar10',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar11',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar12',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar13',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar14',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar15'
-];
+// Generate 250 avatars dynamically
+const AVATARS = Array.from({ length: 250 }, (_, i) => 
+  `https://api.dicebear.com/7.x/avataaars/svg?seed=avatar${i + 1}`
+);
 
 export function UserProfile() {
   const { theme } = useTheme();
@@ -36,8 +24,28 @@ export function UserProfile() {
   const [username, setUsername] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('');
   const [customAvatarUrl, setCustomAvatarUrl] = useState('');
+  const [avatarPage, setAvatarPage] = useState(1);
+  const [avatarSearch, setAvatarSearch] = useState('');
+  const avatarsPerPage = 20;
 
   const currentUser = getCurrentUser();
+
+  // Filter and paginate avatars
+  const filteredAvatars = avatarSearch 
+    ? AVATARS.filter((_, index) => 
+        (index + 1).toString().includes(avatarSearch)
+      )
+    : AVATARS;
+
+  const totalPages = Math.ceil(filteredAvatars.length / avatarsPerPage);
+  const startIndex = (avatarPage - 1) * avatarsPerPage;
+  const endIndex = startIndex + avatarsPerPage;
+  const currentAvatars = filteredAvatars.slice(startIndex, endIndex);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setAvatarPage(1);
+  }, [avatarSearch]);
 
   const handleSaveSettings = () => {
     if (username.trim()) {
@@ -103,16 +111,11 @@ export function UserProfile() {
           </div>
         )}
         
-        <div className="text-right flex-1">
+        <div className="text-right flex-1" style={{ marginLeft: '2px' }}>
           <div className={`text-base font-semibold ${
             theme === 'light' ? 'text-gray-800' : 'text-gray-200'
           }`}>
             {currentUser ? currentUser.username : t.unknownDevice}
-          </div>
-          <div className={`text-sm ${
-            theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-          }`}>
-            {t.levelText} {level} • {coins} 🪙
           </div>
         </div>
 
@@ -243,10 +246,60 @@ export function UserProfile() {
                     )}
                   </div>
 
+                  {/* Avatar Search and Pagination */}
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      value={avatarSearch}
+                      onChange={(e) => setAvatarSearch(e.target.value)}
+                      placeholder="ابحث عن رقم الصورة..."
+                      className={`w-full px-4 py-2 border-2 rounded-xl focus:outline-none transition-colors text-lg ${
+                        theme === 'light'
+                          ? 'border-yellow-300 bg-white text-black focus:border-green-500'
+                          : 'border-yellow-600 bg-black text-white focus:border-green-400'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mb-4">
+                      <button
+                        onClick={() => setAvatarPage(Math.max(1, avatarPage - 1))}
+                        disabled={avatarPage === 1}
+                        className={`px-3 py-1 rounded-lg transition-colors ${
+                          theme === 'light'
+                            ? 'bg-yellow-100 hover:bg-yellow-200 text-yellow-700 disabled:opacity-50'
+                            : 'bg-yellow-900 hover:bg-yellow-800 text-yellow-300 disabled:opacity-50'
+                        }`}
+                      >
+                        السابق
+                      </button>
+                      <span className={`px-3 py-1 ${
+                        theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                      }`}>
+                        {avatarPage} / {totalPages}
+                      </span>
+                      <button
+                        onClick={() => setAvatarPage(Math.min(totalPages, avatarPage + 1))}
+                        disabled={avatarPage === totalPages}
+                        className={`px-3 py-1 rounded-lg transition-colors ${
+                          theme === 'light'
+                            ? 'bg-yellow-100 hover:bg-yellow-200 text-yellow-700 disabled:opacity-50'
+                            : 'bg-yellow-900 hover:bg-yellow-800 text-yellow-300 disabled:opacity-50'
+                        }`}
+                      >
+                        التالي
+                      </button>
+                    </div>
+                  )}
+
                   {/* Preset Avatar Grid */}
-                  <div className="text-sm text-gray-500 mb-2">أو اختر من الصور الجاهزة:</div>
+                  <div className="text-sm text-gray-500 mb-2">
+                    {avatarSearch ? `نتائج البحث (${filteredAvatars.length} صورة):` : `اختر من الصور الجاهزة (إظهار ${startIndex + 1}-${Math.min(endIndex, filteredAvatars.length)} من ${filteredAvatars.length}):`}
+                  </div>
                   <div className="grid grid-cols-5 gap-2">
-                    {AVATARS.map((avatar) => (
+                    {currentAvatars.map((avatar, index) => (
                       <button
                         key={avatar}
                         onClick={() => {
@@ -260,7 +313,7 @@ export function UserProfile() {
                       >
                         <img 
                           src={avatar} 
-                          alt={`Avatar ${AVATARS.indexOf(avatar) + 1}`}
+                          alt={`Avatar ${startIndex + index + 1}`}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';

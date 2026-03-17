@@ -8,7 +8,7 @@ import { dailyActivityDB } from '@/lib/dailyActivity';
 
 export function Timer() {
   const { theme } = useTheme();
-  const { getCurrentUser, setTimerActive } = useUser();
+  const { getCurrentUser, updateUserStudyTime, setTimerActive } = useUser();
   const { showFullscreenPrompt, setShowFullscreenPrompt, requestFullscreen } = useFullscreen();
   const [time, setTime] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -80,7 +80,6 @@ export function Timer() {
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
-    let dbUpdateCounter = 0;
     
     if (isRunning) {
       setTimerActive(true);
@@ -88,18 +87,20 @@ export function Timer() {
       // Update the timer display every 100ms
       intervalId = setInterval(async () => {
         setTime((prevTime: number) => prevTime + 100);
-        
-        // Save to database every 5 seconds (every 50 intervals of 100ms)
-        dbUpdateCounter++;
-        if (dbUpdateCounter >= 50) {
-          const currentUser = getCurrentUser();
-          if (currentUser?.accountId) {
-            console.log('⏰ Updating study time in real-time for user:', currentUser.accountId);
-            await dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 5); // Add 5 seconds
-          }
-          dbUpdateCounter = 0;
-        }
       }, 100);
+      
+      // Update study time every 1 second
+      const studyInterval = setInterval(async () => {
+        const currentUser = getCurrentUser();
+        if (currentUser?.accountId) {
+          console.log('⏰ Updating study time for user:', currentUser.accountId);
+          await dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 1); // Add 1 second
+          updateUserStudyTime(1); // Add 1 second for points
+        }
+      }, 1000);
+      
+      // Store the study interval reference for cleanup
+      realtimeUpdateRef.current = studyInterval;
     } else {
       setTimerActive(false);
       if (realtimeUpdateRef.current) {

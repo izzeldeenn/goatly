@@ -117,7 +117,7 @@ export function YouTubeTimer() {
       
       // Update device study time every second
       studyTimeRef.current = setInterval(() => {
-        updateUserStudyTime(1); // Add 1 second of study time
+        // Only update daily activity, not user study time (to avoid double counting)
         if (currentUser?.accountId) {
           dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 1); // Update daily activity
         }

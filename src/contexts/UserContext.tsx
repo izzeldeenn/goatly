@@ -386,9 +386,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const pointsEarned = Math.floor(additionalTime / 10); // 1 point per 10 seconds
 
-    // Accumulate time for database sync
-    dbSyncAccumulator.current += additionalTime;
-
+    // Only update local state, not database (to avoid double counting)
+    // Database will be updated by endStudySession
     setUsers(prevUsers => {
       const newUsers = prevUsers.map(user => {
         if (user.accountId === currentAccountId) {
@@ -408,30 +407,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       newUsers.forEach((user, index) => {
         user.rank = index + 1;
       });
-
-      // Send to database every 10 seconds
-      if (dbSyncAccumulator.current >= 10) {
-        const currentUser = newUsers.find(u => u.accountId === currentAccountId);
-        if (currentUser) {
-          // Check if PocketBase is available before saving
-          isSupabaseAvailable().then(available => {
-            if (available) {
-              userDB.updateUserStudyTime(
-                currentAccountId,
-                currentUser.studyTime,
-                currentUser.score
-              ).then(() => {
-                console.log('💾 User study time saved to PocketBase');
-              }).catch((error: any) => {
-                console.error('Error saving user study time:', error);
-              });
-            } else {
-              console.log('💾 PocketBase not available, using in-memory storage');
-            }
-          });
-        }
-        dbSyncAccumulator.current = 0;
-      }
 
       return newUsers;
     });

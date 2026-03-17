@@ -249,14 +249,13 @@ export class DailyActivityDB {
         // Update existing activity
         const newStudySeconds = (existing.study_seconds || 0) + additionalSeconds;
         const newStudyMinutes = Math.floor(newStudySeconds / 60);
-        const additionalPoints = Math.floor(additionalSeconds / 600); // 1 point per 10 minutes
+        // Don't add points here - points are added by updateUserStudyTime to avoid double counting
         
         const { data, error } = await supabase
           .from('daily_activities')
           .update({
             study_seconds: newStudySeconds,
             study_minutes: newStudyMinutes,
-            points_earned: (existing.points_earned || 0) + additionalPoints,
             last_updated: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -278,7 +277,7 @@ export class DailyActivityDB {
       } else {
         // Create new activity record
         const studyMinutes = Math.floor(additionalSeconds / 60);
-        const pointsEarned = Math.floor(additionalSeconds / 600);
+        // Don't add points here - points are added by updateUserStudyTime to avoid double counting
         
         const { data, error } = await supabase
           .from('daily_activities')
@@ -287,7 +286,6 @@ export class DailyActivityDB {
             date: today,
             study_seconds: additionalSeconds,
             study_minutes: studyMinutes,
-            points_earned: pointsEarned,
             sessions_count: 1,
             focus_score: 50, // Initial focus score
             daily_rank: 999, // Will be updated by updateTodayRankings
@@ -406,7 +404,7 @@ export class DailyActivityDB {
     }
   }
 
-  // End a study session (simplified - just mark end time)
+  // End a study session (update total study time in user account)
   async endStudySession(accountId: string): Promise<boolean> {
     const today = new Date().toISOString().split('T')[0];
     
@@ -419,6 +417,20 @@ export class DailyActivityDB {
         return false;
       }
 
+      // Get today's activity to calculate total session time
+      const { data: activity, error: fetchError } = await supabase
+        .from('daily_activities')
+        .select('*')
+        .eq('account_id', accountId)
+        .eq('date', today)
+        .single();
+
+      if (fetchError) {
+        console.error('❌ Error fetching activity:', fetchError);
+        return false;
+      }
+
+      // Update end time and calculate total study time for user account
       const { data, error } = await supabase
         .from('daily_activities')
         .update({
@@ -433,6 +445,26 @@ export class DailyActivityDB {
       if (error) {
         console.error('❌ Supabase update error:', error);
         return false;
+      }
+
+      // Update user's total study time in their account
+      if (activity && activity.study_seconds > 0) {
+        const { data: user, error: userError } = await supabase
+          .from('users')
+          .select('study_time, score')
+          .eq('account_id', accountId)
+          .single();
+
+        if (!userError && user) {
+          // Don't add points here - points are already handled by updateUserStudyTime
+          await supabase
+            .from('users')
+            .update({
+              study_time: user.study_time + activity.study_seconds,
+              last_active: new Date().toISOString()
+            })
+            .eq('account_id', accountId);
+        }
       }
       
       console.log('✅ Study session ended successfully:', data);

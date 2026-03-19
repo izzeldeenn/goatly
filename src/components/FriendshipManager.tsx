@@ -287,7 +287,7 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
                     <div className="flex items-center space-x-2 space-x-reverse mt-auto">
                       <button
                         onClick={() => {
-                          console.log('🔍 Debug - Messaging button clicked for:', friend.user.username, friend.id);
+                          console.log('🔍 Debug - Messaging button clicked for:', friend.user.username);
                           openMessaging(friend.user);
                         }}
                         className={`p-2 rounded-full transition-colors ${

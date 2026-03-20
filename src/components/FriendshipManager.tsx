@@ -101,7 +101,9 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
         }
       }
 
+      console.log('🔄 Loading friendship data...');
       setFriends(friendsWithDetails);
+      console.log('🔄 Friends data updated:', friendsWithDetails.length, 'friends loaded');
       setPendingRequests(pendingData.map(req => ({
         id: req.id,
         senderId: req.sender_id,
@@ -119,6 +121,7 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
         updatedAt: req.updated_at
       })));
       setAllUsers(usersData.filter(u => u.account_id !== currentUser.accountId));
+      console.log('🔄 All friendship data loaded successfully');
     } catch (error) {
       console.error('Error loading friendship data:', error);
     } finally {
@@ -128,7 +131,8 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
 
   const getCurrentUserId = (): string | null => {
     const currentUser = getCurrentUser();
-    return currentUser?.id || null; // Use UUID instead of accountId
+    // Return the UUID (id) not the accountId for database operations
+    return currentUser?.id || currentUser?.accountId || null;
   };
 
   const openMessaging = (friend: UserAccount) => {
@@ -175,9 +179,16 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
     const friendship = friends.find(f => f.friendship.id === friendshipId);
     if (!friendship) return;
 
-    const success = await friendshipDB.removeFriend(currentUserId, friendship.user.account_id);
+    // Use the UUID from the friendship record, not the custom account_id
+    const friendUuid = friendship.friendship.user1Id === currentUserId ? friendship.friendship.user2Id : friendship.friendship.user1Id;
+    
+    const success = await friendshipDB.removeFriend(currentUserId, friendUuid);
     if (success) {
-      loadData();
+      console.log('🔄 Friend removed successfully, refreshing data...');
+      await loadData();
+      console.log('🔄 Data refresh completed');
+    } else {
+      console.error('❌ Failed to remove friend');
     }
   };
 

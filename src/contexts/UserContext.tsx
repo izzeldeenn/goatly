@@ -304,6 +304,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
           last_active: userAccount.lastActive
         });
         console.log('✅ Account updated successfully:', result);
+        
+        // Update local user object with database UUID
+        if (result && result.id) {
+          userAccount.id = result.id;
+        }
         return result;
       } else {
         // Create new account
@@ -320,6 +325,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
           last_active: userAccount.lastActive
         });
         console.log('✅ Account created successfully:', result);
+        
+        // Update local user object with database UUID
+        if (result && result.id) {
+          userAccount.id = result.id;
+        }
         return result;
       }
     } catch (error: any) {

@@ -226,15 +226,54 @@ export class FriendshipDB {
   // Remove friend
   async removeFriend(user1Id: string, user2Id: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('friendships')
-        .delete()
-        .or(`(user1_id.eq.${user1Id},user2_id.eq.${user2Id}), (user1_id.eq.${user2Id},user2_id.eq.${user1Id})`);
+      // Validate input parameters
+      if (!user1Id || !user2Id) {
+        console.error('❌ Invalid user IDs provided:', { user1Id, user2Id });
+        return false;
+      }
+      
+      if (user1Id === user2Id) {
+        console.error('❌ Cannot remove self as friend:', { user1Id, user2Id });
+        return false;
+      }
 
-      if (error) throw error;
-      return true;
+      console.log('🔍 Debug - removeFriend called with:', { user1Id, user2Id });
+      
+      // Try direct delete approach (most reliable)
+      try {
+        const { data: deleteResult1, error: deleteError1 } = await supabase
+          .from('friendships')
+          .delete()
+          .eq('user1_id', user1Id)
+          .eq('user2_id', user2Id)
+          .select();
+        
+        if (deleteError1) {
+          // Try reverse order
+          const { data: deleteResult2, error: deleteError2 } = await supabase
+            .from('friendships')
+            .delete()
+            .eq('user1_id', user2Id)
+            .eq('user2_id', user1Id)
+            .select();
+          
+          if (deleteError2) {
+            console.error('❌ Both delete attempts failed:', { deleteError1, deleteError2 });
+            return false;
+          } else {
+            console.log('✅ Friend removed successfully');
+            return true;
+          }
+        } else {
+          console.log('✅ Friend removed successfully');
+          return true;
+        }
+      } catch (deleteError) {
+        console.error('❌ Delete operation failed:', deleteError);
+        return false;
+      }
     } catch (error) {
-      console.error('Error removing friend:', error);
+      console.error('❌ Error removing friend:', error);
       return false;
     }
   }
@@ -438,6 +477,19 @@ export class MessageDB {
   async getUnreadCount(userId: string): Promise<number> {
     try {
       console.log('🔍 getUnreadCount called for userId:', userId);
+      
+      // Validate UUID format
+      if (!userId) {
+        console.error('❌ No userId provided to getUnreadCount');
+        return 0;
+      }
+      
+      // Check if userId looks like a UUID (basic validation)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(userId)) {
+        console.warn('⚠️ UserId does not appear to be a valid UUID format:', userId);
+        console.warn('⚠️ This may cause database errors if the receiver_id column expects UUID format');
+      }
       
       const { data, error } = await supabase
         .from('messages')

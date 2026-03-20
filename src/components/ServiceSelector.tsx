@@ -167,9 +167,10 @@ export function ServiceSelector() {
       try {
         console.log('🔍 fetchUnreadCount - Current user:', currentUser);
         
-        // Try different ID properties
+        // Use UUID (id) for database operations, fallback to accountId only if id is not available
+        // But prefer UUID since database expects UUID format for foreign keys
         const userId = currentUser.id || currentUser.accountId;
-        console.log('🔍 fetchUnreadCount - Extracted user ID:', userId);
+        console.log('🔍 fetchUnreadCount - Extracted user ID:', userId, '(type:', userId === currentUser.id ? 'UUID' : 'accountId', ')');
         
         if (!userId) {
           console.error('❌ No valid user ID found');

@@ -394,7 +394,8 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
 
   const getCurrentUserId = (): string | null => {
     const currentUser = getCurrentUser();
-    return currentUser?.id || null; // Use UUID instead of accountId
+    // Return the UUID (id) not the accountId for database operations
+    return currentUser?.id || currentUser?.accountId || null;
   };
 
   const loadConversations = async () => {

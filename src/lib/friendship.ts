@@ -473,6 +473,41 @@ export class MessageDB {
     }
   }
 
+  // Get unread messages count for a specific conversation between two users
+  async getUnreadCountForConversation(userId: string, otherUserId: string): Promise<number> {
+    try {
+      console.log('🔍 getUnreadCountForConversation called for:', { userId, otherUserId });
+      
+      if (!userId || !otherUserId) {
+        console.error('❌ Invalid user IDs provided to getUnreadCountForConversation');
+        return 0;
+      }
+      
+      const { data, error } = await supabase
+        .from('messages')
+        .select('id')
+        .eq('sender_id', otherUserId)
+        .eq('receiver_id', userId)
+        .is('read_at', null)
+        .eq('is_deleted', false);
+
+      console.log('🔍 getUnreadCountForConversation - data:', data);
+      console.log('🔍 getUnreadCountForConversation - error:', error);
+
+      if (error) {
+        console.error('❌ Supabase error in getUnreadCountForConversation:', error);
+        throw error;
+      }
+      
+      const count = data?.length || 0;
+      console.log('🔍 getUnreadCountForConversation - returning count:', count);
+      return count;
+    } catch (error) {
+      console.error('❌ Error fetching unread count for conversation:', error);
+      return 0;
+    }
+  }
+
   // Get unread messages count for a user
   async getUnreadCount(userId: string): Promise<number> {
     try {

@@ -6,6 +6,7 @@ import { userDB, UserAccount } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { MessageCircle, Trash2, Search, UserPlus, X, User, Check, Clock, AlertTriangle } from 'lucide-react';
 import { initializeFriendshipTables, testFriendshipTables } from '@/lib/friendship-init';
+import UniversalAvatar from './UniversalAvatar';
 
 interface Friend {
   user: UserAccount;
@@ -282,13 +283,12 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
                   isDark ? 'bg-gray-800/90 backdrop-blur-sm border-gray-700' : 'bg-white/80 backdrop-blur-sm border-white/20'
                 } rounded-lg p-4 hover:bg-white/90 transition-colors min-h-[280px] flex flex-col`}>
                   <div className="flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
-                      {friend.user.avatar ? (
-                        <img src={friend.user.avatar} alt={friend.user.username} className="w-16 h-16 rounded-full" />
-                      ) : (
-                        <User className="w-8 h-8 text-blue-600" />
-                      )}
-                    </div>
+                    <UniversalAvatar 
+                      src={friend.user.avatar} 
+                      username={friend.user.username}
+                      size="xlarge"
+                      className="mb-3"
+                    />
                     <h3 className={`font-semibold mb-1 ${
                       isDark ? 'text-gray-100' : 'text-gray-800'
                     }`}>{friend.user.username}</h3>
@@ -340,13 +340,12 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
                 return (
                   <div key={request.id} className="bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg p-4 hover:bg-white/90 transition-colors min-h-[280px] flex flex-col">
                     <div className="flex flex-col items-center text-center">
-                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
-                        {sender.avatar ? (
-                          <img src={sender.avatar} alt={sender.username} className="w-16 h-16 rounded-full" />
-                        ) : (
-                          <User className="w-8 h-8 text-blue-600" />
-                        )}
-                      </div>
+                      <UniversalAvatar 
+                        src={sender.avatar} 
+                        username={sender.username}
+                        size="xlarge"
+                        className="mb-3"
+                      />
                       <h3 className="font-semibold text-gray-800 mb-1">{sender.username}</h3>
                       <p className="text-sm text-gray-500 mb-3">طلب صداقة {formatTimeAgo(request.createdAt)}</p>
                       <div className="flex items-center space-x-2 space-x-reverse mt-auto">
@@ -384,20 +383,19 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
                   return (
                     <div key={request.id} className="bg-white/60 backdrop-blur-sm border border-white/20 rounded-lg p-4 min-h-[280px] flex flex-col">
                       <div className="flex flex-col items-center text-center">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                          {receiver.avatar ? (
-                            <img src={receiver.avatar} alt={receiver.username} className="w-16 h-16 rounded-full" />
-                          ) : (
-                            <User className="w-8 h-8 text-gray-600" />
-                          )}
-                        </div>
+                        <UniversalAvatar 
+                          src={receiver.avatar} 
+                          username={receiver.username}
+                          size="xlarge"
+                          className="mb-3"
+                        />
                         <h3 className="font-semibold text-gray-800 mb-1">{receiver.username}</h3>
-                        <p className="text-sm text-gray-500 flex items-center">
-                          <Clock className="w-3 h-3 ml-1" />
-                          {formatTimeAgo(request.createdAt)}
-                        </p>
-                        <div className="text-sm text-gray-500 mt-2">
-                          في انتظار الرد
+                        <p className="text-sm text-gray-500 mb-3">طلب صداقة {formatTimeAgo(request.createdAt)}</p>
+                        <div className="flex items-center space-x-2 space-x-reverse mt-auto">
+                          <div className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm">
+                            <Clock className="w-3 h-3 inline ml-1" />
+                            في انتظار الرد
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -424,13 +422,12 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
                 return (
                   <div key={user.account_id} className="bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg p-4 hover:bg-white/90 transition-colors min-h-[280px] flex flex-col">
                     <div className="flex flex-col items-center text-center">
-                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
-                        {user.avatar ? (
-                          <img src={user.avatar} alt={user.username} className="w-16 h-16 rounded-full" />
-                        ) : (
-                          <User className="w-8 h-8 text-blue-600" />
-                        )}
-                      </div>
+                      <UniversalAvatar 
+                        src={user.avatar} 
+                        username={user.username}
+                        size="xlarge"
+                        className="mb-3"
+                      />
                       <h3 className="font-semibold text-gray-800 mb-1">{user.username}</h3>
                       <p className="text-sm text-gray-500 mb-3">المستوى {user.rank} • {user.score} نقطة</p>
                       <div className="flex items-center justify-center mt-auto">

@@ -6,6 +6,7 @@ import { userDB, UserAccount } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { Send, ArrowLeft, Search, MoreVertical } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import UniversalAvatar from './UniversalAvatar';
 
 interface Conversation {
   id: string;
@@ -186,13 +187,26 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
                   (formattedMessage.senderId === userId && formattedMessage.receiverId === convFriendId) ||
                   (formattedMessage.senderId === convFriendId && formattedMessage.receiverId === userId);
                 
-                return isRelevantConv
-                  ? { 
-                      ...conv, 
-                      lastMessage: formattedMessage,
-                      lastMessageAt: formattedMessage.createdAt
-                    }
-                  : conv;
+                if (isRelevantConv) {
+                  // If this is a message from friend to user, increment unread count
+                  // unless this is the currently selected conversation
+                  const isSelectedConversation = selectedConversation && (
+                    selectedConversation.user.id === convFriendId || 
+                    selectedConversation.user.account_id === convFriendId
+                  );
+                  
+                  const newUnreadCount = formattedMessage.senderId !== userId && !isSelectedConversation 
+                    ? (conv.unreadCount || 0) + 1 
+                    : conv.unreadCount || 0;
+                  
+                  return { 
+                    ...conv, 
+                    lastMessage: formattedMessage,
+                    lastMessageAt: formattedMessage.createdAt,
+                    unreadCount: newUnreadCount
+                  };
+                }
+                return conv;
               })
             );
             
@@ -302,8 +316,20 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
       }
       
       loadMessages(friendId);
-      // Mark messages as read
+      
+      // Mark messages as read immediately when conversation is opened
       markMessagesAsRead();
+      
+      // Update conversations list to reset unread count for this conversation
+      setConversations(prev => 
+        prev.map(conv => {
+          const convFriendId = conv.user.id || conv.user.account_id;
+          if (convFriendId === friendId) {
+            return { ...conv, unreadCount: 0 };
+          }
+          return conv;
+        })
+      );
     }
   }, [selectedConversation]);
 
@@ -451,7 +477,8 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
           continue;
         }
         
-        const unreadCount = await messageDB.getUnreadCount(currentUserId);
+        // Get unread count for this specific conversation
+        const unreadCount = await messageDB.getUnreadCountForConversation(currentUserId, otherUserId);
         
         conversationsWithUsers.push({
           id: conv.id || `conv_${conv.idx || Math.random()}`, // Use idx or random as fallback
@@ -465,7 +492,7 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
             createdAt: conv.last_message_at,
             isDeleted: false
           },
-          unreadCount: conv.last_message_sender_id !== currentUserId ? 1 : 0
+          unreadCount: unreadCount
         });
       }
 
@@ -518,21 +545,89 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
     const currentUserId = getCurrentUserId();
     const friendId = selectedConversation.user.id || selectedConversation.user.account_id;
     
+    console.log('🔍 Debug - User IDs:', { 
+      currentUserId, 
+      friendId, 
+      currentUserIdType: typeof currentUserId,
+      friendIdType: typeof friendId,
+      selectedConversationUser: selectedConversation.user
+    });
+    
     if (!currentUserId || !friendId) return;
     
     try {
-      // Mark unread messages from friend as read
-      await supabase
+      console.log('🔍 Marking messages as read for conversation:', { currentUserId, friendId });
+      
+      // First, let's check what messages exist that need to be marked as read
+      const { data: unreadMessages, error: checkError } = await supabase
         .from('messages')
-        .update({ 
-          read_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .select('id, sender_id, receiver_id, read_at, is_deleted')
         .eq('sender_id', friendId)
         .eq('receiver_id', currentUserId)
-        .is('read_at', null);
+        .is('read_at', null)
+        .eq('is_deleted', false);
         
-      console.log('🔍 Messages marked as read');
+      if (checkError) {
+        console.error('❌ Error checking unread messages:', checkError);
+        console.error('❌ Check error details:', JSON.stringify(checkError, null, 2));
+        throw checkError;
+      }
+      
+      console.log('🔍 Found unread messages to mark as read:', unreadMessages?.length || 0);
+      console.log('🔍 Unread messages sample:', unreadMessages?.slice(0, 3));
+      
+      if (!unreadMessages || unreadMessages.length === 0) {
+        console.log('🔍 No unread messages to mark as read');
+        return;
+      }
+      
+      // Try to mark messages as read using individual message IDs
+      const messageIds = unreadMessages.map(msg => msg.id);
+      console.log('🔍 Attempting to mark messages as read:', messageIds);
+      
+      const { data, error } = await supabase
+        .from('messages')
+        .update({ 
+          read_at: new Date().toISOString()
+        })
+        .in('id', messageIds)
+        .select();
+        
+      if (error) {
+        console.error('❌ Error marking messages as read:', error);
+        console.error('❌ Error details:', JSON.stringify(error, null, 2));
+        
+        // Fallback: try individual updates
+        console.log('🔍 Trying fallback approach with individual updates...');
+        let successCount = 0;
+        
+        for (const message of unreadMessages) {
+          try {
+            const { error: singleError } = await supabase
+              .from('messages')
+              .update({ 
+                read_at: new Date().toISOString()
+              })
+              .eq('id', message.id);
+              
+            if (singleError) {
+              console.error(`❌ Error updating message ${message.id}:`, singleError);
+            } else {
+              successCount++;
+            }
+          } catch (err) {
+            console.error(`❌ Exception updating message ${message.id}:`, err);
+          }
+        }
+        
+        console.log(`🔍 Fallback approach: ${successCount}/${unreadMessages.length} messages updated`);
+        
+        if (successCount === 0) {
+          throw error; // Re-throw original error if fallback failed completely
+        }
+      }
+      
+      console.log('✅ Messages marked as read successfully:', data);
       
       // Also update local messages state
       setMessages(prev => 
@@ -542,8 +637,26 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
             : msg
         )
       );
+      
+      // Update conversation unread count
+      setConversations(prev => 
+        prev.map(conv => {
+          const convFriendId = conv.user.id || conv.user.account_id;
+          if (convFriendId === friendId) {
+            return { ...conv, unreadCount: 0 };
+          }
+          return conv;
+        })
+      );
+      
     } catch (error) {
-      console.error('Error marking messages as read:', error);
+      console.error('❌ Error marking messages as read:', error);
+      console.error('❌ Error type:', typeof error);
+      console.error('❌ Error string:', String(error));
+      if (error && typeof error === 'object') {
+        console.error('❌ Error keys:', Object.keys(error));
+        console.error('❌ Error details:', JSON.stringify(error, null, 2));
+      }
     }
   };
 
@@ -676,15 +789,12 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
                     (isDark ? 'bg-blue-900' : 'bg-blue-50') : ''
                 } ${isDark ? 'border-gray-700' : 'border-b'}`}
               >
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center ml-3">
-                  {conversation.user.avatar ? (
-                    <img src={conversation.user.avatar} alt={conversation.user.username} className="w-12 h-12 rounded-full" />
-                  ) : (
-                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                      {conversation.user.username.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
+                <UniversalAvatar 
+                  src={conversation.user.avatar} 
+                  username={conversation.user.username}
+                  size="large"
+                  className="ml-3"
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
                     <h3 className={`font-semibold truncate ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
@@ -723,15 +833,12 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center ml-3">
-                {selectedConversation.user.avatar ? (
-                  <img src={selectedConversation.user.avatar} alt={selectedConversation.user.username} className="w-10 h-10 rounded-full" />
-                ) : (
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                    {selectedConversation.user.username.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
+              <UniversalAvatar 
+                  src={selectedConversation.user.avatar} 
+                  username={selectedConversation.user.username}
+                  size="medium"
+                  className="ml-3"
+                />
               <div>
                 <h3 className={`font-semibold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
                   {selectedConversation.user.username}

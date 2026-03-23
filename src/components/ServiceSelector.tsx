@@ -269,9 +269,9 @@ export function ServiceSelector() {
   return (
     <div className="w-full h-full md:h-screen flex flex-col overflow-hidden">
       {/* Active Timer - Scrollable Container */}
-      <div className="flex-1 overflow-hidden pt-8">
+      <div className="flex-1 overflow-hidden pt-4">
         <div className="h-full overflow-y-auto">
-          <div className="h-full flex items-center justify-center py-4">
+          <div className="h-full flex items-center justify-center py-2">
             {renderTimer()}
           </div>
         </div>

@@ -74,10 +74,10 @@ export function Timer() {
     if (isRunning) {
       setTimerActive(true);
       
-      // Update the timer display every 100ms
+      // Update the timer display every 1 second
       intervalId = setInterval(async () => {
-        setTime((prevTime: number) => prevTime + 100);
-      }, 100);
+        setTime((prevTime: number) => prevTime + 1);
+      }, 1000);
       
       // Update study time every 1 second
       const studyInterval = setInterval(async () => {
@@ -109,15 +109,14 @@ export function Timer() {
     };
   }, [isRunning]);
 
-  const formatTime = (milliseconds: number) => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const ms = Math.floor((milliseconds % 1000) / 10);
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
 
-    return `${minutes.toString().padStart(2, '0')}:${seconds
+    return `${hours.toString().padStart(2, '0')}:${minutes
       .toString()
-      .padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+      .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleStart = async () => {
@@ -168,7 +167,7 @@ export function Timer() {
         <h1 className={`text-6xl font-bold mb-8 font-mono ${
           theme === 'light' ? 'text-black' : 'text-white'
         }`}>
-          00:00.00
+          00:00:00
         </h1>
       ) : (
         <>
@@ -177,6 +176,7 @@ export function Timer() {
           }`}>
             {formatTime(time)}
           </h1>
+          
           <div className="flex justify-center items-center space-x-4 space-x-reverse">
             <button
               onClick={handleStart}

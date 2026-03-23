@@ -75,12 +75,12 @@ function HomeContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [studyStreak, setStudyStreak] = useState(0);
 
-  // Calculate study streak based on user activity
+  // Calculate study streak based on user activity (matching ActivityGraph logic)
   const calculateStudyStreak = () => {
     const currentUser = getCurrentUser();
     if (!currentUser) return 0;
     
-    // Get user activities from localStorage or user data
+    // Get user activities from localStorage (same data as ActivityGraph)
     const activitiesKey = `user_activities_${currentUser.id}`;
     const storedActivities = localStorage.getItem(activitiesKey);
     
@@ -102,31 +102,30 @@ function HomeContent() {
       const activities = JSON.parse(storedActivities);
       if (!Array.isArray(activities) || activities.length === 0) return 0;
       
-      // Sort activities by date (most recent first)
-      activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      
+      // Filter activities with study time > 0 and sort by date (most recent first)
+      const studyActivities = activities
+        .filter(c => c.studyMinutes > 0)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
       let streak = 0;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
-      for (let i = 0; i < activities.length; i++) {
-        const activityDate = new Date(activities[i].date);
+      let checkDate = new Date(today);
+
+      for (const activity of studyActivities) {
+        const activityDate = new Date(activity.date);
         activityDate.setHours(0, 0, 0, 0);
         
-        const daysDiff = Math.floor((today.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24));
+        const daysDiff = Math.floor((checkDate.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24));
         
         if (daysDiff === streak) {
-          // This activity is part of the consecutive streak
-          if (activities[i].duration > 0) { // Only count if there was actual study time
-            streak++;
-          } else {
-            break; // Break if no study time on this day
-          }
+          streak++;
+          checkDate = activityDate;
         } else {
-          break; // Break if gap in consecutive days
+          break;
         }
       }
-      
+
       return streak;
     } catch (error) {
       console.error('Error calculating study streak:', error);

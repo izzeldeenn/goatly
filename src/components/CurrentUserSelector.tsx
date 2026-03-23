@@ -36,38 +36,72 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
   const [selectedAvatar, setSelectedAvatar] = useState('');
   const [customAvatarUrl, setCustomAvatarUrl] = useState('');
   const [todayStudyTime, setTodayStudyTime] = useState(0);
+  const [currentStreak, setCurrentStreak] = useState(0);
 
   const currentUser = getCurrentUser();
   const isActive = isTimerActive();
 
-  // Load today's study time
+  // Calculate study streak (same function as ActivityGraph)
+  const calculateCurrentStreak = (contributions: any[]): number => {
+    if (contributions.length === 0) return 0;
+    
+    const sortedContributions = contributions
+      .filter(c => c.studyMinutes > 0)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    let streak = 0;
+    const today = new Date().toISOString().split('T')[0];
+    let checkDate = new Date(today);
+
+    for (const contribution of sortedContributions) {
+      const contribDate = new Date(contribution.date);
+      const daysDiff = Math.floor((checkDate.getTime() - contribDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysDiff === streak) {
+        streak++;
+        checkDate = contribDate;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  };
+
+  // Load today's study time and streak
   useEffect(() => {
-    const loadTodayStudyTime = async () => {
+    const loadData = async () => {
       if (currentUser?.accountId) {
         try {
-          console.log('🔄 Loading today study time for user:', currentUser.accountId);
-          const today = new Date().toISOString().split('T')[0];
-          
-          // Use same method as UserRankings - get from dailyRankings
+          // Load today's study time
           const rankings = await dailyActivityDB.getTodayRankings();
-          console.log('📊 Today rankings from DB:', rankings);
           
           const userActivity = rankings.find(r => r.account_id === currentUser.accountId);
-          console.log('🎯 Found user activity:', userActivity);
           
           const time = userActivity?.study_minutes || 0;
-          console.log('⏰ Setting today study time to:', time);
           setTodayStudyTime(time);
+          
+          // Get user contributions for streak calculation
+          try {
+            const contributions = await dailyActivityDB.getUserActivityContributions(currentUser.accountId);
+            
+            // Calculate and set streak using the same function as ActivityGraph
+            const streak = calculateCurrentStreak(contributions);
+            setCurrentStreak(streak);
+          } catch (error: any) {
+            console.error('❌ Error getting user contributions:', error);
+          }
+          
         } catch (error) {
-          console.error('❌ Error loading today study time:', error);
+          console.error('❌ Error loading data:', error);
         }
       }
     };
 
-    loadTodayStudyTime();
+    loadData();
     
     // Update every 30 seconds to keep it fresh
-    const interval = setInterval(loadTodayStudyTime, 30000);
+    const interval = setInterval(loadData, 30000);
     
     return () => clearInterval(interval);
   }, [currentUser?.accountId]);
@@ -156,14 +190,14 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
                     {todayStudyTime}m ⏱️
                   </div>
                   
-                  {studyStreak !== undefined && (
+                  {currentStreak > 0 && (
                     <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                       theme === 'light'
                         ? 'bg-gradient-to-r from-orange-50 to-red-50 text-orange-700 border border-orange-200'
                         : 'bg-gradient-to-r from-orange-900/30 to-red-900/30 text-orange-300 border border-orange-700/50'
                     }`}>
                       <span className="text-sm mr-1">🔥</span>
-                      {studyStreak} أيام
+                      {currentStreak} أيام
                     </div>
                   )}
                 </div>

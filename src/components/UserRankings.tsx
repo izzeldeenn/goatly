@@ -156,15 +156,6 @@ export function UserRankings() {
     const isActive = isTimerActive();
     const isCurrent = users.length > 0 && users[0]?.accountId === user.accountId;
     
-    // Debug logging
-    console.log('UserRankings Debug:', {
-      userId: user.accountId,
-      username: user.username,
-      isActive,
-      isCurrent,
-      result: isActive && isCurrent
-    });
-    
     return isActive && isCurrent;
   };
 

@@ -154,38 +154,27 @@ export function ActivityGraph({ contributions, username }: ActivityGraphProps) {
   function calculateCurrentStreak(contributions: ActivityContribution[]): number {
     if (contributions.length === 0) return 0;
     
-    const sortedContributions = contributions
-      .filter(c => c.studyMinutes > 0)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Create a Set of dates with study minutes > 0 for faster lookup
+    const studyDates = new Set(
+      contributions
+        .filter(c => c.studyMinutes > 0)
+        .map(c => c.date)
+    );
 
     let streak = 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set to start of day
-    const todayStr = today.toISOString().split('T')[0];
-    let checkDate = new Date(today);
-
-    // Check if there's a contribution for today
-    const todayContribution = contributions.find(c => c.date === todayStr && c.studyMinutes > 0);
-    if (!todayContribution) {
-      return 0; // No contribution today means streak is 0
-    }
-
-    // Start counting from today
-    streak = 1;
-    checkDate.setDate(checkDate.getDate() - 1);
-
-    // Count backwards through consecutive days
-    while (true) {
-      const checkDateStr = checkDate.toISOString().split('T')[0];
-      const hasContribution = contributions.some(c => 
-        c.date === checkDateStr && c.studyMinutes > 0
-      );
+    
+    // Check backwards from today
+    for (let i = 0; i < 365; i++) { // Check up to a year back
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() - i);
+      const dateStr = checkDate.toISOString().split('T')[0];
       
-      if (hasContribution) {
+      if (studyDates.has(dateStr)) {
         streak++;
-        checkDate.setDate(checkDate.getDate() - 1);
       } else {
-        break;
+        break; // Break on first day without study
       }
     }
 

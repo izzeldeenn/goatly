@@ -132,27 +132,42 @@ export function UserActivityDashboard({ accountId }: UserActivityDashboardProps)
   };
 
   const calculateCurrentStreak = (contributions: ActivityContribution[]) => {
-    const activeContributions = contributions.filter(c => c.studyMinutes > 0);
-    if (activeContributions.length === 0) return 0;
+    if (contributions.length === 0) return 0;
     
-    const sorted = activeContributions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
-    let streak = 0;
-    const today = new Date().toISOString().split('T')[0];
-    let checkDate = new Date(today);
+    // Create a Set of dates with study minutes > 0 for faster lookup
+    const studyDates = new Set(
+      contributions
+        .filter(c => c.studyMinutes > 0)
+        .map(c => c.date)
+    );
 
-    for (const contribution of sorted) {
-      const contribDate = new Date(contribution.date);
-      const daysDiff = Math.floor((checkDate.getTime() - contribDate.getTime()) / (1000 * 60 * 60 * 24));
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day
+    
+    // Debug: Log the study dates to see what we have
+    console.log('Dashboard Study dates found:', Array.from(studyDates).sort());
+    console.log('Dashboard Today is:', today.toISOString().split('T')[0]);
+    
+    // Check backwards from today
+    for (let i = 0; i < 365; i++) { // Check up to a year back
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() - i);
+      const dateStr = checkDate.toISOString().split('T')[0];
       
-      if (daysDiff === streak) {
+      // Debug: Log what we're checking
+      console.log(`Dashboard Checking day ${i}: ${dateStr}, has study:`, studyDates.has(dateStr));
+      
+      if (studyDates.has(dateStr)) {
         streak++;
-        checkDate = contribDate;
+        console.log(`Dashboard Found study for ${dateStr}, streak is now:`, streak);
       } else {
-        break;
+        console.log(`Dashboard No study for ${dateStr}, breaking streak at:`, streak);
+        break; // Break on first day without study
       }
     }
 
+    console.log('Dashboard Final streak:', streak);
     return streak;
   };
 

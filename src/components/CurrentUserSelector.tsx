@@ -45,26 +45,40 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
   const calculateCurrentStreak = (contributions: any[]): number => {
     if (contributions.length === 0) return 0;
     
-    const sortedContributions = contributions
-      .filter(c => c.studyMinutes > 0)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Create a Set of dates with study minutes > 0 for faster lookup
+    const studyDates = new Set(
+      contributions
+        .filter(c => c.studyMinutes > 0)
+        .map(c => c.date)
+    );
 
     let streak = 0;
-    const today = new Date().toISOString().split('T')[0];
-    let checkDate = new Date(today);
-
-    for (const contribution of sortedContributions) {
-      const contribDate = new Date(contribution.date);
-      const daysDiff = Math.floor((checkDate.getTime() - contribDate.getTime()) / (1000 * 60 * 60 * 24));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day
+    
+    // Debug: Log the study dates to see what we have
+    console.log('CurrentUserSelector Study dates found:', Array.from(studyDates).sort());
+    console.log('CurrentUserSelector Today is:', today.toISOString().split('T')[0]);
+    
+    // Check backwards from today
+    for (let i = 0; i < 365; i++) { // Check up to a year back
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() - i);
+      const dateStr = checkDate.toISOString().split('T')[0];
       
-      if (daysDiff === streak) {
+      // Debug: Log what we're checking
+      console.log(`CurrentUserSelector Checking day ${i}: ${dateStr}, has study:`, studyDates.has(dateStr));
+      
+      if (studyDates.has(dateStr)) {
         streak++;
-        checkDate = contribDate;
+        console.log(`CurrentUserSelector Found study for ${dateStr}, streak is now:`, streak);
       } else {
-        break;
+        console.log(`CurrentUserSelector No study for ${dateStr}, breaking streak at:`, streak);
+        break; // Break on first day without study
       }
     }
 
+    console.log('CurrentUserSelector Final streak:', streak);
     return streak;
   };
 

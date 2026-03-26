@@ -48,6 +48,7 @@ interface UserContextType {
   getAllDeviceUsers: () => UserAccountFrontend[];
   updateUserName: (name: string) => void;
   updateUserAvatar: (avatar: string) => void;
+  updateUserEmail: (email: string) => void;
   updateUserStudyTime: (additionalTime: number) => void;
   updateUserScore: (additionalScore: number) => void;
   setTimerActive: (active: boolean) => void;
@@ -155,39 +156,57 @@ export function UserProvider({ children }: { children: ReactNode }) {
             console.log('📊 Mapped users to frontend format:', userAccounts.length);
             
             // CRITICAL: Always preserve current user's local changes
-            const currentUser = users.find(u => u.accountId === currentAccountId);
-            if (currentUser) {
-              const updatedCurrentUser = userAccounts.find(u => u.accountId === currentAccountId);
-              if (updatedCurrentUser) {
-                // NEVER overwrite current user's local username and avatar
-                updatedCurrentUser.username = currentUser.username;
-                updatedCurrentUser.avatar = currentUser.avatar;
-                updatedCurrentUser.lastActive = currentUser.lastActive;
-                
-                // Also check localStorage as additional backup
-                if (typeof window !== 'undefined') {
-                  const localUsername = localStorage.getItem(`username_${currentAccountId}`);
-                  const localAvatar = localStorage.getItem(`avatar_${currentAccountId}`);
+            setUsers(prevUsers => {
+              const currentUser = prevUsers.find(u => u.accountId === currentAccountId);
+              if (currentUser) {
+                const updatedCurrentUser = userAccounts.find(u => u.accountId === currentAccountId);
+                if (updatedCurrentUser) {
+                  // NEVER overwrite current user's local username, email, and avatar
+                  updatedCurrentUser.username = currentUser.username;
+                  updatedCurrentUser.email = currentUser.email;
+                  updatedCurrentUser.avatar = currentUser.avatar;
+                  updatedCurrentUser.lastActive = currentUser.lastActive;
                   
-                  if (localUsername && localUsername !== updatedCurrentUser.username) {
-                    updatedCurrentUser.username = localUsername;
-                    console.log('🔄 Restored username from localStorage in real-time:', localUsername);
+                  // Also check localStorage as additional backup
+                  if (typeof window !== 'undefined') {
+                    const localUsername = localStorage.getItem(`username_${currentAccountId}`);
+                    const localEmail = localStorage.getItem(`email_${currentAccountId}`);
+                    const localAvatar = localStorage.getItem(`avatar_${currentAccountId}`);
+                    
+                    if (localUsername && localUsername !== updatedCurrentUser.username) {
+                      updatedCurrentUser.username = localUsername;
+                      console.log('🔄 Restored username from localStorage in real-time:', localUsername);
+                    }
+                    
+                    if (localEmail && localEmail !== updatedCurrentUser.email) {
+                      updatedCurrentUser.email = localEmail;
+                      console.log('🔄 Restored email from localStorage in real-time:', localEmail);
+                    }
+                    
+                    if (localAvatar && localAvatar !== updatedCurrentUser.avatar) {
+                      updatedCurrentUser.avatar = localAvatar;
+                      console.log('🔄 Restored avatar from localStorage in real-time:', localAvatar);
+                    }
                   }
                   
-                  if (localAvatar && localAvatar !== updatedCurrentUser.avatar) {
-                    updatedCurrentUser.avatar = localAvatar;
-                    console.log('� Restored avatar from localStorage in real-time:', localAvatar);
-                  }
+                  console.log('🔒 Preserved current user local data:', {
+                    username: updatedCurrentUser.username,
+                    email: updatedCurrentUser.email,
+                    avatar: updatedCurrentUser.avatar
+                  });
                 }
-                
-                console.log('�🔒 Preserved current user local data:', {
-                  username: updatedCurrentUser.username,
-                  avatar: updatedCurrentUser.avatar
-                });
               }
-            }
-            
-            setUsers(userAccounts);
+              
+              // For other users, use the updated data from database
+              return userAccounts.map(updatedUser => {
+                const preservedUser = prevUsers.find(prev => prev.accountId === updatedUser.accountId);
+                if (preservedUser && preservedUser.accountId === currentAccountId) {
+                  // Use preserved current user data
+                  return updatedUser;
+                }
+                return updatedUser;
+              });
+            });
           });
         } else {
           console.log('🔄 Real-time subscription failed, using fallback mode');
@@ -280,17 +299,24 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const accountInfo = getAccountInfo();
     console.log('📋 Account info:', accountInfo);
     
-    // Restore username and avatar from localStorage if available
+    // Restore username, email, and avatar from localStorage if available
     let savedUsername = accountInfo.username;
+    let savedEmail = accountInfo.email;
     let savedAvatar = '👤';
     
     if (typeof window !== 'undefined') {
       const localUsername = localStorage.getItem(`username_${accountInfo.accountId}`);
+      const localEmail = localStorage.getItem(`email_${accountInfo.accountId}`);
       const localAvatar = localStorage.getItem(`avatar_${accountInfo.accountId}`);
       
       if (localUsername) {
         savedUsername = localUsername;
         console.log('🔄 Restored username from localStorage:', localUsername);
+      }
+      
+      if (localEmail) {
+        savedEmail = localEmail;
+        console.log('🔄 Restored email from localStorage:', localEmail);
       }
       
       if (localAvatar) {
@@ -303,7 +329,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       id: undefined, // Will be set by database
       accountId: accountInfo.accountId,
       username: savedUsername,
-      email: accountInfo.email,
+      email: savedEmail,
       hashKey: accountInfo.hashKey,
       avatar: savedAvatar,
       score: 0,
@@ -441,6 +467,34 @@ export function UserProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateUserEmail = (email: string) => {
+    if (!currentAccountId) return;
+    
+    // Save to localStorage as backup
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`email_${currentAccountId}`, email);
+    }
+    
+    setUsers(prevUsers => {
+      const newUsers = prevUsers.map(user => {
+        if (user.accountId === currentAccountId) {
+          return { ...user, email, lastActive: new Date().toISOString() };
+        }
+        return user;
+      });
+      return newUsers;
+    });
+    
+    // Update in Supabase immediately to ensure consistency
+    isSupabaseAvailable().then(available => {
+      if (available) {
+        userDB.updateUserByAccountId(currentAccountId, { email }).catch((error: any) => {
+          console.error('Error updating email:', error);
+        });
+      }
+    });
+  };
+
   const updateUserStudyTime = async (additionalTime: number) => {
     if (!currentAccountId) return;
 
@@ -573,6 +627,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (typeof window !== 'undefined') {
         localStorage.setItem('currentAccountId', users.account_id);
         localStorage.setItem('isLoggedIn', 'true');
+        // Save email to localStorage for preservation
+        localStorage.setItem(`email_${users.account_id}`, users.email);
       }
 
       console.log('✅ Login successful for:', users.username);
@@ -705,6 +761,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
           });
         });
 
+        // Save email to localStorage for preservation
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`email_${currentUser.accountId}`, email);
+          localStorage.setItem(`username_${currentUser.accountId}`, username);
+        }
+
         console.log('✅ Account upgrade successful');
         return { success: true };
       } else {
@@ -726,6 +788,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       getAllDeviceUsers,
       updateUserName,
       updateUserAvatar,
+      updateUserEmail,
       updateUserStudyTime,
       updateUserScore,
       setTimerActive,

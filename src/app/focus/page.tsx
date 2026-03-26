@@ -20,6 +20,8 @@ import { RankingDisplay } from '@/components/RankingDisplay';
 import { BACKGROUNDS } from '@/constants/backgrounds';
 import { useFirstTimeSetup } from '@/hooks/useFirstTimeSetup';
 import { OnboardingWizard } from '@/components/OnboardingWizard';
+import { MusicPlayer } from '@/components/MusicPlayer';
+import { MusicToggleButton } from '@/components/MusicToggleButton';
 
 // Motivational quotes
 const MOTIVATIONAL_QUOTES = {
@@ -313,12 +315,26 @@ function HomeContent() {
         <FullscreenPrompt />
         {isLoading && <LoadingSpinner onComplete={() => setIsLoading(false)} />}
         
+        {/* Music Player - Fixed positioning for all screen sizes */}
+        <div className="fixed bottom-4 right-4 z-50 md:hidden lg:hidden">
+          <MusicPlayer />
+        </div>
+        <div className="hidden md:block lg:hidden fixed bottom-4 right-4 z-50">
+          <MusicPlayer />
+        </div>
+        <div className="hidden lg:block fixed bottom-4 right-4 z-50">
+          <MusicPlayer />
+        </div>
+        
         {/* Desktop Layout - Full screen with floating sidebar */}
         <div className="hidden md:flex w-full h-full relative">
           
           {/* Top Bar with Logo and Social */}
           <div className="absolute top-0 left-0 right-0 z-40 p-6 flex justify-between items-center">
-            <Logo />
+            <div className="flex items-center gap-4">
+              <Logo />
+              <MusicToggleButton />
+            </div>
             <div className="flex flex-col items-center space-y-2">
               <div 
                 className="text-2xl transition-all duration-300 max-w-lg text-center"

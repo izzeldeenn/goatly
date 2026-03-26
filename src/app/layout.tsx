@@ -7,6 +7,7 @@ import { GamificationProvider } from "@/contexts/GamificationContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Analytics } from "@vercel/analytics/next";
 import { FirstTimeSetup } from "@/components/FirstTimeSetup";
+import { MusicProvider } from "@/contexts/MusicContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,8 +43,10 @@ export default function RootLayout({
           <ThemeProvider>
             <GamificationProvider>
               <UserProvider>
-                <FirstTimeSetup />
-                {children}
+                <MusicProvider>
+                  <FirstTimeSetup />
+                  {children}
+                </MusicProvider>
               </UserProvider>
             </GamificationProvider>
           </ThemeProvider>

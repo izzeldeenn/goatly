@@ -4,7 +4,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 export function useCustomThemeClasses() {
   const { theme } = useTheme();
   const { currentTheme } = useCustomTheme();
-  const themeClasses = getThemeClasses(currentTheme, theme === 'dark');
+  const themeClasses = getThemeClasses(currentTheme || null, theme === 'dark');
 
   // Generate dynamic Tailwind classes based on custom theme
   const getButtonClass = (variant: 'primary' | 'secondary' | 'accent' = 'primary') => {

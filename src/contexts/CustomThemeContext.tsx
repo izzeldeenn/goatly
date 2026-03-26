@@ -101,16 +101,20 @@ export function CustomThemeProvider({ children }: { children: ReactNode }) {
       try {
         const parsed = JSON.parse(savedTheme);
         const theme = availableThemes.find(t => t.name === parsed.name) || parsed;
-        setCurrentTheme(theme);
+        if (theme && theme.colors) {
+          setCurrentTheme(theme);
+        }
       } catch (error) {
         console.error('Error loading saved theme:', error);
       }
     }
-  }, []);
+  }, [availableThemes]);
 
   const setTheme = (theme: CustomTheme) => {
-    setCurrentTheme(theme);
-    localStorage.setItem('customTheme', JSON.stringify(theme));
+    if (theme && theme.colors) {
+      setCurrentTheme(theme);
+      localStorage.setItem('customTheme', JSON.stringify(theme));
+    }
   };
 
   const createCustomTheme = (name: string, colors: ThemeColors) => {
@@ -121,11 +125,13 @@ export function CustomThemeProvider({ children }: { children: ReactNode }) {
   };
 
   const updateThemeColors = (colors: Partial<ThemeColors>) => {
-    const updatedTheme: CustomTheme = {
-      ...currentTheme,
-      colors: { ...currentTheme.colors, ...colors }
-    };
-    setTheme(updatedTheme);
+    if (currentTheme && currentTheme.colors) {
+      const updatedTheme: CustomTheme = {
+        ...currentTheme,
+        colors: { ...currentTheme.colors, ...colors }
+      };
+      setTheme(updatedTheme);
+    }
   };
 
   return (
@@ -150,16 +156,29 @@ export function useCustomTheme() {
 }
 
 // Helper function to get Tailwind class from color
-export function getThemeClasses(theme: CustomTheme, isDark: boolean = false) {
-  const colors = theme.colors;
+export function getThemeClasses(theme: CustomTheme | null, isDark: boolean = false) {
+  const colors = theme?.colors;
+  
+  // Fallback colors if theme or colors are undefined
+  const fallbackColors = {
+    primary: '#84cc16',
+    secondary: '#fbbf24',
+    accent: '#166534',
+    background: '#fef3c7',
+    surface: '#fde68a',
+    text: '#000000',
+    border: '#fbbf24'
+  };
+  
+  const safeColors = colors || fallbackColors;
   
   return {
-    primary: isDark ? colors.primary : colors.primary,
-    secondary: isDark ? colors.secondary : colors.secondary,
-    accent: isDark ? colors.accent : colors.accent,
-    background: isDark ? '#000000' : colors.background,
-    surface: isDark ? '#111111' : colors.surface,
-    text: isDark ? '#ffffff' : colors.text,
-    border: isDark ? colors.accent : colors.border
+    primary: isDark ? safeColors.primary : safeColors.primary,
+    secondary: isDark ? safeColors.secondary : safeColors.secondary,
+    accent: isDark ? safeColors.accent : safeColors.accent,
+    background: isDark ? '#000000' : safeColors.background,
+    surface: isDark ? '#111111' : safeColors.surface,
+    text: isDark ? '#ffffff' : safeColors.text,
+    border: isDark ? safeColors.accent : safeColors.border
   };
 }

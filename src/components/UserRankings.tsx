@@ -22,7 +22,11 @@ interface UserAccount {
   lastActive: string;
 }
 
-export function UserRankings() {
+interface UserRankingsProps {
+  onUserClick?: (user: UserAccount) => void;
+}
+
+export function UserRankings({ onUserClick }: UserRankingsProps) {
   const { theme } = useTheme();
   const { t } = useLanguage();
   const { users, isTimerActive, getCurrentUser, getAllDeviceUsers, isVirtualUser } = useUser();
@@ -193,9 +197,10 @@ export function UserRankings() {
             return (
               <div
                 key={user.accountId}
-                className={`p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] ${
+                className={`p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
                   isCurrent ? 'ring-4 ring-blue-400 ring-offset-2' : ''
                 }`}
+                onClick={() => onUserClick && onUserClick(user)}
                 style={{
                   backgroundColor: isCurrent
                     ? 'rgba(59, 130, 246, 0.4)'

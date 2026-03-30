@@ -9,9 +9,10 @@ import { CurrentUserSelector } from './CurrentUserSelector';
 
 interface RankingDisplayProps {
   studyStreak: number;
+  onUserClick?: (user: any) => void;
 }
 
-export function RankingDisplay({ studyStreak }: RankingDisplayProps) {
+export function RankingDisplay({ studyStreak, onUserClick }: RankingDisplayProps) {
   const { theme } = useTheme();
   const { language } = useLanguage();
   const customTheme = useCustomThemeClasses();
@@ -174,7 +175,7 @@ export function RankingDisplay({ studyStreak }: RankingDisplayProps) {
               </button>
             </div>
             <CurrentUserSelector studyStreak={studyStreak} />
-            <UserRankings />
+            <UserRankings onUserClick={onUserClick} />
           </div>
         </div>
       </div>
@@ -231,7 +232,7 @@ export function RankingDisplay({ studyStreak }: RankingDisplayProps) {
               </button>
             </div>
             <CurrentUserSelector studyStreak={studyStreak} />
-            <UserRankings />
+            <UserRankings onUserClick={onUserClick} />
           </div>
         </div>
       </div>
@@ -282,7 +283,7 @@ export function RankingDisplay({ studyStreak }: RankingDisplayProps) {
               </button>
             </div>
             <CurrentUserSelector studyStreak={studyStreak} />
-            <UserRankings />
+            <UserRankings onUserClick={onUserClick} />
           </div>
         </div>
       </div>
@@ -344,7 +345,7 @@ export function RankingDisplay({ studyStreak }: RankingDisplayProps) {
           {/* Rankings Content */}
           <div className="p-4 max-h-80 overflow-y-auto">
             <CurrentUserSelector studyStreak={studyStreak} />
-            <UserRankings />
+            <UserRankings onUserClick={onUserClick} />
           </div>
         </div>
       )}

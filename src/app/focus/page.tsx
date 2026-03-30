@@ -17,11 +17,29 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { TimerIndicatorProvider } from '@/contexts/TimerIndicatorContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { RankingDisplay } from '@/components/RankingDisplay';
+import { ChallengesButton } from '@/components/ChallengesButton';
 import { BACKGROUNDS } from '@/constants/backgrounds';
 import { useFirstTimeSetup } from '@/hooks/useFirstTimeSetup';
 import { OnboardingWizard } from '@/components/OnboardingWizard';
 import { MusicPlayer } from '@/components/MusicPlayer';
 import { MusicToggleButton } from '@/components/MusicToggleButton';
+import { dailyActivityDB } from '@/lib/dailyActivity';
+
+// User account interface for profile modal
+interface UserAccount {
+  accountId: string;
+  username: string;
+  email: string;
+  hashKey: string;
+  avatar?: string;
+  score: number;
+  rank: number;
+  dailyRank?: number;
+  studyTime: number;
+  dailyStudyTime?: number;
+  createdAt: string;
+  lastActive: string;
+}
 
 // Motivational quotes
 const MOTIVATIONAL_QUOTES = {
@@ -81,6 +99,9 @@ function HomeContent() {
   const [studyStreak, setStudyStreak] = useState(0);
   const [wakeLock, setWakeLock] = useState<any>(null);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [selectedUser, setSelectedUser] = useState<UserAccount | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dailyRankings, setDailyRankings] = useState<any[]>([]);
 
   // Calculate study streak based on user activity (matching ActivityGraph logic)
   const calculateStudyStreak = () => {
@@ -170,6 +191,23 @@ function HomeContent() {
     return () => clearInterval(streakInterval);
   }, [getCurrentUser]);
 
+  // Load daily rankings for user profiles
+  useEffect(() => {
+    const loadDailyRankings = async () => {
+      try {
+        await dailyActivityDB.updateTodayRankings();
+        const rankings = await dailyActivityDB.getTodayRankings();
+        setDailyRankings(rankings);
+      } catch (error) {
+        console.error('❌ Error loading daily rankings:', error);
+      }
+    };
+
+    loadDailyRankings();
+    const interval = setInterval(loadDailyRankings, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Wake lock functionality
   const requestWakeLock = async () => {
     try {
@@ -221,7 +259,46 @@ function HomeContent() {
     return () => {
       releaseWakeLock();
     };
-  }, []); // Empty dependency array, will be called on mount and unmount only
+  }, []); // Empty dependency array, will be called on mount and unmount
+
+  // Profile modal functions
+  const openUserProfile = (user: UserAccount) => {
+    // Merge with daily rankings data
+    const dailyActivity = dailyRankings.find(dr => dr.account_id === user.accountId);
+    const userWithDailyData = {
+      ...user,
+      dailyRank: dailyActivity?.daily_rank || 999,
+      dailyStudyTime: dailyActivity?.study_minutes || 0
+    };
+    
+    setSelectedUser(userWithDailyData);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const formatStudyTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getTodayStudyTime = (user: UserAccount) => {
+    return (user.dailyStudyTime || 0) * 60;
+  };
+
+  const getCoinsFromStudyTime = (studySeconds: number) => {
+    return Math.floor(studySeconds / 600);
+  };
+
+  const isCurrentUser = (user: UserAccount) => {
+    const currentUser = getCurrentUser();
+    return currentUser?.accountId === user.accountId;
+  };
 
   // Handle visibility changes to retry wake lock when document becomes visible
   useEffect(() => {
@@ -369,7 +446,10 @@ function HomeContent() {
             style={getBackgroundStyles(selectedBackground)}
           >
             <ServiceSelector />
-            <RankingDisplay studyStreak={studyStreak} />
+            <div className="flex flex-col gap-3">
+              <ChallengesButton />
+              <RankingDisplay studyStreak={studyStreak} onUserClick={openUserProfile} />
+            </div>
           </div>
         </div>
 
@@ -414,18 +494,210 @@ function HomeContent() {
           </div>
 
           {/* Mobile Content */}
-          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
+          <div className="flex-1 flex flex-col min-h-0 relative">
             {/* Timer Section - Takes most space */}
             <div 
-              className="flex-1 flex items-center justify-center p-4 min-h-[60vh] flex-shrink-0 relative"
+              className="flex-1 flex items-center justify-center p-4 min-h-[60vh] relative"
               style={getBackgroundStyles(selectedBackground)}
             >
               <ServiceSelector />
-              <RankingDisplay studyStreak={studyStreak} />
+            </div>
+            {/* Fixed Buttons Container */}
+            <div className="absolute right-4 flex flex-col gap-3">
+              <ChallengesButton />
+              <RankingDisplay studyStreak={studyStreak} onUserClick={openUserProfile} />
             </div>
           </div>
         </div>
       </div>
+
+      {/* User Profile Modal */}
+      {isModalOpen && selectedUser && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={closeModal}
+        >
+          <div 
+            className={`w-full max-w-md rounded-2xl p-6 relative ${
+              theme === 'light' ? 'bg-white' : 'bg-gray-800'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+            }}
+          >
+            {/* Close Button */}
+            <button
+              onClick={closeModal}
+              className={`absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                theme === 'light' 
+                  ? 'hover:bg-gray-100 text-gray-500' 
+                  : 'hover:bg-gray-700 text-gray-400'
+              }`}
+            >
+              ✕
+            </button>
+
+            {/* Profile Header */}
+            <div className="flex flex-col items-center mb-6">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center text-4xl mb-4"
+                style={{
+                  backgroundColor: `${customTheme.colors.primary}20`,
+                  border: `3px solid ${customTheme.colors.primary}`
+                }}
+              >
+                {selectedUser.avatar?.startsWith('http') ? (
+                  <img 
+                    src={selectedUser.avatar} 
+                    alt={selectedUser.username}
+                    className="w-full h-full rounded-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  selectedUser.avatar || '👤'
+                )}
+              </div>
+              
+              <h3 className={`text-xl font-bold mb-1 ${
+                theme === 'light' ? 'text-black' : 'text-white'
+              }`}>
+                {selectedUser.username}
+              </h3>
+              
+              <p className={`text-sm ${
+                theme === 'light' ? 'text-gray-500' : 'text-gray-400'
+              }`}>
+                {selectedUser.email}
+              </p>
+              
+              <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${
+                theme === 'light'
+                  ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200'
+                  : 'bg-gradient-to-r from-blue-900/30 to-purple-900/30 text-blue-300 border border-blue-700/50'
+              }`}>
+                الرتبة #{selectedUser.rank}
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className={`p-4 rounded-xl text-center ${
+                theme === 'light' ? 'bg-gray-50' : 'bg-gray-700'
+              }`}
+                style={{ backgroundColor: `${customTheme.colors.primary}10` }}
+              >
+                <div className={`text-2xl font-bold mb-1`} style={{ color: customTheme.colors.primary }}>
+                  {formatStudyTime(selectedUser.studyTime)}
+                </div>
+                <div className={`text-xs ${
+                  theme === 'light' ? 'text-gray-600' : 'text-gray-300'
+                }`}>
+                  إجمالي وقت الدراسة
+                </div>
+              </div>
+              
+              <div className={`p-4 rounded-xl text-center ${
+                theme === 'light' ? 'bg-gray-50' : 'bg-gray-700'
+              }`}
+                style={{ backgroundColor: `${customTheme.colors.secondary}10` }}
+              >
+                <div className={`text-2xl font-bold mb-1`} style={{ color: customTheme.colors.secondary }}>
+                  {formatStudyTime(getTodayStudyTime(selectedUser))}
+                </div>
+                <div className={`text-xs ${
+                  theme === 'light' ? 'text-gray-600' : 'text-gray-300'
+                }`}>
+                  وقت الدراسة اليوم
+                </div>
+              </div>
+              
+              <div className={`p-4 rounded-xl text-center ${
+                theme === 'light' ? 'bg-gray-50' : 'bg-gray-700'
+              }`}>
+                <div className={`text-2xl font-bold mb-1 ${
+                  theme === 'light' ? 'text-yellow-600' : 'text-yellow-400'
+                }`}>
+                  {selectedUser.score}
+                </div>
+                <div className={`text-xs ${
+                  theme === 'light' ? 'text-gray-600' : 'text-gray-300'
+                }`}>
+                  النقاط
+                </div>
+              </div>
+              
+              <div className={`p-4 rounded-xl text-center ${
+                theme === 'light' ? 'bg-gray-50' : 'bg-gray-700'
+              }`}>
+                <div className={`text-2xl font-bold mb-1 ${
+                  theme === 'light' ? 'text-green-600' : 'text-green-400'
+                }`}>
+                  #{selectedUser.dailyRank || 999}
+                </div>
+                <div className={`text-xs ${
+                  theme === 'light' ? 'text-gray-600' : 'text-gray-300'
+                }`}>
+                  الترتيب اليومي
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            <div className={`space-y-2 text-sm ${
+              theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+            }`}>
+              <div className="flex justify-between">
+                <span>تاريخ الإنشاء:</span>
+                <span className={theme === 'light' ? 'text-gray-800' : 'text-gray-200'}>
+                  {new Date(selectedUser.createdAt).toLocaleDateString('ar-SA')}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>آخر نشاط:</span>
+                <span className={theme === 'light' ? 'text-gray-800' : 'text-gray-200'}>
+                  {new Date(selectedUser.lastActive).toLocaleDateString('ar-SA')}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>العملات المكتسبة اليوم:</span>
+                <span className={`font-medium ${
+                  theme === 'light' ? 'text-yellow-600' : 'text-yellow-400'
+                }`}>
+                  🪙 {getCoinsFromStudyTime(getTodayStudyTime(selectedUser))}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              {isCurrentUser(selectedUser) && (
+                <button
+                  className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                    theme === 'light'
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                  style={{ backgroundColor: customTheme.colors.primary }}
+                >
+                  تعديل الملف الشخصي
+                </button>
+              )}
+              <button
+                onClick={closeModal}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                  theme === 'light'
+                    ? 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                    : 'bg-gray-600 hover:bg-gray-500 text-gray-200'
+                }`}
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

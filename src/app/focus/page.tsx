@@ -464,33 +464,7 @@ function HomeContent() {
             }}
           >
             <Logo />
-            <div className="flex flex-col items-center space-y-1 space-x-reverse">
-              <div 
-                className="text-base transition-all duration-300 max-w-[200px] text-center"
-                style={{ 
-                  fontFamily: "'ADLaM Display', sans-serif",
-                  color: theme === 'light' ? '#1f2937' : '#f3f4f6',
-                  textShadow: theme === 'light' ? '0 1px 2px rgba(0,0,0,0.1)' : '0 1px 2px rgba(255,255,255,0.1)',
-                  fontWeight: 400
-                }}
-              >
-                "{MOTIVATIONAL_QUOTES[language as keyof typeof MOTIVATIONAL_QUOTES][currentQuoteIndex]}"
-              </div>
-              {currentQuoteIndex < MOTIVATIONAL_QUOTES[language as keyof typeof MOTIVATIONAL_QUOTES].length - 1 && (
-                <div 
-                  className="text-xs transition-all duration-300 max-w-[200px] text-center opacity-75"
-                  style={{ 
-                    fontFamily: "'ADLaM Display', sans-serif",
-                    color: theme === 'light' ? '#4b5563' : '#d1d5db',
-                    textShadow: theme === 'light' ? '0 1px 1px rgba(0,0,0,0.05)' : '0 1px 1px rgba(255,255,255,0.05)',
-                    fontWeight: 400
-                  }}
-                >
-                  "{MOTIVATIONAL_QUOTES[language as keyof typeof MOTIVATIONAL_QUOTES][(currentQuoteIndex + 1) % MOTIVATIONAL_QUOTES[language as keyof typeof MOTIVATIONAL_QUOTES].length]}"
-                </div>
-              )}
-              <SettingsMobileButton />
-            </div>
+            <SettingsMobileButton />
           </div>
 
           {/* Mobile Content */}

@@ -3,13 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
-import { useFullscreen } from '@/contexts/FullscreenContext';
 import { dailyActivityDB } from '@/lib/dailyActivity';
 
 export function Timer() {
   const { theme } = useTheme();
   const { getCurrentUser, updateUserStudyTime, setTimerActive } = useUser();
-  const { showFullscreenPrompt, setShowFullscreenPrompt, requestFullscreen } = useFullscreen();
   
   // Timer settings from localStorage
   const [timerSettings, setTimerSettings] = useState({
@@ -117,27 +115,9 @@ export function Timer() {
     }
   };
 
-  // Check fullscreen status and stop timer if not in fullscreen
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && isRunning) {
-        // End the current session when exiting fullscreen
-        handleStop();
-      }
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    };
-  }, [isRunning]);
+    clearSavedState();
+  }, [time]);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
@@ -191,12 +171,6 @@ export function Timer() {
   };
 
   const handleStart = async () => {
-    // Check if fullscreen is active, if not show prompt
-    if (!document.fullscreenElement) {
-      setShowFullscreenPrompt(true);
-      return;
-    }
-    
     // Get current user and validate
     const currentUser = getCurrentUser();
     if (!currentUser?.accountId) {

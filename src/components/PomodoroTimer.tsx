@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
 import { useTimerIndicator } from '@/contexts/TimerIndicatorContext';
-import { useFullscreen } from '@/contexts/FullscreenContext';
 import { dailyActivityDB } from '@/lib/dailyActivity';
 
 interface PomodoroSettings {
@@ -18,7 +17,6 @@ export function PomodoroTimer() {
   const { theme } = useTheme();
   const { getCurrentUser, updateUserStudyTime, setTimerActive } = useUser();
   const { setTimerActive: setTimerActiveIndicator } = useTimerIndicator();
-  const { showFullscreenPrompt, setShowFullscreenPrompt, requestFullscreen } = useFullscreen();
   
   // Timer settings from localStorage
   const [timerSettings, setTimerSettings] = useState({
@@ -170,27 +168,6 @@ export function PomodoroTimer() {
       localStorage.removeItem('pomodoroTimer_settings');
     }
   };
-
-  // Check fullscreen status and stop timer if not in fullscreen
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && isRunning) {
-        setIsRunning(false);
-      }
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    };
-  }, [isRunning]);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -356,12 +333,6 @@ export function PomodoroTimer() {
   };
 
   const handleStart = async () => {
-    // Check if fullscreen is active, if not show prompt
-    if (!document.fullscreenElement) {
-      setShowFullscreenPrompt(true);
-      return;
-    }
-    
     // Get current user and validate
     const currentUser = getCurrentUser();
     if (!currentUser?.accountId) {

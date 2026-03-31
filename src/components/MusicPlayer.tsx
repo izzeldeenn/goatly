@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useMusic } from '@/contexts/MusicContext';
 import { MUSIC_CATEGORIES, MUSIC_MOODS, MusicTrack } from '@/constants/musicTracks';
 
-export function MusicPlayer() {
+export function MusicPlayer({ isVisible: externalVisible, setIsVisible: externalSetVisible }: { isVisible?: boolean; setIsVisible?: (visible: boolean) => void } = {}) {
   const {
     isPlaying,
     currentTrack,
@@ -35,7 +35,12 @@ export function MusicPlayer() {
   const [showSettings, setShowSettings] = useState(false);
   const [needsUserInteraction, setNeedsUserInteraction] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(externalVisible || false);
+
+  // Use external visibility if provided
+  const currentVisible = externalVisible !== undefined ? externalVisible : isVisible;
+  const currentSetVisible = externalSetVisible || setIsVisible;
+  const [currentView, setCurrentView] = useState<'player' | 'library' | 'settings'>('library');
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -57,11 +62,12 @@ export function MusicPlayer() {
   };
 
   const handleClose = () => {
-    setIsVisible(false);
+    console.log('Closing music player');
+    currentSetVisible(false);
   };
 
   const handleShow = () => {
-    setIsVisible(true);
+    currentSetVisible(true);
   };
 
   const formatTime = (seconds: string) => {
@@ -73,56 +79,281 @@ export function MusicPlayer() {
 
   return (
     <>
-      {/* Music Toggle Button - Always visible */}
-      <button
-        onClick={handleShow}
-        className="fixed bottom-4 right-4 z-40 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-full p-3 shadow-lg border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 transition-all duration-200"
-        title="فتح المشغل"
-      >
-        <span className="text-lg">🎵</span>
-      </button>
-
-      {/* Music Player - Conditional rendering */}
-      {isVisible && (
-        <div className="fixed bottom-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-2xl p-4 w-80 border border-gray-200/50 dark:border-gray-700/50 max-h-[60vh] overflow-y-auto">
+      {/* Sidebar Music Player */}
+      {currentVisible && (
+        <div className="fixed right-0 top-0 bottom-0 w-80 bg-black/95 backdrop-blur-xl border-l border-gray-800 z-50 flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                <span className="text-white text-sm">🎵</span>
+          <div className="p-4 border-b border-gray-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                  <span className="text-lg">🎵</span>
+                </div>
+                <h2 className="text-white font-semibold">Music Player</h2>
               </div>
-              <h3 className="font-bold text-gray-900 dark:text-white">موسيقى التركيز</h3>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                ⚙️
-              </button>
               <button
                 onClick={handleClose}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                className="text-gray-400 hover:text-white transition-colors"
               >
-                ✕
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                </svg>
               </button>
             </div>
           </div>
+
+          {/* Current Track */}
+          <div className="p-4 border-b border-gray-800">
+            {currentTrack ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                    <span className="text-2xl">
+                      {selectedCategory === 'lofi' && '🎧'}
+                      {selectedCategory === 'ambient' && '🌌'}
+                      {selectedCategory === 'nature' && '🌿'}
+                      {selectedCategory === 'classical' && '🎼'}
+                      {selectedCategory === 'piano' && '🎹'}
+                      {selectedCategory === 'all' && '🎵'}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-white font-medium text-sm truncate">{currentTrack.name}</h3>
+                    <p className="text-gray-400 text-xs">{currentTrack.artist}</p>
+                    <p className="text-gray-500 text-xs">{formatTime(currentTrack.duration)}</p>
+                  </div>
+                </div>
+                
+                {/* Controls */}
+                <div className="flex items-center justify-center gap-4">
+                  <button
+                    onClick={previousTrack}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M8.445 14.832A1 1 0 0010 14v-8a1 1 0 00-1.555-.832L3 9.168V6a1 1 0 00-2 0v8a1 1 0 002 0v-3.168l5.445 4z"/>
+                    </svg>
+                  </button>
+                  
+                  <button
+                    onClick={isPlaying ? pauseTrack : (currentTrack ? () => handlePlayTrack(currentTrack) : handleInitialPlay)}
+                    className="w-12 h-12 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+                  >
+                    {isPlaying ? (
+                      <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"/>
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
+                      </svg>
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={nextTrack}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M11.555 5.168A1 1 0 0010 6v8a1 1 0 001.555.832L17 10.832V14a1 1 0 002 0V6a1 1 0 00-2 0v3.168l-5.445-4z"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Volume */}
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"/>
+                  </svg>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={volume}
+                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                    className="flex-1 h-1 bg-gray-700 rounded-full appearance-none cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-400 w-8 text-center">
+                    {Math.round(volume * 100)}%
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 rounded-lg bg-gray-800 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-2xl">🎵</span>
+                </div>
+                <p className="text-gray-400 text-sm">No track playing</p>
+                <button
+                  onClick={handleInitialPlay}
+                  className="mt-3 px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors text-sm"
+                >
+                  Start Listening
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="flex border-b border-gray-800">
+            <button
+              onClick={() => setCurrentView('library')}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                currentView === 'library' ? 'bg-gray-800 text-white border-b-2 border-cyan-500' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Library
+            </button>
+            <button
+              onClick={() => setCurrentView('settings')}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                currentView === 'settings' ? 'bg-gray-800 text-white border-b-2 border-cyan-500' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Settings
+            </button>
+          </div>
+
+          {/* Content Area */}
+          <div className="flex-1 overflow-hidden">
+            {currentView === 'library' && (
+              <div className="h-full overflow-y-auto">
+                <div className="p-4 space-y-4">
+                  {/* Search */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search tracks..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm"
+                    />
+                    <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
+                    </svg>
+                  </div>
+
+                  {/* Categories */}
+                  <div className="space-y-2">
+                    <h4 className="text-gray-400 text-xs font-semibold uppercase">Categories</h4>
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        onClick={() => setSelectedCategory('all')}
+                        className={`px-3 py-1 rounded-lg text-xs transition-colors ${
+                          selectedCategory === 'all' ? 'bg-cyan-500 text-white' : 'bg-gray-800 text-gray-300'
+                        }`}
+                      >
+                        All
+                      </button>
+                      {MUSIC_CATEGORIES.map(category => (
+                        <button
+                          key={category.id}
+                          onClick={() => setSelectedCategory(category.id)}
+                          className={`px-3 py-1 rounded-lg text-xs transition-colors ${
+                            selectedCategory === category.id ? 'bg-cyan-500 text-white' : 'bg-gray-800 text-gray-300'
+                          }`}
+                        >
+                          {category.icon} {category.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Track List */}
+                  <div className="space-y-2">
+                    <h4 className="text-gray-400 text-xs font-semibold uppercase">Tracks</h4>
+                    <div className="space-y-1">
+                      {filteredTracks.map(track => (
+                        <div
+                          key={track.id}
+                          onClick={() => handlePlayTrack(track)}
+                          className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                            currentTrack?.id === track.id ? 'bg-gray-700' : 'hover:bg-gray-800'
+                          }`}
+                        >
+                          <div className="w-8 h-8 rounded bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center text-xs">
+                            {track.category === 'lofi' && '🎧'}
+                            {track.category === 'ambient' && '🌌'}
+                            {track.category === 'nature' && '🌿'}
+                            {track.category === 'classical' && '🎼'}
+                            {track.category === 'piano' && '🎹'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-xs font-medium truncate">{track.name}</p>
+                            <p className="text-gray-400 text-xs truncate">{track.artist}</p>
+                          </div>
+                          <div className="text-xs text-gray-500">{formatTime(track.duration)}</div>
+                          {currentTrack?.id === track.id && isPlaying && (
+                            <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse"></div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentView === 'settings' && (
+              <div className="p-4 space-y-4">
+                <h4 className="text-gray-400 text-xs font-semibold uppercase">Playback Settings</h4>
+                <div className="space-y-3">
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-gray-300 text-sm">Auto Play</span>
+                    <input
+                      type="checkbox"
+                      checked={autoPlay}
+                      onChange={(e) => setAutoPlay(e.target.checked)}
+                      className="w-4 h-4 text-cyan-500 rounded"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-gray-300 text-sm">Loop</span>
+                    <input
+                      type="checkbox"
+                      checked={loop}
+                      onChange={(e) => setLoop(e.target.checked)}
+                      className="w-4 h-4 text-cyan-500 rounded"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-gray-300 text-sm">Fade In</span>
+                    <input
+                      type="checkbox"
+                      checked={fadeIn}
+                      onChange={(e) => setFadeIn(e.target.checked)}
+                      className="w-4 h-4 text-cyan-500 rounded"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-gray-300 text-sm">Fade Out</span>
+                    <input
+                      type="checkbox"
+                      checked={fadeOut}
+                      onChange={(e) => setFadeOut(e.target.checked)}
+                      className="w-4 h-4 text-cyan-500 rounded"
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Error Overlay */}
       {hasError && (
-        <div className="absolute inset-0 bg-red-500/10 backdrop-blur-sm rounded-2xl flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 text-center max-w-xs">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-xl p-6 text-center max-w-sm border border-gray-800">
             <div className="text-4xl mb-4">⚠️</div>
-            <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">
-              خطأ في تشغيل الموسيقى
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              جرب مقطعًا آخر أو تحقق من اتصالك بالإنترنت
-            </p>
+            <h3 className="text-lg font-semibold text-white mb-2">Playback Error</h3>
+            <p className="text-gray-400 text-sm mb-4">Try another track or check your connection</p>
             <button
               onClick={() => setHasError(false)}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
             >
-              إعادة المحاولة
+              Retry
             </button>
           </div>
         </div>
@@ -130,249 +361,18 @@ export function MusicPlayer() {
       
       {/* User Interaction Overlay */}
       {needsUserInteraction && (
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-2xl flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 text-center">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-xl p-6 text-center max-w-sm border border-gray-800">
             <div className="text-4xl mb-4">🎵</div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-              ابدأ الاستماع
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              المتصفح يتطلب تفاعل المستخدم لتشغيل الموسيقى
-            </p>
+            <h3 className="text-lg font-semibold text-white mb-2">Start Listening</h3>
+            <p className="text-gray-400 text-sm mb-4">Click to start playing music</p>
             <button
               onClick={handleInitialPlay}
-              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:scale-105 transition-transform"
+              className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
             >
-              تشغيل الموسيقى
+              Play Music
             </button>
           </div>
-        </div>
-      )}
-      
-      {/* Current Track */}
-      {currentTrack && (
-        <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-              <span className="text-xl">
-                {selectedCategory === 'lofi' && '🎧'}
-                {selectedCategory === 'ambient' && '🌌'}
-                {selectedCategory === 'nature' && '🌿'}
-                {selectedCategory === 'classical' && '🎼'}
-                {selectedCategory === 'piano' && '🎹'}
-                {selectedCategory === 'all' && '🎵'}
-              </span>
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                {currentTrack.name}
-              </h4>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {currentTrack.artist} • {formatTime(currentTrack.duration)}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Player Controls */}
-      <div className="flex items-center gap-2 mb-4">
-        <button
-          onClick={previousTrack}
-          className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-        >
-          ⏮️
-        </button>
-        
-        <button
-          onClick={isPlaying ? pauseTrack : (currentTrack ? () => handlePlayTrack(currentTrack) : undefined)}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white hover:scale-105 transition-transform"
-        >
-          {isPlaying ? '⏸️' : '▶️'}
-        </button>
-        
-        <button
-          onClick={nextTrack}
-          className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-        >
-          ⏭️
-        </button>
-        
-        <button
-          onClick={stopTrack}
-          className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-        >
-          ⏹️
-        </button>
-      </div>
-
-      {/* Volume Control */}
-      <div className="mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600 dark:text-gray-400">🔊</span>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={volume}
-            onChange={(e) => setVolume(parseFloat(e.target.value))}
-            className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
-          />
-          <span className="text-sm text-gray-600 dark:text-gray-400 w-8">
-            {Math.round(volume * 100)}%
-          </span>
-        </div>
-      </div>
-
-      {/* Settings Panel */}
-      {showSettings && (
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
-          {/* Auto Play */}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={autoPlay}
-              onChange={(e) => setAutoPlay(e.target.checked)}
-              className="w-4 h-4 text-purple-600 rounded"
-            />
-            <span className="text-sm text-gray-700 dark:text-gray-300">تشغيل تلقائي</span>
-          </label>
-
-          {/* Loop */}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={loop}
-              onChange={(e) => setLoop(e.target.checked)}
-              className="w-4 h-4 text-purple-600 rounded"
-            />
-            <span className="text-sm text-gray-700 dark:text-gray-300">تكرار</span>
-          </label>
-
-          {/* Fade In */}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={fadeIn}
-              onChange={(e) => setFadeIn(e.target.checked)}
-              className="w-4 h-4 text-purple-600 rounded"
-            />
-            <span className="text-sm text-gray-700 dark:text-gray-300">تدريجي في البداية</span>
-          </label>
-
-          {/* Fade Out */}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={fadeOut}
-              onChange={(e) => setFadeOut(e.target.checked)}
-              className="w-4 h-4 text-purple-600 rounded"
-            />
-            <span className="text-sm text-gray-700 dark:text-gray-300">تدريجي في النهاية</span>
-          </label>
-        </div>
-      )}
-
-      {/* Filters */}
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="بحث في الموسيقى..."
-          value={searchQuery}
-          onChange={(e) => handleSearch(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-        />
-
-        {/* Category Filter */}
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-1 text-xs rounded-full transition-colors ${
-              selectedCategory === 'all'
-                ? 'bg-purple-500 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-            }`}
-          >
-            الكل
-          </button>
-          {MUSIC_CATEGORIES.map(category => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
-              className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                selectedCategory === category.id
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              {category.icon} {category.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Mood Filter */}
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setSelectedMood('all')}
-            className={`px-3 py-1 text-xs rounded-full transition-colors ${
-              selectedMood === 'all'
-                ? 'bg-pink-500 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-            }`}
-          >
-            كل الأحوال
-          </button>
-          {MUSIC_MOODS.map(mood => (
-            <button
-              key={mood.id}
-              onClick={() => setSelectedMood(mood.id)}
-              className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                selectedMood === mood.id
-                  ? 'bg-pink-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              {mood.icon} {mood.name}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Track List */}
-      <div className="mt-4 overflow-y-auto">
-        {filteredTracks.map(track => (
-          <div
-            key={track.id}
-            onClick={() => handlePlayTrack(track)}
-            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-              currentTrack?.id === track.id
-                ? 'bg-purple-100 dark:bg-purple-900/30'
-                : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            <div className="w-8 h-8 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm">
-              {track.category === 'lofi' && '🎧'}
-              {track.category === 'ambient' && '🌌'}
-              {track.category === 'nature' && '🌿'}
-              {track.category === 'classical' && '🎼'}
-              {track.category === 'piano' && '🎹'}
-            </div>
-            <div className="flex-1">
-              <p className="text-xs font-medium text-gray-900 dark:text-white">
-                {track.name}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {track.artist} • {formatTime(track.duration)}
-              </p>
-            </div>
-            {currentTrack?.id === track.id && isPlaying && (
-              <span className="text-xs text-purple-500">▶️</span>
-            )}
-          </div>
-        ))}
-      </div>
         </div>
       )}
     </>

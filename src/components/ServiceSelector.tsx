@@ -8,6 +8,7 @@ import { messageDB } from '@/lib/friendship';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { SettingsButton } from '@/components/Settings';
+import { MusicPlayer } from '@/components/MusicPlayer';
 import { NotesComponent } from '@/components/NotesComponent';
 import { StickyNotes } from '@/components/StickyNotes';
 import { Timer } from './Timer';
@@ -28,6 +29,7 @@ export function ServiceSelector() {
   const [activeTimer, setActiveTimer] = useState<TimerType>('stopwatch');
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [notes, setNotes] = useState<string>('');
+  const [isMusicPlayerOpen, setIsMusicPlayerOpen] = useState(false);
   
   // Refs for scroll containers
   const mobileScrollRef = useRef<HTMLDivElement>(null);
@@ -210,6 +212,25 @@ export function ServiceSelector() {
         
         {/* Scrollable Container */}
         <div className="flex items-center">
+          {/* Fixed Music Button */}
+          <div className="px-4 py-2 flex-shrink-0">
+            <button
+              className={`group relative w-9 h-9 rounded-xl flex items-center justify-center text-base transition-all duration-200 flex-shrink-0 border-2 ${
+                theme === 'light'
+                  ? 'bg-purple-500 text-white border-purple-600 hover:bg-purple-600 hover:border-purple-700 hover:shadow-md'
+                  : 'bg-purple-600 text-white border-purple-500 hover:bg-purple-700 hover:border-purple-400 hover:shadow-md'
+              }`}
+              title="Music Player"
+              onClick={() => setIsMusicPlayerOpen(true)}
+            >
+              <span className="transition-transform duration-200 group-hover:scale-110">
+                🎵
+              </span>
+              {/* Music Indicator */}
+              <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
+            </button>
+          </div>
+          
           {/* Service Buttons */}
           <div
             ref={mobileScrollRef}
@@ -301,6 +322,9 @@ export function ServiceSelector() {
       
       {/* Sticky Notes */}
       <StickyNotes />
+      
+      {/* Music Player */}
+      <MusicPlayer isVisible={isMusicPlayerOpen} setIsVisible={setIsMusicPlayerOpen} />
     </div>
   );
 }

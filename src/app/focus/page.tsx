@@ -503,7 +503,7 @@ function HomeContent() {
               <ServiceSelector />
             </div>
             {/* Fixed Buttons Container */}
-            <div className="absolute right-4 flex flex-col gap-3">
+            <div className="absolute top-4 right-4 flex flex-col gap-3">
               <ChallengesButton />
               <RankingDisplay studyStreak={studyStreak} onUserClick={openUserProfile} />
             </div>

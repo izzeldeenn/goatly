@@ -40,7 +40,7 @@ export function UserManager() {
                   ? 'bg-blue-600 text-white'
                   : 'bg-blue-500 text-white'
               }`}>
-                ترتيب {user.rank}
+                ترتيب {Math.floor((user.score || 0) / 100) + 1}
               </span>
             </div>
           ))

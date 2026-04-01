@@ -370,7 +370,7 @@ export function UserProfile() {
                 }`}>
                   <div className={`text-2xl font-bold mb-1 ${
                     theme === 'light' ? 'text-green-600' : 'text-green-400'
-                  }`}>{currentUser?.rank || 1}</div>
+                  }`}>{Math.floor((currentUser?.score || 0) / 100) + 1}</div>
                   <div className={`text-sm ${
                     theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                   }`}>🏆 {t.rank}</div>

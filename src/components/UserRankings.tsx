@@ -14,9 +14,7 @@ interface UserAccount {
   hashKey: string;
   avatar?: string;
   score: number;
-  rank: number;
   dailyRank?: number;
-  studyTime: number;
   dailyStudyTime?: number;
   createdAt: string;
   lastActive: string;

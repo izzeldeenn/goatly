@@ -429,7 +429,7 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
                   }`}>
                     <div className={`text-3xl font-bold mb-2 bg-gradient-to-r bg-clip-text text-transparent ${
                       theme === 'light' ? 'from-purple-600 to-pink-600' : 'from-purple-400 to-pink-400'
-                    }`}>{currentUser?.rank || 1}</div>
+                    }`}>{Math.floor((currentUser?.score || 0) / 100) + 1}</div>
                     <div className={`text-sm font-medium ${
                       theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                     }`}>🏆 {t.rank}</div>

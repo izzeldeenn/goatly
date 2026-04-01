@@ -429,7 +429,7 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
                         className="mb-3"
                       />
                       <h3 className="font-semibold text-gray-800 mb-1">{user.username}</h3>
-                      <p className="text-sm text-gray-500 mb-3">المستوى {user.rank} • {user.score} نقطة</p>
+                      <p className="text-sm text-gray-500 mb-3">المستوى {Math.floor((user.score || 0) / 100) + 1} • {user.score} نقطة</p>
                       <div className="flex items-center justify-center mt-auto">
                         {isFriend ? (
                           <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm">

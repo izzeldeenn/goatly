@@ -61,18 +61,42 @@ function generateAccountId(): string {
     console.log('📱 Device fingerprint:', deviceFingerprint);
     
     const hash = crypto.createHash('sha256').update(deviceFingerprint).digest('hex');
-    const timestamp = Date.now().toString(36);
     
-    const accountId = `user_${hash.substring(0, 16)}_${timestamp}`;
-    console.log('✅ Generated normal account ID:', accountId);
+    // Use a more stable account ID format without timestamp for consistency
+    const accountId = `user_${hash.substring(0, 16)}`;
+    console.log('✅ Generated stable account ID:', accountId);
     return accountId;
   } catch (error) {
     console.log('❌ Error generating normal account ID:', error);
     // Fallback for private browsing or restricted environments
+    // Try to get from sessionStorage first for consistency
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        const existingFallbackId = sessionStorage.getItem('fahman_hub_fallback_account_id');
+        if (existingFallbackId) {
+          console.log('🔄 Reusing existing fallback account ID:', existingFallbackId);
+          return existingFallbackId;
+        }
+      } catch (e) {
+        console.log('❌ Session storage not accessible:', e);
+      }
+    }
+    
+    // Generate new fallback ID only if needed
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
     const fallbackId = `fallback_${timestamp}_${random}`;
-    console.log('🔄 Generated fallback account ID:', fallbackId);
+    console.log('🔄 Generated new fallback account ID:', fallbackId);
+    
+    // Save fallback ID to sessionStorage for consistency
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        sessionStorage.setItem('fahman_hub_fallback_account_id', fallbackId);
+      } catch (e) {
+        console.log('❌ Could not save fallback ID to sessionStorage:', e);
+      }
+    }
+    
     return fallbackId;
   }
 }

@@ -155,54 +155,38 @@ export function UserProvider({ children }: { children: ReactNode }) {
             }));
             console.log('📊 Mapped users to frontend format:', userAccounts.length);
             
-            // CRITICAL: Always preserve current user's local changes
+            // IMPORTANT: Only update other users, preserve current user's local state
             setUsers(prevUsers => {
-              const currentUser = prevUsers.find(u => u.accountId === currentAccountId);
-              if (currentUser) {
-                const updatedCurrentUser = userAccounts.find(u => u.accountId === currentAccountId);
-                if (updatedCurrentUser) {
-                  // NEVER overwrite current user's local username, email, and avatar
-                  updatedCurrentUser.username = currentUser.username;
-                  updatedCurrentUser.email = currentUser.email;
-                  updatedCurrentUser.avatar = currentUser.avatar;
-                  updatedCurrentUser.lastActive = currentUser.lastActive;
-                  
-                  // Also check localStorage as additional backup
-                  if (typeof window !== 'undefined') {
-                    const localUsername = localStorage.getItem(`username_${currentAccountId}`);
-                    const localEmail = localStorage.getItem(`email_${currentAccountId}`);
-                    const localAvatar = localStorage.getItem(`avatar_${currentAccountId}`);
-                    
-                    if (localUsername && localUsername !== updatedCurrentUser.username) {
-                      updatedCurrentUser.username = localUsername;
-                      console.log('🔄 Restored username from localStorage in real-time:', localUsername);
-                    }
-                    
-                    if (localEmail && localEmail !== updatedCurrentUser.email) {
-                      updatedCurrentUser.email = localEmail;
-                      console.log('🔄 Restored email from localStorage in real-time:', localEmail);
-                    }
-                    
-                    if (localAvatar && localAvatar !== updatedCurrentUser.avatar) {
-                      updatedCurrentUser.avatar = localAvatar;
-                      console.log('🔄 Restored avatar from localStorage in real-time:', localAvatar);
-                    }
-                  }
-                  
-                  console.log('🔒 Preserved current user local data:', {
-                    username: updatedCurrentUser.username,
-                    email: updatedCurrentUser.email,
-                    avatar: updatedCurrentUser.avatar
-                  });
-                }
-              }
-              
-              // For other users, use the updated data from database
               return userAccounts.map(updatedUser => {
-                const preservedUser = prevUsers.find(prev => prev.accountId === updatedUser.accountId);
-                if (preservedUser && preservedUser.accountId === currentAccountId) {
-                  // Use preserved current user data
-                  return updatedUser;
+                if (updatedUser.accountId === currentAccountId) {
+                  // For current user, preserve existing local state to avoid overriding changes
+                  const currentUser = prevUsers.find(u => u.accountId === currentAccountId);
+                  if (currentUser) {
+                    // Check timestamps to determine which data is newer
+                    const localUsernameTimestamp = parseInt(localStorage.getItem(`username_${currentAccountId}_timestamp`) || '0');
+                    const localEmailTimestamp = parseInt(localStorage.getItem(`email_${currentAccountId}_timestamp`) || '0');
+                    const localAvatarTimestamp = parseInt(localStorage.getItem(`avatar_${currentAccountId}_timestamp`) || '0');
+                    const dbLastActive = new Date(updatedUser.lastActive).getTime();
+                    
+                    // Keep local state for current user, but update score/studyTime from database
+                    return {
+                      ...currentUser,
+                      score: updatedUser.score,
+                      rank: updatedUser.rank,
+                      studyTime: updatedUser.studyTime,
+                      studyTimeFormatted: updatedUser.studyTimeFormatted,
+                      // Use local data if it was modified more recently than database
+                      username: localUsernameTimestamp > dbLastActive ? 
+                        localStorage.getItem(`username_${currentAccountId}`) || currentUser.username : 
+                        updatedUser.username,
+                      email: localEmailTimestamp > dbLastActive ? 
+                        localStorage.getItem(`email_${currentAccountId}`) || currentUser.email : 
+                        updatedUser.email,
+                      avatar: localAvatarTimestamp > dbLastActive ? 
+                        localStorage.getItem(`avatar_${currentAccountId}`) || currentUser.avatar : 
+                        updatedUser.avatar,
+                    };
+                  }
                 }
                 return updatedUser;
               });
@@ -410,14 +394,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return users.find(user => user.accountId === currentAccountId) || null;
   };
 
-  const updateUserName = (name: string) => {
+  const updateUserName = async (name: string) => {
     if (!currentAccountId) return;
     
-    // Save to localStorage as backup
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`username_${currentAccountId}`, name);
+    // Update in Supabase first to ensure consistency
+    try {
+      const available = await isSupabaseAvailable();
+      if (available) {
+        const result = await userDB.updateUserProfile(currentAccountId, name);
+        if (!result) {
+          console.error('❌ Failed to update username in database');
+          return;
+        }
+        console.log('✅ Username updated in database successfully');
+      }
+    } catch (error) {
+      console.error('❌ Error updating username in database:', error);
+      return;
     }
     
+    // Only update local state after successful database update
     setUsers(prevUsers => {
       const newUsers = prevUsers.map(user => {
         if (user.accountId === currentAccountId) {
@@ -428,24 +424,33 @@ export function UserProvider({ children }: { children: ReactNode }) {
       return newUsers;
     });
     
-    // Update in Supabase immediately to ensure consistency
-    isSupabaseAvailable().then(available => {
-      if (available) {
-        userDB.updateUserProfile(currentAccountId, name).catch((error: any) => {
-          console.error('Error updating username:', error);
-        });
-      }
-    });
+    // Save to localStorage as backup after successful update
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`username_${currentAccountId}`, name);
+      localStorage.setItem(`username_${currentAccountId}_timestamp`, Date.now().toString());
+    }
   };
 
-  const updateUserAvatar = (avatar: string) => {
+  const updateUserAvatar = async (avatar: string) => {
     if (!currentAccountId) return;
     
-    // Save to localStorage as backup
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`avatar_${currentAccountId}`, avatar);
+    // Update in Supabase first to ensure consistency
+    try {
+      const available = await isSupabaseAvailable();
+      if (available) {
+        const result = await userDB.updateUserProfile(currentAccountId, '', avatar);
+        if (!result) {
+          console.error('❌ Failed to update avatar in database');
+          return;
+        }
+        console.log('✅ Avatar updated in database successfully');
+      }
+    } catch (error) {
+      console.error('❌ Error updating avatar in database:', error);
+      return;
     }
     
+    // Only update local state after successful database update
     setUsers(prevUsers => {
       const newUsers = prevUsers.map(user => {
         if (user.accountId === currentAccountId) {
@@ -456,25 +461,33 @@ export function UserProvider({ children }: { children: ReactNode }) {
       return newUsers;
     });
     
-    // Update in Supabase immediately to ensure consistency
-    isSupabaseAvailable().then(available => {
-      if (available) {
-        // Only update avatar, don't touch username
-        userDB.updateUserProfile(currentAccountId, '', avatar).catch((error: any) => {
-          console.error('Error updating avatar:', error);
-        });
-      }
-    });
+    // Save to localStorage as backup after successful update
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`avatar_${currentAccountId}`, avatar);
+      localStorage.setItem(`avatar_${currentAccountId}_timestamp`, Date.now().toString());
+    }
   };
 
-  const updateUserEmail = (email: string) => {
+  const updateUserEmail = async (email: string) => {
     if (!currentAccountId) return;
     
-    // Save to localStorage as backup
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`email_${currentAccountId}`, email);
+    // Update in Supabase first to ensure consistency
+    try {
+      const available = await isSupabaseAvailable();
+      if (available) {
+        const result = await userDB.updateUserByAccountId(currentAccountId, { email });
+        if (!result) {
+          console.error('❌ Failed to update email in database');
+          return;
+        }
+        console.log('✅ Email updated in database successfully');
+      }
+    } catch (error) {
+      console.error('❌ Error updating email in database:', error);
+      return;
     }
     
+    // Only update local state after successful database update
     setUsers(prevUsers => {
       const newUsers = prevUsers.map(user => {
         if (user.accountId === currentAccountId) {
@@ -485,14 +498,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       return newUsers;
     });
     
-    // Update in Supabase immediately to ensure consistency
-    isSupabaseAvailable().then(available => {
-      if (available) {
-        userDB.updateUserByAccountId(currentAccountId, { email }).catch((error: any) => {
-          console.error('Error updating email:', error);
-        });
-      }
-    });
+    // Save to localStorage as backup after successful update
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`email_${currentAccountId}`, email);
+      localStorage.setItem(`email_${currentAccountId}_timestamp`, Date.now().toString());
+    }
   };
 
   const updateUserStudyTime = async (additionalTime: number) => {

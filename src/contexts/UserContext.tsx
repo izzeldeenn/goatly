@@ -17,9 +17,6 @@ const convertToUserAccountFrontend = (dbUser: UserAccount): UserAccountFrontend 
   hashKey: dbUser.hash_key,
   avatar: dbUser.avatar,
   score: dbUser.score,
-  rank: dbUser.rank,
-  studyTime: dbUser.study_time,
-  studyTimeFormatted: formatStudyTime(dbUser.study_time),
   createdAt: dbUser.created_at,
   lastActive: dbUser.last_active
 });
@@ -33,8 +30,6 @@ const convertToUserAccount = (user: UserAccountFrontend): UserAccount => ({
   hash_key: user.hashKey,
   avatar: user.avatar,
   score: user.score,
-  rank: user.rank,
-  study_time: user.studyTime,
   created_at: user.createdAt,
   last_active: user.lastActive
 });
@@ -147,9 +142,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
               hashKey: dbUser.hash_key,
               avatar: dbUser.avatar || '👤',
               score: dbUser.score,
-              rank: dbUser.rank,
-              studyTime: dbUser.study_time,
-              studyTimeFormatted: formatStudyTime(dbUser.study_time),
               createdAt: dbUser.created_at,
               lastActive: dbUser.last_active
             }));
@@ -168,13 +160,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     const localAvatarTimestamp = parseInt(localStorage.getItem(`avatar_${currentAccountId}_timestamp`) || '0');
                     const dbLastActive = new Date(updatedUser.lastActive).getTime();
                     
-                    // Keep local state for current user, but update score/studyTime from database
+                    // Keep local state for current user, but update score from database
                     return {
                       ...currentUser,
                       score: updatedUser.score,
-                      rank: updatedUser.rank,
-                      studyTime: updatedUser.studyTime,
-                      studyTimeFormatted: updatedUser.studyTimeFormatted,
                       // Use local data if it was modified more recently than database
                       username: localUsernameTimestamp > dbLastActive ? 
                         localStorage.getItem(`username_${currentAccountId}`) || currentUser.username : 
@@ -240,9 +229,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
               hashKey: dbUser.hash_key,
               avatar: dbUser.avatar || '👤',
               score: dbUser.score,
-              rank: dbUser.rank,
-              studyTime: dbUser.study_time,
-              studyTimeFormatted: formatStudyTime(dbUser.study_time),
               createdAt: dbUser.created_at,
               lastActive: dbUser.last_active
             }));
@@ -317,9 +303,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       hashKey: accountInfo.hashKey,
       avatar: savedAvatar,
       score: 0,
-      rank: 1,
-      studyTime: 0,
-      studyTimeFormatted: formatStudyTime(0),
       createdAt: accountInfo.createdAt,
       lastActive: accountInfo.lastLogin
     };
@@ -348,8 +331,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
           hash_key: userAccount.hashKey,
           avatar: userAccount.avatar,
           score: userAccount.score,
-          rank: userAccount.rank,
-          study_time: userAccount.studyTime,
           created_at: userAccount.createdAt,
           last_active: userAccount.lastActive
         });
@@ -369,8 +350,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
           hash_key: userAccount.hashKey,
           avatar: userAccount.avatar,
           score: userAccount.score,
-          rank: userAccount.rank,
-          study_time: userAccount.studyTime,
           created_at: userAccount.createdAt,
           last_active: userAccount.lastActive
         });
@@ -517,19 +496,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
         if (user.accountId === currentAccountId) {
           return {
             ...user,
-            studyTime: user.studyTime + additionalTime,
             score: user.score + pointsEarned,
-            lastActive: new Date().toISOString(),
-            studyTimeFormatted: formatStudyTime(user.studyTime + additionalTime)
+            lastActive: new Date().toISOString()
           };
         }
         return user;
-      });
-
-      // Sort by score and update ranks
-      newUsers.sort((a, b) => b.score - a.score);
-      newUsers.forEach((user, index) => {
-        user.rank = index + 1;
       });
 
       return newUsers;
@@ -556,8 +527,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const getAllDeviceUsers = (): UserAccountFrontend[] => {
     // Return only real users, no virtual users
     return users.map(user => ({
-      ...user,
-      studyTimeFormatted: formatStudyTime(user.studyTime)
+      ...user
     }));
   };
 
@@ -737,8 +707,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         password: password, // Add password (in production, this should be hashed)
         avatar: currentUser.avatar, // Keep existing avatar
         score: currentUser.score, // Keep existing score
-        rank: currentUser.rank, // Keep existing rank
-        study_time: currentUser.studyTime, // Keep existing study time
         created_at: currentUser.createdAt, // Keep original creation date
         last_active: new Date().toISOString(), // Update last active
         hash_key: currentUser.hashKey // Keep existing hash key

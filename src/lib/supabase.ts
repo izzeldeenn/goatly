@@ -36,8 +36,6 @@ export interface UserAccount {
   password?: string; // Added for authentication
   avatar?: string;
   score: number;
-  rank: number;
-  study_time: number;
   created_at: string;
   last_active: string;
 }
@@ -51,9 +49,6 @@ export interface UserAccountFrontend {
   hashKey: string;
   avatar?: string;
   score: number;
-  rank: number;
-  studyTime: number;
-  studyTimeFormatted: string;
   createdAt: string;
   lastActive: string;
 }
@@ -160,12 +155,11 @@ export class UserAccountDB {
   }
 
   // Update user study time and score
-  async updateUserStudyTime(accountId: string, studyTime: number, score: number): Promise<UserAccount | null> {
+  async updateUserScore(accountId: string, score: number): Promise<UserAccount | null> {
     try {
       const { data, error } = await supabase
         .from('users')
         .update({
-          study_time: studyTime,
           score: score,
           last_active: new Date().toISOString()
         })
@@ -176,7 +170,7 @@ export class UserAccountDB {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error updating user study time:', error);
+      console.error('Error updating user score:', error);
       return null;
     }
   }

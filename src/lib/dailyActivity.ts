@@ -67,8 +67,6 @@ export interface ActivityContribution {
 // Database operations for daily activities
 export class DailyActivityDB {
   private static instance: DailyActivityDB;
-  private rankingsCache = new Map<string, { data: DailyActivity[], timestamp: number }>();
-  private readonly CACHE_DURATION = 300000; // 5 minutes cache
 
   static getInstance(): DailyActivityDB {
     if (!DailyActivityDB.instance) {
@@ -116,20 +114,11 @@ export class DailyActivityDB {
     }
   }
 
-  // Get today's rankings for all users (with caching)
+  // Get today's rankings for all users
   async getTodayRankings(): Promise<DailyActivity[]> {
     const today = new Date().toISOString().split('T')[0];
-    const cacheKey = `today_rankings_${today}`;
-    
-    // Check cache first
-    const cached = this.rankingsCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
-      console.log('📊 Using cached rankings for:', today);
-      return cached.data;
-    }
     
     try {
-      console.log('🔄 Fetching fresh rankings for:', today);
       const { data, error } = await supabase
         .from('daily_activities')
         .select('*')
@@ -137,16 +126,7 @@ export class DailyActivityDB {
         .order('daily_rank', { ascending: true });
 
       if (error) throw error;
-      
-      const rankings = data || [];
-      
-      // Cache the results
-      this.rankingsCache.set(cacheKey, { 
-        data: rankings, 
-        timestamp: Date.now() 
-      });
-      
-      return rankings;
+      return data || [];
     } catch (error) {
       console.error('Error fetching today rankings:', error);
       return [];
@@ -581,40 +561,13 @@ export class DailyActivityDB {
     }
   }
 
-  // Update daily rankings for all users today (optimized)
+  // Update daily rankings for all users today
   async updateTodayRankings(): Promise<void> {
     const today = new Date().toISOString().split('T')[0];
     
     try {
       console.log('🔄 Updating today rankings for:', today);
       
-      // Use RPC function for efficient batch update
-      const { error } = await supabase.rpc('update_daily_rankings_batch', { 
-        target_date: today 
-      });
-
-      if (error) {
-        console.error('❌ Error in batch ranking update:', error);
-        // Fallback to individual updates
-        await this.updateRankingsIndividually(today);
-      } else {
-        console.log('✅ Batch ranking update successful');
-      }
-      
-      // Clear cache to force refresh on next request
-      const cacheKey = `today_rankings_${today}`;
-      this.rankingsCache.delete(cacheKey);
-      
-    } catch (error) {
-      console.error('❌ Error updating today rankings:', error);
-      // Fallback to individual updates
-      await this.updateRankingsIndividually(today);
-    }
-  }
-  
-  // Fallback method for individual ranking updates
-  private async updateRankingsIndividually(today: string): Promise<void> {
-    try {
       // Get all activities for today
       const { data: activities, error } = await supabase
         .from('daily_activities')
@@ -624,37 +577,37 @@ export class DailyActivityDB {
 
       if (error) {
         console.error('❌ Error fetching activities for ranking:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
         throw error;
       }
 
       console.log('📊 Found activities for ranking:', activities?.length || 0);
 
-      // Update ranks in batches of 10 to reduce database calls
+      // Update ranks
       if (activities && activities.length > 0) {
-        const batchSize = 10;
-        for (let i = 0; i < activities.length; i += batchSize) {
-          const batch = activities.slice(i, i + batchSize);
-          const updates = batch.map((activity, index) => ({
-            id: activity.id,
-            daily_rank: i + index + 1
-          }));
-          
-          // Batch update
-          const { error: batchError } = await supabase
+        // Update each record individually to avoid upsert issues
+        for (let i = 0; i < activities.length; i++) {
+          const activity = activities[i];
+          const { error: updateError } = await supabase
             .from('daily_activities')
-            .upsert(updates);
-            
-          if (batchError) {
-            console.error(`❌ Error updating batch ${Math.floor(i/batchSize) + 1}:`, batchError);
+            .update({ daily_rank: i + 1 })
+            .eq('id', activity.id);
+
+          if (updateError) {
+            console.error(`❌ Error updating rank for user ${activity.account_id}:`, updateError);
+            console.error('Update error details:', JSON.stringify(updateError, null, 2));
+          } else {
+            console.log(`✅ Updated rank ${i + 1} for ${activity.account_id}`);
           }
         }
-        
+
         console.log('✅ Successfully updated rankings for', activities.length, 'users');
       } else {
         console.log('📊 No activities found for today');
       }
     } catch (error) {
-      console.error('❌ Error in individual ranking updates:', error);
+      console.error('❌ Error updating today rankings:', error);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
     }
   }
 

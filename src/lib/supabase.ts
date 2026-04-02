@@ -64,14 +64,13 @@ export class UserAccountDB {
     return UserAccountDB.instance;
   }
 
-  // Get all users sorted by score (with pagination)
-  async getAllUsers(page = 1, limit = 50): Promise<UserAccount[]> {
+  // Get all users sorted by score (for leaderboard)
+  async getAllUsers(): Promise<UserAccount[]> {
     try {
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .order('score', { ascending: false })
-        .range((page - 1) * limit, page * limit - 1);
+        .order('score', { ascending: false });
 
       if (error) throw error;
       return data || [];
@@ -207,10 +206,10 @@ export class UserAccountDB {
     }
   }
 
-  // Subscribe to real-time changes (optimized)
-  subscribeToUsers(callback: (updates: { type: string, users: UserAccount[] }) => void) {
+  // Subscribe to real-time changes
+  subscribeToUsers(callback: (records: UserAccount[]) => void) {
     try {
-      console.log('🔄 Setting up optimized Supabase real-time subscription...');
+      console.log('🔄 Setting up Supabase real-time subscription...');
       
       // Subscribe to the users table for real-time updates
       const subscription = supabase
@@ -218,30 +217,18 @@ export class UserAccountDB {
         .on('postgres_changes', 
           { event: '*', schema: 'public', table: 'users' },
           async (payload) => {
-            console.log('🔄 Real-time update received:', payload.eventType);
-            
-            // Instead of refetching all users, send only the change
-            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-              callback({ 
-                type: payload.eventType, 
-                users: [payload.new as UserAccount] 
-              });
-            } else if (payload.eventType === 'DELETE') {
-              callback({ 
-                type: payload.eventType, 
-                users: [payload.old as UserAccount] 
-              });
-            }
+            console.log('🔄 Real-time update received:', payload);
+            // Refetch all users when any change occurs
+            const users = await this.getAllUsers();
+            callback(users);
           }
         )
         .subscribe();
 
-      // Initial load - only get first page
-      this.getAllUsers(1, 50).then(users => {
-        callback({ type: 'INITIAL', users });
-      });
+      // Initial load
+      this.getAllUsers().then(callback);
+      console.log('✅ Supabase real-time subscription established');
       
-      console.log('✅ Optimized Supabase real-time subscription established');
       return subscription;
     } catch (error) {
       console.error('❌ Error subscribing to users:', error);

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
+import { validatePasswordStrength } from '@/utils/password';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,6 +24,17 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [passwordValidation, setPasswordValidation] = useState<{ isValid: boolean; errors: string[] } | null>(null);
+
+  // Validate password as user types (only for registration)
+  useEffect(() => {
+    if (!isLogin && password) {
+      const validation = validatePasswordStrength(password);
+      setPasswordValidation(validation);
+    } else {
+      setPasswordValidation(null);
+    }
+  }, [password, isLogin]);
 
   // If user is already logged in, don't show the modal
   if (isLoggedIn || !isOpen) return null;
@@ -159,6 +171,43 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           )}
 
+          {!isLogin && (
+            <div className="mb-4 p-3 rounded-xl text-sm"
+                 style={{ 
+                   backgroundColor: passwordValidation?.isValid ? '#dcfce7' : '#fee2e2',
+                   border: `1px solid ${passwordValidation?.isValid ? '#bbf7d0' : '#fecaca'}`,
+                   color: passwordValidation?.isValid ? '#166534' : '#dc2626'
+                 }}>
+              <div className="font-medium mb-1">
+                متطلبات كلمة المرور:
+              </div>
+              <ul className="text-xs space-y-1">
+                <li className={password?.length >= 8 ? 'line-through opacity-50' : ''}>
+                  • 8 أحرف على الأقل
+                </li>
+                <li className={/[A-Z]/.test(password) ? 'line-through opacity-50' : ''}>
+                  • حرف كبير واحد على الأقل (A-Z)
+                </li>
+                <li className={/[a-z]/.test(password) ? 'line-through opacity-50' : ''}>
+                  • حرف صغير واحد على الأقل (a-z)
+                </li>
+                <li className={/\d/.test(password) ? 'line-through opacity-50' : ''}>
+                  • رقم واحد على الأقل (0-9)
+                </li>
+                <li className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? 'line-through opacity-50' : ''}>
+                  • رمز خاص واحد على الأقل (!@#$%^&*)
+                </li>
+              </ul>
+              {passwordValidation && passwordValidation.errors.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-current/20">
+                  {passwordValidation.errors.map((error, index) => (
+                    <div key={index} className="text-xs">• {error}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div>
             <label className={`block mb-2 text-sm font-medium ${
               theme === 'light' ? 'text-gray-700' : 'text-gray-300'
@@ -171,18 +220,19 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="أدخل كلمة المرور"
               required
-              minLength={6}
+              minLength={8}
+              maxLength={128}
               className="w-full px-4 py-3 rounded-xl focus:outline-none transition-all"
               style={{
                 backgroundColor: customTheme.colors.surface,
-                borderColor: customTheme.colors.border,
+                borderColor: passwordValidation && !passwordValidation.isValid ? '#dc2626' : customTheme.colors.border,
                 color: customTheme.colors.text
               }}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = customTheme.colors.primary;
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = customTheme.colors.border;
+                e.currentTarget.style.borderColor = passwordValidation && !passwordValidation.isValid ? '#dc2626' : customTheme.colors.border;
               }}
             />
           </div>

@@ -7,6 +7,7 @@ import { formatStudyTime } from '@/utils/timeFormat';
 import { userDB, isSupabaseAvailable, UserAccount, UserAccountFrontend } from '@/lib/supabase';
 import { dailyActivityDB, DailyActivityFrontend } from '@/lib/dailyActivity';
 import { supabase } from '@/lib/supabase';
+import { verifyPassword, hashPassword, validatePasswordStrength } from '@/utils/password';
 
 // Convert Supabase DB format to frontend format
 const convertToUserAccountFrontend = (dbUser: UserAccount): UserAccountFrontend => ({
@@ -593,9 +594,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return { success: false, error: 'User not found' };
       }
 
-      // For now, we'll use simple password comparison
-      // In a real app, you'd use proper password hashing (bcrypt, etc.)
-      if (users.password !== password) {
+      // Check if user has a password (registered user)
+      if (!users.password) {
+        return { success: false, error: 'This account has not been upgraded with a password yet' };
+      }
+
+      // Verify password using bcrypt
+      const isPasswordValid = await verifyPassword(password, users.password);
+      if (!isPasswordValid) {
         return { success: false, error: 'Invalid password' };
       }
 
@@ -672,8 +678,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return { success: false, error: 'All fields are required' };
       }
 
-      if (password.length < 6) {
-        return { success: false, error: 'Password must be at least 6 characters' };
+      // Validate password strength
+      const passwordValidation = validatePasswordStrength(password);
+      if (!passwordValidation.isValid) {
+        return { success: false, error: passwordValidation.errors.join(', ') };
       }
 
       if (!email.includes('@')) {
@@ -699,12 +707,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
       console.log('🔄 Upgrading existing account:', currentUser.accountId);
 
-      // Update current user's account with email, password, and new username
+      // Hash the password before storing
+      const hashedPassword = await hashPassword(password);
+
+      // Update current user's account with email, hashed password, and new username
       const updatedUserData: Partial<UserAccount> = {
         account_id: currentUser.accountId,
         username: username, // Update username
         email: email, // Add email
-        password: password, // Add password (in production, this should be hashed)
+        password: hashedPassword, // Add hashed password
         avatar: currentUser.avatar, // Keep existing avatar
         score: currentUser.score, // Keep existing score
         created_at: currentUser.createdAt, // Keep original creation date

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { dailyActivityDB, DailyActivityFrontend } from '@/lib/dailyActivity';
+import { debounce } from '@/utils/debounce';
 
 interface UserAccount {
   accountId: string;
@@ -33,55 +34,48 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [dailyRankings, setDailyRankings] = useState<DailyActivityFrontend[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdateTime, setLastUpdateTime] = useState(0);
+  
+  // Debounced function to load rankings
+  const debouncedLoadRankings = useCallback(
+    debounce(() => {
+      const now = Date.now();
+      if (now - lastUpdateTime < 10000) { // Don't update more than once every 10 seconds
+        console.log('🔄 Skipping ranking update - too frequent');
+        return;
+      }
+      setLastUpdateTime(now);
+      loadDailyRankings();
+    }, 1000),
+    [lastUpdateTime]
+  );
 
   useEffect(() => {
     loadDailyRankings();
   }, []);
 
-  useEffect(() => {
-    // Get all users including virtual ones and merge with daily rankings
+  // Memoized user processing to reduce re-renders
+  const processedUsers = useMemo(() => {
     const allUsers = getAllDeviceUsers();
     const currentUser = getCurrentUser();
-    console.log('👥 All users:', allUsers.map(u => ({ id: u.accountId, name: u.username })));
-    console.log('👤 Current user:', currentUser ? { id: currentUser.accountId, name: currentUser.username } : 'No current user');
-    console.log('🏆 Daily rankings available:', dailyRankings.map(dr => ({ 
-        id: dr.id, 
-        accountId: dr.accountId, 
-        rank: dr.dailyRank, 
-        minutes: dr.studyMinutes,
-        username: 'Unknown'
-      })));
     
     const usersWithDailyRank = allUsers.map(user => {
       const dailyActivity = dailyRankings.find(dr => dr.accountId === user.accountId);
-      const result = {
+      return {
         ...user,
         dailyRank: dailyActivity?.dailyRank || 999,
         dailyStudyTime: dailyActivity?.studyMinutes || 0
       };
-      
-      // Log for all users to debug the mapping issue
-      console.log('🎯 User mapping:', {
-        accountId: user.accountId,
-        username: user.username,
-        foundActivity: !!dailyActivity,
-        dailyRank: result.dailyRank,
-        dailyStudyTime: result.dailyStudyTime,
-        dailyActivityData: dailyActivity
-      });
-      
-      return result;
     });
     
     // Sort by daily rank
-    const sortedUsers = usersWithDailyRank.sort((a, b) => a.dailyRank - b.dailyRank);
-    console.log('📊 Final sorted users (top 10):', sortedUsers.slice(0, 10).map(u => ({ 
-      rank: u.dailyRank, 
-      name: u.username, 
-      minutes: u.dailyStudyTime 
-    })));
-    setDisplayUsers(sortedUsers);
-  }, [users, dailyRankings]);
+    return usersWithDailyRank.sort((a, b) => a.dailyRank - b.dailyRank);
+  }, [users, dailyRankings, getAllDeviceUsers, getCurrentUser]);
+
+  // Update display users when processed users change
+  useEffect(() => {
+    setDisplayUsers(processedUsers);
+  }, [processedUsers]);
 
   const loadDailyRankings = async () => {
     try {
@@ -125,14 +119,14 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
   };
 
   useEffect(() => {
-    // Update rankings every 30 seconds for live changes
+    // Update rankings every 60 seconds instead of 30 seconds (reduced frequency)
     const interval = setInterval(() => {
-      loadDailyRankings();
+      debouncedLoadRankings();
       setCurrentTime(new Date());
-    }, 30000);
+    }, 60000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [debouncedLoadRankings]);
 
   const formatStudyTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback, useMemo } from 'react';
 import { getAccountId, getAccountInfo } from '@/utils/deviceId';
 import { useGamification } from '@/contexts/GamificationContext';
 import { formatStudyTime } from '@/utils/timeFormat';
@@ -8,6 +8,7 @@ import { userDB, isSupabaseAvailable, UserAccount, UserAccountFrontend } from '@
 import { dailyActivityDB, DailyActivityFrontend } from '@/lib/dailyActivity';
 import { supabase } from '@/lib/supabase';
 import { verifyPassword, hashPassword, validatePasswordStrength } from '@/utils/password';
+import { debounce } from '@/utils/debounce';
 
 // Convert Supabase DB format to frontend format
 const convertToUserAccountFrontend = (dbUser: UserAccount): UserAccountFrontend => ({
@@ -70,6 +71,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   const dbSyncAccumulator = useRef(0);
+  
+  // Debounced function to update user data
+  const debouncedUpdateUser = useCallback(
+    debounce((accountId: string, updates: Partial<UserAccountFrontend>) => {
+      setUsers(prevUsers => {
+        return prevUsers.map(user => {
+          if (user.accountId === accountId) {
+            return { ...user, ...updates, lastActive: new Date().toISOString() };
+          }
+          return user;
+        });
+      });
+    }, 500),
+    []
+  );
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -133,54 +149,64 @@ export function UserProvider({ children }: { children: ReactNode }) {
         console.log('🔗 Supabase available:', pocketBaseReady);
         if (pocketBaseReady) {
           console.log('🔄 Setting up real-time subscription...');
-          userDB.subscribeToUsers((updatedUsers: UserAccount[]) => {
-            console.log('🔄 Real-time update received, users count:', updatedUsers.length);
-            const userAccounts: UserAccountFrontend[] = updatedUsers.map((dbUser: UserAccount) => ({
-              id: dbUser.id,
-              accountId: dbUser.account_id,
-              username: dbUser.username,
-              email: dbUser.email,
-              hashKey: dbUser.hash_key,
-              avatar: dbUser.avatar || '👤',
-              score: dbUser.score,
-              createdAt: dbUser.created_at,
-              lastActive: dbUser.last_active
-            }));
-            console.log('📊 Mapped users to frontend format:', userAccounts.length);
+          userDB.subscribeToUsers((updates: { type: string, users: UserAccount[] }) => {
+            console.log('🔄 Optimized real-time update received:', updates.type, updates.users.length);
             
-            // IMPORTANT: Only update other users, preserve current user's local state
-            setUsers(prevUsers => {
-              return userAccounts.map(updatedUser => {
-                if (updatedUser.accountId === currentAccountId) {
-                  // For current user, preserve existing local state to avoid overriding changes
-                  const currentUser = prevUsers.find(u => u.accountId === currentAccountId);
-                  if (currentUser) {
-                    // Check timestamps to determine which data is newer
-                    const localUsernameTimestamp = parseInt(localStorage.getItem(`username_${currentAccountId}_timestamp`) || '0');
-                    const localEmailTimestamp = parseInt(localStorage.getItem(`email_${currentAccountId}_timestamp`) || '0');
-                    const localAvatarTimestamp = parseInt(localStorage.getItem(`avatar_${currentAccountId}_timestamp`) || '0');
-                    const dbLastActive = new Date(updatedUser.lastActive).getTime();
-                    
-                    // Keep local state for current user, but update score from database
+            if (updates.type === 'INITIAL') {
+              // Initial load
+              const userAccounts: UserAccountFrontend[] = updates.users.map((dbUser: UserAccount) => ({
+                id: dbUser.id,
+                accountId: dbUser.account_id,
+                username: dbUser.username,
+                email: dbUser.email,
+                hashKey: dbUser.hash_key,
+                avatar: dbUser.avatar || '👤',
+                score: dbUser.score,
+                createdAt: dbUser.created_at,
+                lastActive: dbUser.last_active
+              }));
+              setUsers(userAccounts);
+            } else {
+              // Incremental updates
+              setUsers(prevUsers => {
+                let updated = false;
+                const newUsers = prevUsers.map(prevUser => {
+                  const updatedUser = updates.users.find(u => u.account_id === prevUser.accountId);
+                  if (updatedUser) {
+                    updated = true;
                     return {
-                      ...currentUser,
+                      ...prevUser,
+                      username: updatedUser.username,
+                      email: updatedUser.email,
+                      avatar: updatedUser.avatar || '👤',
                       score: updatedUser.score,
-                      // Use local data if it was modified more recently than database
-                      username: localUsernameTimestamp > dbLastActive ? 
-                        localStorage.getItem(`username_${currentAccountId}`) || currentUser.username : 
-                        updatedUser.username,
-                      email: localEmailTimestamp > dbLastActive ? 
-                        localStorage.getItem(`email_${currentAccountId}`) || currentUser.email : 
-                        updatedUser.email,
-                      avatar: localAvatarTimestamp > dbLastActive ? 
-                        localStorage.getItem(`avatar_${currentAccountId}`) || currentUser.avatar : 
-                        updatedUser.avatar,
+                      lastActive: updatedUser.last_active
                     };
                   }
-                }
-                return updatedUser;
+                  return prevUser;
+                });
+                
+                // Add new users if they don't exist
+                updates.users.forEach(updatedUser => {
+                  if (!prevUsers.find(u => u.accountId === updatedUser.account_id)) {
+                    newUsers.push({
+                      id: updatedUser.id,
+                      accountId: updatedUser.account_id,
+                      username: updatedUser.username,
+                      email: updatedUser.email,
+                      hashKey: updatedUser.hash_key,
+                      avatar: updatedUser.avatar || '👤',
+                      score: updatedUser.score,
+                      createdAt: updatedUser.created_at,
+                      lastActive: updatedUser.last_active
+                    });
+                    updated = true;
+                  }
+                });
+                
+                return updated ? newUsers : prevUsers;
               });
-            });
+            }
           });
         } else {
           console.log('🔄 Real-time subscription failed, using fallback mode');

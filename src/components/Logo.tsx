@@ -9,7 +9,7 @@ export function Logo() {
     <div className="flex items-center justify-center">
       <div className="flex items-center space-x-3 space-x-reverse">
         <img 
-          src="/mr_frogo.png" 
+          src="/mrfrogo.png" 
           alt="Mr Frogo" 
           className="w-20 h-20 object-contain"
         />

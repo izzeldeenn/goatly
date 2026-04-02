@@ -1,8 +1,8 @@
-# <img src="public/mr_frogo.png" alt="Mr Frogo" width="30"> Frogo - Focus, Rise, Organize, Grow, Overcome
+# <img src="public/mrfrogo.png" alt="Mr Frogo" width="30"> Frogo - Focus, Rise, Organize, Grow, Overcome
 
 A smart study time management platform inspired by the wisdom of Mr. Frogo.
 
-## 📋 About
+## 📋 Aboutmr_frogo
 
 **Frogo** is a revolutionary study time management platform that combines the wisdom of focused productivity with modern web technology. Born from the philosophy of Mr. Frogo - a wise frog who understood that success comes not from jumping frequently, but from jumping purposefully.
 

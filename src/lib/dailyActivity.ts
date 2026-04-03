@@ -153,8 +153,13 @@ export class DailyActivityDB {
         throw error;
       }
       
-      // Update rankings after successful upsert
-      await this.updateTodayRankings();
+      // Update rankings after successful upsert (only if it's been more than 2 minutes)
+      const lastRankUpdate = localStorage.getItem('lastRankUpdate');
+      const now = Date.now();
+      if (!lastRankUpdate || (now - parseInt(lastRankUpdate)) > 120000) {
+        await this.updateTodayRankings();
+        localStorage.setItem('lastRankUpdate', now.toString());
+      }
       
       return data;
     } catch (error) {
@@ -196,8 +201,13 @@ export class DailyActivityDB {
         throw error;
       }
       
-      // Update rankings after updating activity
-      await this.updateTodayRankings();
+      // Update rankings after updating activity (only if it's been more than 2 minutes)
+      const lastRankUpdate = localStorage.getItem('lastRankUpdate');
+      const now = Date.now();
+      if (!lastRankUpdate || (now - parseInt(lastRankUpdate)) > 120000) {
+        await this.updateTodayRankings();
+        localStorage.setItem('lastRankUpdate', now.toString());
+      }
       
       return data;
     } catch (error) {
@@ -245,8 +255,13 @@ export class DailyActivityDB {
           return null;
         }
         
-        // Update rankings after updating activity
-        await this.updateTodayRankings();
+        // Update rankings after updating activity (only if it's been more than 2 minutes)
+        const lastRankUpdate = localStorage.getItem('lastRankUpdate');
+        const now = Date.now();
+        if (!lastRankUpdate || (now - parseInt(lastRankUpdate)) > 120000) {
+          await this.updateTodayRankings();
+          localStorage.setItem('lastRankUpdate', now.toString());
+        }
         
         // Also update user's last_active timestamp
         await supabase
@@ -282,8 +297,13 @@ export class DailyActivityDB {
           return null;
         }
         
-        // Update rankings after creating activity
-        await this.updateTodayRankings();
+        // Update rankings after creating activity (only if it's been more than 2 minutes)
+        const lastRankUpdate = localStorage.getItem('lastRankUpdate');
+        const now = Date.now();
+        if (!lastRankUpdate || (now - parseInt(lastRankUpdate)) > 120000) {
+          await this.updateTodayRankings();
+          localStorage.setItem('lastRankUpdate', now.toString());
+        }
         
         // Also update user's last_active timestamp
         await supabase
@@ -353,8 +373,13 @@ export class DailyActivityDB {
           return false;
         }
         
-        // Update rankings after creating activity
-        await this.updateTodayRankings();
+        // Update rankings after creating activity (only if it's been more than 2 minutes)
+        const lastRankUpdate = localStorage.getItem('lastRankUpdate');
+        const now = Date.now();
+        if (!lastRankUpdate || (now - parseInt(lastRankUpdate)) > 120000) {
+          await this.updateTodayRankings();
+          localStorage.setItem('lastRankUpdate', now.toString());
+        }
       }
       
       return true;
@@ -403,18 +428,20 @@ export class DailyActivityDB {
 
       // Update user's total study time in their account
       if (activity && activity.study_seconds > 0) {
+        // Update user's score instead of study_time (column doesn't exist)
         const { data: user, error: userError } = await supabase
           .from('users')
-          .select('study_time, score')
+          .select('score')
           .eq('account_id', accountId)
           .single();
 
         if (!userError && user) {
-          // Don't add points here - points are already handled by updateUserStudyTime
+          // Add points based on study time (1 point per 10 seconds)
+          const pointsToAdd = Math.floor(activity.study_seconds / 10);
           await supabase
             .from('users')
             .update({
-              study_time: user.study_time + activity.study_seconds,
+              score: user.score + pointsToAdd,
               last_active: new Date().toISOString()
             })
             .eq('account_id', accountId);
@@ -523,19 +550,29 @@ export class DailyActivityDB {
         throw error;
       }
 
-      // Update ranks
+      // Update ranks using batch operation instead of individual requests
       if (activities && activities.length > 0) {
-        // Update each record individually to avoid upsert issues
-        for (let i = 0; i < activities.length; i++) {
-          const activity = activities[i];
-          const { error: updateError } = await supabase
-            .from('daily_activities')
-            .update({ daily_rank: i + 1 })
-            .eq('id', activity.id);
+        // Create batch update payload
+        const updatePayload = activities.map((activity, index) => ({
+          id: activity.id,
+          daily_rank: index + 1
+        }));
 
-          if (updateError) {
-            // Error updating rank for user
-          }
+        // Use RPC function for batch update if available, or fall back to individual updates
+        // For now, we'll use a more efficient approach with fewer requests
+        const batchSize = 10; // Process 10 records at a time
+        for (let i = 0; i < updatePayload.length; i += batchSize) {
+          const batch = updatePayload.slice(i, i + batchSize);
+          
+          // Process batch in parallel
+          await Promise.all(
+            batch.map(({ id, daily_rank }) =>
+              supabase
+                .from('daily_activities')
+                .update({ daily_rank })
+                .eq('id', id)
+            )
+          );
         }
       }
     } catch (error) {
@@ -551,8 +588,19 @@ export class DailyActivityDB {
         .on('postgres_changes', 
           { event: '*', schema: 'public', table: 'daily_activities' },
           async () => {
-            // Refetch all daily activities when any change occurs
-            const today = new Date().toISOString().split('T')[0];
+            // DISABLED: Prevent infinite loop of ranking updates
+            // Real-time ranking updates are handled by the 2-minute interval in components
+            // Only update rankings if it's been more than 2 minutes since last update
+            // const lastRankUpdate = localStorage.getItem('lastRankUpdate');
+            // const now = Date.now();
+            // const shouldUpdateRankings = !lastRankUpdate || (now - parseInt(lastRankUpdate)) > 120000;
+            
+            // if (shouldUpdateRankings) {
+            //   await this.updateTodayRankings();
+            //   localStorage.setItem('lastRankUpdate', now.toString());
+            // }
+            
+            // Just refetch data without updating rankings
             const activities = await this.getTodayRankings();
             callback(activities);
           }
@@ -564,7 +612,7 @@ export class DailyActivityDB {
       
       return subscription;
     } catch (error) {
-      // Error subscribing to daily activities
+      console.error('❌ Error subscribing to daily activities:', error);
     }
   }
 

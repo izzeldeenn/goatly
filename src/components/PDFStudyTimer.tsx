@@ -75,10 +75,11 @@ export function PDFStudyTimer({ onClose }: PDFStudyTimerProps) {
       realtimeUpdateRef.current = setInterval(async () => {
         const currentUser = getCurrentUser();
         if (currentUser?.accountId) {
-          await dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 30); // 30 seconds at once
-          updateUserStudyTime(30);
+          // Update every 2 minutes instead of 30 seconds to reduce API requests
+          await dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 120); // 120 seconds = 2 minutes
+          updateUserStudyTime(120);
         }
-      }, 30000); // Update every 30 seconds
+      }, 120000); // Update every 2 minutes instead of 30 seconds
     } else {
       setTimerActive(false);
       if (realtimeUpdateRef.current) {

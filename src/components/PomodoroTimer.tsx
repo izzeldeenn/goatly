@@ -84,6 +84,7 @@ export function PomodoroTimer() {
   });
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const studyTimeRef = useRef<NodeJS.Timeout | null>(null);
+  const realtimeUpdateRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load timer settings from localStorage and listen for changes
   useEffect(() => {
@@ -178,15 +179,18 @@ export function PomodoroTimer() {
         setTimeLeft((prev: number) => prev - 1);
       }, 1000);
       
-      // Update device study time every 30 seconds for work sessions
+      // Update device study time every 2 minutes for work sessions
       studyTimeRef.current = setInterval(() => {
         if (currentSession === 'work') {
-          // Only update daily activity, not user study time (to avoid double counting)
-          if (currentUser?.accountId) {
-            dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 30); // 30 seconds at once
-          }
+          realtimeUpdateRef.current = setInterval(async () => {
+            const currentUser = getCurrentUser();
+            if (currentUser?.accountId) {
+              dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 120); // 120 seconds = 2 minutes
+              updateUserStudyTime(120);
+            }
+          }, 120000); // Update every 2 minutes
         }
-      }, 30000); // Update every 30 seconds
+      }, 1000);
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
       setTimerActive(false);
@@ -202,6 +206,9 @@ export function PomodoroTimer() {
       if (studyTimeRef.current) {
         clearInterval(studyTimeRef.current);
       }
+      if (realtimeUpdateRef.current) {
+        clearInterval(realtimeUpdateRef.current);
+      }
     }
 
     return () => {
@@ -212,6 +219,9 @@ export function PomodoroTimer() {
       }
       if (studyTimeRef.current) {
         clearInterval(studyTimeRef.current);
+      }
+      if (realtimeUpdateRef.current) {
+        clearInterval(realtimeUpdateRef.current);
       }
     };
   }, [isRunning, timeLeft, currentSession]);

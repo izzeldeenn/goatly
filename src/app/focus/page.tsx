@@ -195,7 +195,16 @@ function HomeContent() {
   useEffect(() => {
     const loadDailyRankings = async () => {
       try {
-        await dailyActivityDB.updateTodayRankings();
+        // Only update rankings if it's been more than 2 minutes since last update
+        const lastRankUpdate = localStorage.getItem('lastRankUpdate');
+        const now = Date.now();
+        const shouldUpdateRankings = !lastRankUpdate || (now - parseInt(lastRankUpdate)) > 120000; // 2 minutes
+        
+        if (shouldUpdateRankings) {
+          await dailyActivityDB.updateTodayRankings();
+          localStorage.setItem('lastRankUpdate', now.toString());
+        }
+        
         const rankings = await dailyActivityDB.getTodayRankings();
         setDailyRankings(rankings);
       } catch (error) {
@@ -204,7 +213,8 @@ function HomeContent() {
     };
 
     loadDailyRankings();
-    const interval = setInterval(loadDailyRankings, 30000);
+    // Update rankings every 2 minutes instead of 30 seconds
+    const interval = setInterval(loadDailyRankings, 120000);
     return () => clearInterval(interval);
   }, []);
 

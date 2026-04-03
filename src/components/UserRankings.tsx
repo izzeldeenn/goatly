@@ -134,13 +134,13 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
   };
 
   const isRecentlyActive = (user: UserAccount) => {
-    // Check if user was active in the last minute
+    // Check if user was active in the last 2 minutes
     const lastActiveTime = new Date(user.lastActive);
     const now = new Date();
     const timeDiff = now.getTime() - lastActiveTime.getTime();
-    const oneMinute = 60 * 1000; // 1 minute in milliseconds
+    const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
     
-    return timeDiff < oneMinute;
+    return timeDiff < twoMinutes;
   };
 
   const isCurrentUserActive = (user: UserAccount) => {

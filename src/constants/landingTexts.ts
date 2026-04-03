@@ -1,0 +1,298 @@
+export const landingTexts = {
+  en: {
+    // Navigation
+    features: 'Community Features',
+    reviews: 'Success Stories',
+    stats: 'Community Impact',
+    startNow: 'Join Community',
+    
+    // Hero Section
+    newFeature: '� Open Source Community',
+    heroTitle: 'Focus Together',
+    heroSubtitle: 'Succeed Together',
+    heroDescription: 'Join our open-source community dedicated to helping students achieve deep focus and academic excellence. Together we build, learn, and succeed.',
+    startFreeStudy: 'Join Our Community',
+    watchDemo: 'See How It Works',
+    
+    // Stats
+    activeStudents: 'Community Members',
+    focusHours: 'Collective Focus Hours',
+    levelsCompleted: 'Goals Achieved',
+    userSatisfaction: 'Community Success Rate',
+    
+    // Features Section
+    exceptionalFeatures: 'Community-Driven Features',
+    featuresDescription: 'Built by students, for students. Our open-source tools are designed to create the perfect environment for focused learning and collaborative success.',
+    
+    // Features List
+    deepFocus: 'Collective Focus',
+    deepFocusDesc: 'Community techniques and tools for achieving deep concentration',
+    smartGoals: 'Shared Goals',
+    smartGoalsDesc: 'Set and achieve goals alongside motivated peers',
+    streakTracking: 'Community Streaks',
+    streakTrackingDesc: 'Maintain focus streaks with community support and accountability',
+    activeCommunity: 'Peer Support',
+    activeCommunityDesc: 'Connect with students who share your commitment to excellence',
+    advancedAnalytics: 'Progress Insights',
+    advancedAnalyticsDesc: 'Track your growth and contribute to community learning',
+    personalizedExperience: 'Custom Journey',
+    personalizedExperienceDesc: 'Personalize your focus experience while staying connected to the community',
+    
+    // Testimonials Section
+    whatStudentsSay: 'Community Voices',
+    testimonialsDescription: 'Real stories from students who found focus and success through our community',
+    
+    // Testimonials
+    ahmedName: 'Ahmed Mohammed',
+    ahmedRole: 'Computer Science Student',
+    ahmedContent: 'This community transformed my academic life. The open-source approach and peer support kept me accountable and focused.',
+    
+    saraName: 'Sarah Ahmed',
+    saraRole: 'Medical Student',
+    saraContent: 'Being part of this community made all the difference. We share techniques, motivate each other, and celebrate success together.',
+    
+    mohammedName: 'Mohammed Ali',
+    mohammedRole: 'Engineering Student',
+    mohammedContent: 'The collaborative environment and open-source tools helped me develop sustainable study habits and achieve my goals.',
+    
+    // CTA Section
+    readyToStart: 'Ready to Join Our Community?',
+    ctaDescription: 'Become part of a growing movement of students committed to focus, learning, and mutual success. Your journey starts here.',
+    startStudyingNow: 'Join Community Now',
+    requestDemo: 'Explore Community',
+    
+    // Community Links
+    githubTitle: 'Join Our Open Source Journey',
+    githubDescription: 'Contribute to the project, report issues, and help us build the best focus community together.',
+    discordTitle: 'Connect With Fellow Students',
+    discordDescription: 'Join our Discord server to share experiences, get help, and participate in community challenges.',
+    contribute: 'Contribute on GitHub',
+    joinDiscord: 'Join Discord Server',
+    supportCommunity: 'Support Our Mission',
+    
+    // Footer
+    product: 'Community Resources',
+    pricing: 'Free Forever',
+    blog: 'Community Blog',
+    support: 'Community Help',
+    company: 'About Us',
+    aboutUs: 'Our Mission',
+    team: 'Community Leaders',
+    careers: 'Contribute',
+    contact: 'Connect With Us',
+    follow: 'Join Movement',
+    tagline: 'Open-source community building the future of focused learning',
+    copyright: '© 2024 Frogo Community. Open-source, student-driven, always free.'
+  },
+  
+  ar: {
+    // Navigation
+    features: 'مميزات المجتمع',
+    reviews: 'قصص نجاح',
+    stats: 'تأثير المجتمع',
+    startNow: 'انضم للمجتمع',
+    
+    // Hero Section
+    newFeature: '� مجتمع مفتوح المصدر',
+    heroTitle: 'ركزوا معاً',
+    heroSubtitle: 'نجحوا معاً',
+    heroDescription: 'انضم إلى مجتمعنا المفتوح المصدر المخصص لمساعدة الطلاب على تحقيق التركيز العميق والتميز الأكاديمي. معاً نبني ونتعلم ونجح.',
+    startFreeStudy: 'انضم لمجتمعنا',
+    watchDemo: 'شاهد كيف يعمل',
+    
+    // Stats
+    activeStudents: 'أعضاء المجتمع',
+    focusHours: 'ساعات تركيز جماعية',
+    levelsCompleted: 'أهداف تحققت',
+    userSatisfaction: 'معدل نجاح المجتمع',
+    
+    // Features Section
+    exceptionalFeatures: 'مميزات يقودها المجتمع',
+    featuresDescription: 'مبني من الطلاب، للطلاب. أدواتنا مفتوحة المصدر مصممة لخلق البيئة المثالية للتعلم المركز والنجاح التعاوني.',
+    
+    // Features List
+    deepFocus: 'تركيز جماعي',
+    deepFocusDesc: 'تقنيات وأدوات المجتمع لتحقيق التركيز العميق',
+    smartGoals: 'أهداف مشتركة',
+    smartGoalsDesc: 'حدد وأحقق الأهداف مع زملائك المتحمسين',
+    streakTracking: 'سلاسل المجتمع',
+    streakTrackingDesc: 'حافظ على سلاسل التركيز مع دعم المجتمع والمسؤولية',
+    activeCommunity: 'دعم الأقران',
+    activeCommunityDesc: 'تواصل مع الطلاب الذين يشاركونك التزامك بالتميز',
+    advancedAnalytics: 'رؤى التقدم',
+    advancedAnalyticsDesc: 'تتبع نموك وساهم في تعلم المجتمع',
+    personalizedExperience: 'رحلة مخصصة',
+    personalizedExperienceDesc: 'خصص تجربة التركيز مع البقاء متصلاً بالمجتمع',
+    
+    // Testimonials Section
+    whatStudentsSay: 'أصوات المجتمع',
+    testimonialsDescription: 'قصص حقيقية من الطلاب الذين وجدوا التركيز والنجاح من خلال مجتمعنا',
+    
+    // Testimonials
+    ahmedName: 'أحمد محمد',
+    ahmedRole: 'طالب علوم الحاسوب',
+    ahmedContent: 'هذا المجتمع غير حياتي الأكاديمية تماماً. النهج المفتوح المصدر ودعم الأقران أبقاني مسؤولاً ومركزاً.',
+    
+    saraName: 'سارة أحمد',
+    saraRole: 'طالبة طب',
+    saraContent: 'كوني جزءاً من هذا المجتمع صنع كل الفرق. نشارك التقنيات، نحفز بعضنا البعض، ونحتفل بالنجاح معاً.',
+    
+    mohammedName: 'محمد علي',
+    mohammedRole: 'طالب هندسة',
+    mohammedContent: 'البيئة التعاونية والأدوات مفتوحة المصدر ساعدتني في تطوير عادات دراسة مستدامة وتحقيق أهدافي.',
+    
+    // CTA Section
+    readyToStart: 'هل أنت مستعد لانضمام مجتمعنا؟',
+    ctaDescription: 'كن جزءاً من حركة متنامية من الطلاب الملتزمين بالتركيز والتعلم والنجاح المتبادل. رحلتك تبدأ من هنا.',
+    startStudyingNow: 'انضم للمجتمع الآن',
+    requestDemo: 'استكشف المجتمع',
+    
+    // Community Links
+    githubTitle: 'انضم لرحلتنا مفتوحة المصدر',
+    githubDescription: 'ساهم في المشروع، أبلغ عن المشاكل، وساعدنا في بناء أفضل مجتمع للتركيز معاً.',
+    discordTitle: 'تواصل مع زملائك الطلاب',
+    discordDescription: 'انضم إلى خادم Discord لمشاركة الخبرات، الحصول على المساعدة، والمشاركة في تحديات المجتمع.',
+    contribute: 'ساهم في GitHub',
+    joinDiscord: 'انضم لخادم Discord',
+    supportCommunity: 'ادعم مهمتنا',
+    
+    // Footer
+    product: 'موارد المجتمع',
+    pricing: 'مجاني للأبد',
+    blog: 'مدونة المجتمع',
+    support: 'مساعدة المجتمع',
+    company: 'من نحن',
+    aboutUs: 'مهمتنا',
+    team: 'قادة المجتمع',
+    careers: 'اساهم',
+    contact: 'تواصل معنا',
+    follow: 'انضم للحركة',
+    tagline: 'مجتمع مفتوح المصدر يبني مستقبل التعلم المركز',
+    copyright: '© 2024 مجتمع فروجو. مفتوح المصدر، يقوده الطلاب، مجاني دائماً.'
+  }
+} as const;
+
+export const features = {
+  en: [
+    {
+      icon: '⚡',
+      key: 'deepFocus' as const,
+      gradient: 'from-purple-500 to-pink-500'
+    },
+    {
+      icon: '🎯',
+      key: 'smartGoals' as const,
+      gradient: 'from-blue-500 to-cyan-500'
+    },
+    {
+      icon: '🔥',
+      key: 'streakTracking' as const,
+      gradient: 'from-orange-500 to-red-500'
+    },
+    {
+      icon: '👥',
+      key: 'activeCommunity' as const,
+      gradient: 'from-green-500 to-emerald-500'
+    },
+    {
+      icon: '📈',
+      key: 'advancedAnalytics' as const,
+      gradient: 'from-indigo-500 to-purple-500'
+    },
+    {
+      icon: '🎨',
+      key: 'personalizedExperience' as const,
+      gradient: 'from-pink-500 to-rose-500'
+    }
+  ],
+  ar: [
+    {
+      icon: '⚡',
+      key: 'deepFocus' as const,
+      gradient: 'from-purple-500 to-pink-500'
+    },
+    {
+      icon: '🎯',
+      key: 'smartGoals' as const,
+      gradient: 'from-blue-500 to-cyan-500'
+    },
+    {
+      icon: '🔥',
+      key: 'streakTracking' as const,
+      gradient: 'from-orange-500 to-red-500'
+    },
+    {
+      icon: '👥',
+      key: 'activeCommunity' as const,
+      gradient: 'from-green-500 to-emerald-500'
+    },
+    {
+      icon: '📈',
+      key: 'advancedAnalytics' as const,
+      gradient: 'from-indigo-500 to-purple-500'
+    },
+    {
+      icon: '🎨',
+      key: 'personalizedExperience' as const,
+      gradient: 'from-pink-500 to-rose-500'
+    }
+  ]
+} as const;
+
+export const testimonials = {
+  en: [
+    {
+      nameKey: 'ahmedName' as const,
+      roleKey: 'ahmedRole' as const,
+      contentKey: 'ahmedContent' as const,
+      rating: 5
+    },
+    {
+      nameKey: 'saraName' as const,
+      roleKey: 'saraRole' as const,
+      contentKey: 'saraContent' as const,
+      rating: 5
+    },
+    {
+      nameKey: 'mohammedName' as const,
+      roleKey: 'mohammedRole' as const,
+      contentKey: 'mohammedContent' as const,
+      rating: 5
+    }
+  ],
+  ar: [
+    {
+      nameKey: 'ahmedName' as const,
+      roleKey: 'ahmedRole' as const,
+      contentKey: 'ahmedContent' as const,
+      rating: 5
+    },
+    {
+      nameKey: 'saraName' as const,
+      roleKey: 'saraRole' as const,
+      contentKey: 'saraContent' as const,
+      rating: 5
+    },
+    {
+      nameKey: 'mohammedName' as const,
+      roleKey: 'mohammedRole' as const,
+      contentKey: 'mohammedContent' as const,
+      rating: 5
+    }
+  ]
+} as const;
+
+export const stats = {
+  en: [
+    { number: '15K+', labelKey: 'activeStudents' as const },
+    { number: '100K+', labelKey: 'focusHours' as const },
+    { number: '500+', labelKey: 'levelsCompleted' as const },
+    { number: '98%', labelKey: 'userSatisfaction' as const }
+  ],
+  ar: [
+    { number: '15K+', labelKey: 'activeStudents' as const },
+    { number: '100K+', labelKey: 'focusHours' as const },
+    { number: '500+', labelKey: 'levelsCompleted' as const },
+    { number: '98%', labelKey: 'userSatisfaction' as const }
+  ]
+} as const;

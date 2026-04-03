@@ -122,52 +122,70 @@ export function UserProvider({ children }: { children: ReactNode }) {
       try {
         const pocketBaseReady = await isSupabaseAvailable();
         if (pocketBaseReady) {
-          userDB.subscribeToUsers((updatedUsers: UserAccount[]) => {
-            const userAccounts: UserAccountFrontend[] = updatedUsers.map((dbUser: UserAccount) => ({
-              id: dbUser.id,
-              accountId: dbUser.account_id,
-              username: dbUser.username,
-              email: dbUser.email,
-              hashKey: dbUser.hash_key,
-              avatar: dbUser.avatar || '👤',
-              score: dbUser.score,
-              createdAt: dbUser.created_at,
-              lastActive: dbUser.last_active
-            }));
-            
-            // IMPORTANT: Only update other users, preserve current user's local state
-            setUsers(prevUsers => {
-              return userAccounts.map(updatedUser => {
-                if (updatedUser.accountId === currentAccountId) {
-                  // For current user, preserve existing local state to avoid overriding changes
-                  const currentUser = prevUsers.find(u => u.accountId === currentAccountId);
-                  if (currentUser) {
-                    // Check timestamps to determine which data is newer
-                    const localUsernameTimestamp = parseInt(localStorage.getItem(`username_${currentAccountId}_timestamp`) || '0');
-                    const localEmailTimestamp = parseInt(localStorage.getItem(`email_${currentAccountId}_timestamp`) || '0');
-                    const localAvatarTimestamp = parseInt(localStorage.getItem(`avatar_${currentAccountId}_timestamp`) || '0');
-                    const dbLastActive = new Date(updatedUser.lastActive).getTime();
-                    
-                    // Keep local state for current user, but update score from database
-                    return {
-                      ...currentUser,
-                      score: updatedUser.score,
-                      // Use local data if it was modified more recently than database
-                      username: localUsernameTimestamp > dbLastActive ? 
-                        localStorage.getItem(`username_${currentAccountId}`) || currentUser.username : 
-                        updatedUser.username,
-                      email: localEmailTimestamp > dbLastActive ? 
-                        localStorage.getItem(`email_${currentAccountId}`) || currentUser.email : 
-                        updatedUser.email,
-                      avatar: localAvatarTimestamp > dbLastActive ? 
-                        localStorage.getItem(`avatar_${currentAccountId}`) || currentUser.avatar : 
-                        updatedUser.avatar,
-                    };
-                  }
-                }
-                return updatedUser;
-              });
-            });
+          userDB.subscribeToUsers((payload: any) => {
+            if (payload.eventType === 'INITIAL_LOAD') {
+              // Initial load of all users
+              const userAccounts: UserAccountFrontend[] = payload.new.map((dbUser: UserAccount) => ({
+                id: dbUser.id,
+                accountId: dbUser.account_id,
+                username: dbUser.username,
+                email: dbUser.email,
+                hashKey: dbUser.hash_key,
+                avatar: dbUser.avatar || '👤',
+                score: dbUser.score,
+                createdAt: dbUser.created_at,
+                lastActive: dbUser.last_active
+              }));
+              setUsers(userAccounts);
+            } else {
+              // Handle individual user changes
+              const changedUser = payload.new;
+              if (changedUser) {
+                setUsers(prevUsers => {
+                  return prevUsers.map(user => {
+                    if (user.accountId === changedUser.account_id) {
+                      // For current user, preserve existing local state to avoid overriding changes
+                      if (user.accountId === currentAccountId) {
+                        const localUsernameTimestamp = parseInt(localStorage.getItem(`username_${currentAccountId}_timestamp`) || '0');
+                        const localEmailTimestamp = parseInt(localStorage.getItem(`email_${currentAccountId}_timestamp`) || '0');
+                        const localAvatarTimestamp = parseInt(localStorage.getItem(`avatar_${currentAccountId}_timestamp`) || '0');
+                        const dbLastActive = new Date(changedUser.last_active).getTime();
+                        
+                        return {
+                          ...user,
+                          score: changedUser.score,
+                          // Use local data if it was modified more recently than database
+                          username: localUsernameTimestamp > dbLastActive ? 
+                            localStorage.getItem(`username_${currentAccountId}`) || user.username : 
+                            changedUser.username,
+                          email: localEmailTimestamp > dbLastActive ? 
+                            localStorage.getItem(`email_${currentAccountId}`) || user.email : 
+                            changedUser.email,
+                          avatar: localAvatarTimestamp > dbLastActive ? 
+                            localStorage.getItem(`avatar_${currentAccountId}`) || user.avatar : 
+                            changedUser.avatar,
+                        };
+                      } else {
+                        // For other users, update all fields
+                        return {
+                          ...user,
+                          username: changedUser.username,
+                          email: changedUser.email,
+                          avatar: changedUser.avatar || '👤',
+                          score: changedUser.score,
+                          lastActive: changedUser.last_active
+                        };
+                      }
+                    }
+                    return user;
+                  });
+                });
+              } else if (payload.eventType === 'DELETE') {
+                // Handle user deletion
+                const deletedUserId = payload.old.account_id;
+                setUsers(prevUsers => prevUsers.filter(user => user.accountId !== deletedUserId));
+              }
+            }
           });
         }
       } catch (error) {

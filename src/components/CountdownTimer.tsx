@@ -185,13 +185,13 @@ export function CountdownTimer() {
         setTimeLeft((prev: number) => prev - 1);
       }, 1000);
       
-      // Update device study time every second
+      // Update device study time every 30 seconds
       studyTimeRef.current = setInterval(() => {
         // Only update daily activity, not user study time (to avoid double counting)
         if (currentUser?.accountId) {
-          dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 1); // Update daily activity
+          dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 30); // 30 seconds at once
         }
-      }, 1000);
+      }, 30000); // Update every 30 seconds
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
       setTimerActive(false);

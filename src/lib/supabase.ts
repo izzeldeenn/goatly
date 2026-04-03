@@ -68,8 +68,9 @@ export class UserAccountDB {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('*')
-        .order('score', { ascending: false });
+        .select('account_id, username, email, avatar, score, last_active, created_at, hash_key')
+        .order('last_active', { ascending: false }) // Sort by last_active instead of score
+        .limit(100); // Limit to last 100 active users to reduce egress
 
       if (error) throw error;
       return data || [];
@@ -83,7 +84,7 @@ export class UserAccountDB {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select('account_id, username, email, avatar, score, last_active, created_at, hash_key')
         .eq('account_id', accountId)
         .single();
 
@@ -190,7 +191,7 @@ export class UserAccountDB {
   }
 
   // Subscribe to real-time changes
-  subscribeToUsers(callback: (records: UserAccount[]) => void) {
+  subscribeToUsers(callback: (payload: any) => void) {
     try {
       // Subscribe to the users table for real-time updates
       const subscription = supabase
@@ -198,15 +199,16 @@ export class UserAccountDB {
         .on('postgres_changes', 
           { event: '*', schema: 'public', table: 'users' },
           async (payload) => {
-            // Refetch all users when any change occurs
-            const users = await this.getAllUsers();
-            callback(users);
+            // Send only the changed payload, not all users
+            callback(payload);
           }
         )
         .subscribe();
 
-      // Initial load
-      this.getAllUsers().then(callback);
+      // Initial load - get all users once
+      this.getAllUsers().then(users => {
+        callback({ eventType: 'INITIAL_LOAD', new: users });
+      });
       
       return subscription;
     } catch (error) {
@@ -226,7 +228,7 @@ export class UserAccountDB {
   // Initialize Supabase connection
   async initialize(): Promise<boolean> {
     try {
-      const { data, error } = await supabase.from('users').select('id').limit(1);
+      const { data, error } = await supabase.from('users').select('account_id').limit(1);
       return !error;
     } catch (error) {
       return false;
@@ -240,7 +242,7 @@ export const userDB = UserAccountDB.getInstance();
 // Check if Supabase is available
 export const isSupabaseAvailable = async (): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.from('users').select('id').limit(1);
+    const { data, error } = await supabase.from('users').select('account_id').limit(1);
     
     if (error) {
       return false;

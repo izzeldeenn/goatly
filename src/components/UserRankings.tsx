@@ -100,11 +100,11 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
   };
 
   useEffect(() => {
-    // Update rankings every 30 seconds for live changes (without loading indicator)
+    // Update rankings every 2 minutes for live changes (without loading indicator)
     const interval = setInterval(() => {
       loadDailyRankings(false);
       setCurrentTime(new Date());
-    }, 30000);
+    }, 120000); // Changed from 30000 to 120000 (2 minutes)
 
     return () => clearInterval(interval);
   }, []);

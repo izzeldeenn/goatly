@@ -130,14 +130,13 @@ export function Timer() {
         setTime((prevTime: number) => prevTime + 1);
       }, 1000);
       
-      // Update study time every 1 second
+      // Update study time every 30 seconds instead of every 1 second
       const studyInterval = setInterval(async () => {
         const currentUser = getCurrentUser();
         if (currentUser?.accountId) {
-          await dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 1); // Add 1 second
-          updateUserStudyTime(1); // Add 1 second for points
+          await dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 30); // 30 seconds at once
         }
-      }, 1000);
+      }, 30000); // Update every 30 seconds
       
       // Store the study interval reference for cleanup
       realtimeUpdateRef.current = studyInterval;

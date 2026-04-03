@@ -178,15 +178,15 @@ export function PomodoroTimer() {
         setTimeLeft((prev: number) => prev - 1);
       }, 1000);
       
-      // Update device study time every second for work sessions
+      // Update device study time every 30 seconds for work sessions
       studyTimeRef.current = setInterval(() => {
         if (currentSession === 'work') {
           // Only update daily activity, not user study time (to avoid double counting)
           if (currentUser?.accountId) {
-            dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 1); // Update daily activity
+            dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 30); // 30 seconds at once
           }
         }
-      }, 1000);
+      }, 30000); // Update every 30 seconds
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
       setTimerActive(false);

@@ -115,13 +115,13 @@ export function YouTubeTimer() {
         setTime((prevTime: number) => prevTime + 10);
       }, 10);
       
-      // Update device study time every second
+      // Update device study time every 30 seconds
       studyTimeRef.current = setInterval(() => {
         // Only update daily activity, not user study time (to avoid double counting)
         if (currentUser?.accountId) {
-          dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 1); // Update daily activity
+          dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 30); // 30 seconds at once
         }
-      }, 1000);
+      }, 30000); // Update every 30 seconds
     } else {
       setTimerActive(false);
       setTimerActiveIndicator(false);

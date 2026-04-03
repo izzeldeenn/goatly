@@ -126,6 +126,16 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
     return Math.floor(studySeconds / 600);
   };
 
+  const isRecentlyActive = (user: UserAccount) => {
+    // Check if user was active in the last minute
+    const lastActiveTime = new Date(user.lastActive);
+    const now = new Date();
+    const timeDiff = now.getTime() - lastActiveTime.getTime();
+    const oneMinute = 60 * 1000; // 1 minute in milliseconds
+    
+    return timeDiff < oneMinute;
+  };
+
   const isCurrentUserActive = (user: UserAccount) => {
     // Check if this is the current account and timer is active
     const isActive = isTimerActive();
@@ -134,6 +144,15 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
     
     return isActive && isCurrent;
   };
+
+  // Add effect to update current time every second for accurate activity detection
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000); // Update every second
+
+    return () => clearInterval(interval);
+  }, []);
 
   const isCurrentUser = (user: UserAccount) => {
     const currentUser = getCurrentUser();
@@ -219,9 +238,15 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <span className={`text-sm font-semibold block ${
-                        theme === 'light' ? 'text-black' : 'text-white'
-                      } truncate`} title={user.username}>{user.username}</span>
+                      <div className="flex items-center space-x-1">
+                        <span className={`text-sm font-semibold block ${
+                          theme === 'light' ? 'text-black' : 'text-white'
+                        } truncate`} title={user.username}>{user.username}</span>
+                        
+                        {isRecentlyActive(user) && (
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0" title="نشط الآن"></span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   

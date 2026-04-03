@@ -248,6 +248,14 @@ export class DailyActivityDB {
         // Update rankings after updating activity
         await this.updateTodayRankings();
         
+        // Also update user's last_active timestamp
+        await supabase
+          .from('users')
+          .update({
+            last_active: new Date().toISOString()
+          })
+          .eq('account_id', accountId);
+        
         return data;
       } else {
         // Create new activity record
@@ -276,6 +284,14 @@ export class DailyActivityDB {
         
         // Update rankings after creating activity
         await this.updateTodayRankings();
+        
+        // Also update user's last_active timestamp
+        await supabase
+          .from('users')
+          .update({
+            last_active: new Date().toISOString()
+          })
+          .eq('account_id', accountId);
         
         return data;
       }
@@ -443,6 +459,16 @@ export class DailyActivityDB {
 
       if (error) {
         throw error;
+      }
+      
+      // Also update user's last_active timestamp
+      if (data) {
+        await supabase
+          .from('users')
+          .update({
+            last_active: new Date().toISOString()
+          })
+          .eq('account_id', data.account_id);
       }
       
       return data;

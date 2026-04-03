@@ -256,7 +256,6 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
                         ? 'bg-gradient-to-r from-yellow-50 to-green-50 text-green-700 border border-yellow-200'
                         : 'bg-gradient-to-r from-yellow-900/30 to-green-900/30 text-green-300 border border-yellow-700/50'
                     }`}>
-                      <span className="w-1 h-1 bg-green-500 rounded-full mr-1 animate-pulse"></span>
                       {Math.floor(getTodayStudyTime(user) / 60)}m
                     </div>
 

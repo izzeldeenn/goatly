@@ -3,13 +3,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
+import { useStudySession } from '@/contexts/StudySessionContext';
 import { useTimerIndicator } from '@/contexts/TimerIndicatorContext';
 import { useFullscreen } from '@/contexts/FullscreenContext';
-import { dailyActivityDB } from '@/lib/dailyActivity';
 
 export function YouTubeTimer() {
   const { theme } = useTheme();
-  const { getCurrentUser, updateUserStudyTime, setTimerActive } = useUser();
+  const { getCurrentUser, setTimerActive } = useUser();
+  const { startSession, endSession, updateSessionTime, isSessionActive } = useStudySession();
   const { setTimerActive: setTimerActiveIndicator } = useTimerIndicator();
   const { showFullscreenPrompt, setShowFullscreenPrompt, requestFullscreen } = useFullscreen();
   const [time, setTime] = useState(() => {
@@ -111,25 +112,30 @@ export function YouTubeTimer() {
     if (isRunning) {
       setTimerActive(true);
       setTimerActiveIndicator(true);
+      
+      // Start study session if not already active
+      if (!isSessionActive && currentUser?.accountId) {
+        startSession(currentUser.accountId);
+      }
+      
       intervalRef.current = setInterval(() => {
         setTime((prevTime: number) => prevTime + 10);
+        updateSessionTime(0.01); // Update session time by 0.01 seconds (10ms)
       }, 10);
-      
-      // Update device study time every 30 seconds
-      studyTimeRef.current = setInterval(() => {
-        // Only update daily activity, not user study time (to avoid double counting)
-        if (currentUser?.accountId) {
-          dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 120); // 120 seconds = 2 minutes
-        }
-      }, 120000); // Update every 2 minutes instead of 30 seconds
     } else {
       setTimerActive(false);
       setTimerActiveIndicator(false);
+      
+      // End study session when timer stops
+      if (isSessionActive) {
+        const currentUser = getCurrentUser();
+        if (currentUser?.accountId) {
+          endSession(currentUser.accountId);
+        }
+      }
+      
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
-      }
-      if (studyTimeRef.current) {
-        clearInterval(studyTimeRef.current);
       }
     }
 
@@ -139,11 +145,8 @@ export function YouTubeTimer() {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      if (studyTimeRef.current) {
-        clearInterval(studyTimeRef.current);
-      }
     };
-  }, [isRunning, updateUserStudyTime, setTimerActive, setTimerActiveIndicator, getCurrentUser]);
+  }, [isRunning]); // Remove isSessionActive from dependencies
 
   const formatTime = (milliseconds: number) => {
     const totalSeconds = Math.floor(milliseconds / 1000);
@@ -171,15 +174,8 @@ export function YouTubeTimer() {
         return;
       }
       
-      
-      // Start a new study session
-      const success = await dailyActivityDB.startStudySession(currentUser.accountId);
-      if (success) {
-        setIsRunning(true);
-        setShowVideo(true);
-      } else {
-        console.error('❌ Failed to start study session');
-      }
+      setIsRunning(true);
+      setShowVideo(true);
     }
   };
 
@@ -187,7 +183,7 @@ export function YouTubeTimer() {
     if (isRunning) {
       const currentUser = getCurrentUser();
       if (currentUser?.accountId) {
-        await dailyActivityDB.endStudySession(currentUser.accountId);
+        await endSession(currentUser.accountId);
       }
     }
     setIsRunning(false);

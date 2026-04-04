@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
+import { useStudySession } from '@/contexts/StudySessionContext';
 import { useTimerIndicator } from '@/contexts/TimerIndicatorContext';
-import { dailyActivityDB } from '@/lib/dailyActivity';
 
 export function CountdownTimer() {
   const { theme } = useTheme();
-  const { getCurrentUser, updateUserStudyTime, setTimerActive } = useUser();
+  const { getCurrentUser, setTimerActive } = useUser();
+  const { startSession, endSession, updateSessionTime, isSessionActive } = useStudySession();
   const { setTimerActive: setTimerActiveIndicator } = useTimerIndicator();
   
   // Timer settings from localStorage
@@ -181,21 +182,26 @@ export function CountdownTimer() {
     if (isRunning && timeLeft > 0) {
       setTimerActive(true);
       setTimerActiveIndicator(true);
+      
+      // Start study session if not already active
+      if (!isSessionActive && currentUser?.accountId) {
+        startSession(currentUser.accountId);
+      }
+      
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev: number) => prev - 1);
+        updateSessionTime(1); // Update session time by 1 second
       }, 1000);
-      
-      // Update device study time every 30 seconds
-      studyTimeRef.current = setInterval(() => {
-        // Only update daily activity, not user study time (to avoid double counting)
-        if (currentUser?.accountId) {
-          dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 120); // 120 seconds = 2 minutes
-        }
-      }, 120000); // Update every 2 minutes instead of 30 seconds
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
       setTimerActive(false);
       setTimerActiveIndicator(false);
+      
+      // End study session when timer completes
+      if (isSessionActive && currentUser?.accountId) {
+        endSession(currentUser.accountId);
+      }
+      
       // Play notification or alert
       alert('الوقت انتهى!');
     } else {
@@ -296,14 +302,7 @@ export function CountdownTimer() {
         return;
       }
       
-      
-      // Start a new study session
-      const success = await dailyActivityDB.startStudySession(currentUser.accountId);
-      if (success) {
-        setIsRunning(true);
-      } else {
-        console.error('❌ Failed to start study session');
-      }
+      setIsRunning(true);
     }
   };
 
@@ -311,7 +310,7 @@ export function CountdownTimer() {
     if (isRunning) {
       const currentUser = getCurrentUser();
       if (currentUser?.accountId) {
-        await dailyActivityDB.endStudySession(currentUser.accountId);
+        await endSession(currentUser.accountId);
       }
     }
     setIsRunning(false);

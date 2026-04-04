@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { GamificationProvider } from "@/contexts/GamificationContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { StudySessionProvider } from "@/contexts/StudySessionContext";
 import { Analytics } from "@vercel/analytics/next";
 import { FirstTimeSetup } from "@/components/auth/FirstTimeSetup";
 import { MusicProvider } from "@/contexts/MusicContext";
@@ -43,10 +44,12 @@ export default function RootLayout({
           <ThemeProvider>
             <GamificationProvider>
               <UserProvider>
-                <MusicProvider>
-                  <FirstTimeSetup />
-                  {children}
-                </MusicProvider>
+                <StudySessionProvider>
+                  <MusicProvider>
+                    <FirstTimeSetup />
+                    {children}
+                  </MusicProvider>
+                </StudySessionProvider>
               </UserProvider>
             </GamificationProvider>
           </ThemeProvider>

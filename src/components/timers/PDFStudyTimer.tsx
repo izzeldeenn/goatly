@@ -5,8 +5,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { useUser } from '@/contexts/UserContext';
-import { useFullscreen } from '@/contexts/FullscreenContext';
-import { dailyActivityDB } from '@/lib/dailyActivity';
+import { useStudySession } from '@/contexts/StudySessionContext';
+import { useTimerIndicator } from '@/contexts/TimerIndicatorContext';
 
 interface PDFStudyTimerProps {
   onClose?: () => void;
@@ -16,8 +16,9 @@ export function PDFStudyTimer({ onClose }: PDFStudyTimerProps) {
   const { theme } = useTheme();
   const { t } = useLanguage();
   const customTheme = useCustomThemeClasses();
-  const { getCurrentUser, updateUserStudyTime, setTimerActive } = useUser();
-  const { requestFullscreen } = useFullscreen();
+  const { getCurrentUser, setTimerActive } = useUser();
+  const { startSession, endSession, updateSessionTime, isSessionActive } = useStudySession();
+  const { setTimerActive: setTimerActiveIndicator } = useTimerIndicator();
   const [pdfUrl, setPdfUrl] = useState<string>('');
   const [pdfTitle, setPdfTitle] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -75,11 +76,9 @@ export function PDFStudyTimer({ onClose }: PDFStudyTimerProps) {
       realtimeUpdateRef.current = setInterval(async () => {
         const currentUser = getCurrentUser();
         if (currentUser?.accountId) {
-          // Update every 2 minutes instead of 30 seconds to reduce API requests
-          await dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 120); // 120 seconds = 2 minutes
-          updateUserStudyTime(120);
+          updateSessionTime(120); // Update session time by 120 seconds (2 minutes)
         }
-      }, 120000); // Update every 2 minutes instead of 30 seconds
+      }, 120000); // Update every 2 minutes
     } else {
       setTimerActive(false);
       if (realtimeUpdateRef.current) {
@@ -116,17 +115,14 @@ export function PDFStudyTimer({ onClose }: PDFStudyTimerProps) {
       return;
     }
     
-    const success = await dailyActivityDB.startStudySession(currentUser.accountId);
-    if (success) {
-      setIsRunning(true);
-    }
+    setIsRunning(true);
   };
 
   const handleStop = async () => {
     if (isRunning) {
       const currentUser = getCurrentUser();
       if (currentUser?.accountId) {
-        await dailyActivityDB.endStudySession(currentUser.accountId);
+        await endSession(currentUser.accountId);
       }
     }
     setIsRunning(false);

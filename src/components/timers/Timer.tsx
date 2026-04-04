@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
-import { dailyActivityDB } from '@/lib/dailyActivity';
+import { useStudySession } from '@/contexts/StudySessionContext';
 
 export function Timer() {
   const { theme } = useTheme();
-  const { getCurrentUser, updateUserStudyTime, setTimerActive } = useUser();
+  const { getCurrentUser, setTimerActive } = useUser();
+  const { startSession, endSession, updateSessionTime, isSessionActive } = useStudySession();
   
   // Timer settings from localStorage
   const [timerSettings, setTimerSettings] = useState({
@@ -125,26 +126,26 @@ export function Timer() {
     if (isRunning) {
       setTimerActive(true);
       
+      // Start study session if not already active
+      const currentUser = getCurrentUser();
+      if (!isSessionActive && currentUser?.accountId) {
+        startSession(currentUser.accountId);
+      }
+      
       // Update the timer display every 1 second
       intervalId = setInterval(async () => {
         setTime((prevTime: number) => prevTime + 1);
+        updateSessionTime(1); // Update session time by 1 second
       }, 1000);
-      
-      // Update study time every 2 minutes instead of every 1 second
-      const studyInterval = setInterval(async () => {
-        const currentUser = getCurrentUser();
-        if (currentUser?.accountId) {
-          dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 120); // 120 seconds = 2 minutes
-          updateUserStudyTime(120);
-        }
-      }, 120000); // Update every 2 minutes instead of 30 seconds
-      
-      // Store the study interval reference for cleanup
-      realtimeUpdateRef.current = studyInterval;
     } else {
       setTimerActive(false);
-      if (realtimeUpdateRef.current) {
-        clearInterval(realtimeUpdateRef.current);
+      
+      // End study session when timer stops
+      if (isSessionActive) {
+        const currentUser = getCurrentUser();
+        if (currentUser?.accountId) {
+          endSession(currentUser.accountId);
+        }
       }
     }
 
@@ -153,11 +154,8 @@ export function Timer() {
       if (intervalId) {
         clearInterval(intervalId);
       }
-      if (realtimeUpdateRef.current) {
-        clearInterval(realtimeUpdateRef.current);
-      }
     };
-  }, [isRunning]);
+  }, [isRunning]); // Remove isSessionActive from dependencies
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -177,20 +175,14 @@ export function Timer() {
       return;
     }
     
-    
-    // Start a new study session
-    const success = await dailyActivityDB.startStudySession(currentUser.accountId);
-    if (success) {
-      setIsRunning(true);
-    } else {
-      console.error('❌ Failed to start study session');
-    }
+    setIsRunning(true);
   };
+
   const handleStop = async () => {
     if (isRunning) {
       const currentUser = getCurrentUser();
       if (currentUser?.accountId) {
-        await dailyActivityDB.endStudySession(currentUser.accountId);
+        await endSession(currentUser.accountId);
       }
     }
     setIsRunning(false);

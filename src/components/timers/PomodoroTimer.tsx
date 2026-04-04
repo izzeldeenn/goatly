@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
+import { useStudySession } from '@/contexts/StudySessionContext';
 import { useTimerIndicator } from '@/contexts/TimerIndicatorContext';
-import { dailyActivityDB } from '@/lib/dailyActivity';
 
 interface PomodoroSettings {
   workMinutes: number;
@@ -15,7 +15,8 @@ interface PomodoroSettings {
 
 export function PomodoroTimer() {
   const { theme } = useTheme();
-  const { getCurrentUser, updateUserStudyTime, setTimerActive } = useUser();
+  const { getCurrentUser, setTimerActive } = useUser();
+  const { startSession, endSession, updateSessionTime, isSessionActive } = useStudySession();
   const { setTimerActive: setTimerActiveIndicator } = useTimerIndicator();
   
   // Timer settings from localStorage
@@ -175,26 +176,29 @@ export function PomodoroTimer() {
     if (isRunning && timeLeft > 0) {
       setTimerActive(true);
       setTimerActiveIndicator(true);
+      
+      // Start study session if this is a work session and no session is active
+      if (currentSession === 'work' && !isSessionActive && currentUser?.accountId) {
+        startSession(currentUser.accountId);
+      }
+      
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev: number) => prev - 1);
-      }, 1000);
-      
-      // Update device study time every 2 minutes for work sessions
-      studyTimeRef.current = setInterval(() => {
+        
+        // Update session time for work sessions
         if (currentSession === 'work') {
-          realtimeUpdateRef.current = setInterval(async () => {
-            const currentUser = getCurrentUser();
-            if (currentUser?.accountId) {
-              dailyActivityDB.updateStudyTimeRealtime(currentUser.accountId, 120); // 120 seconds = 2 minutes
-              updateUserStudyTime(120);
-            }
-          }, 120000); // Update every 2 minutes
+          updateSessionTime(1);
         }
       }, 1000);
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
       setTimerActive(false);
       setTimerActiveIndicator(false);
+      
+      // End study session when work session completes
+      if (currentSession === 'work' && isSessionActive && currentUser?.accountId) {
+        endSession(currentUser.accountId);
+      }
       // Play notification or alert
       alert('الجلسة انتهت!');
     } else {
@@ -224,7 +228,7 @@ export function PomodoroTimer() {
         clearInterval(realtimeUpdateRef.current);
       }
     };
-  }, [isRunning, timeLeft, currentSession]);
+  }, [isRunning, timeLeft, currentSession]); // Remove isSessionActive from dependencies
 
   const handleSessionComplete = () => {
     setIsRunning(false);
@@ -350,21 +354,14 @@ export function PomodoroTimer() {
       return;
     }
     
-    
-    // Start a new study session
-    const success = await dailyActivityDB.startStudySession(currentUser.accountId);
-    if (success) {
-      setIsRunning(true);
-    } else {
-      console.error('❌ Failed to start study session');
-    }
+    setIsRunning(true);
   };
   
   const handleStop = async () => {
     if (isRunning) {
       const currentUser = getCurrentUser();
-      if (currentUser?.accountId) {
-        await dailyActivityDB.endStudySession(currentUser.accountId);
+      if (currentUser?.accountId && currentSession === 'work') {
+        await endSession(currentUser.accountId);
       }
     }
     setIsRunning(false);

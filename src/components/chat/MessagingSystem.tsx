@@ -6,7 +6,7 @@ import { userDB, UserAccount } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { Send, ArrowLeft, Search, MoreVertical } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import UniversalAvatar from './UniversalAvatar';
+import UniversalAvatar from '../users/UniversalAvatar';
 
 interface Conversation {
   id: string;

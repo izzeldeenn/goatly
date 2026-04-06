@@ -20,12 +20,17 @@ export function MusicToggleButton() {
   return (
     <button
       onClick={toggleMusic}
-      className="w-10 h-10 rounded-full bg-white/20 dark:bg-black/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 dark:hover:bg-black/30 transition-all duration-200 border border-white/30 dark:border-white/10"
+      className="relative w-10 h-10 flex items-center justify-center group"
       title={isPlaying ? 'إيقاف الموسيقى' : 'تشغيل الموسيقى'}
     >
-      <span className="text-lg">
-        {isPlaying ? '🎵' : '🎶'}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 rounded-lg opacity-90 group-hover:opacity-100 transition-opacity duration-300"></div>
+      <div className="absolute inset-0 bg-black/20 rounded-lg"></div>
+      <span className="relative z-10 text-white font-bold text-lg">
+        {isPlaying ? '♫' : '♪'}
       </span>
+      {isPlaying && (
+        <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+      )}
     </button>
   );
 }

@@ -7,9 +7,11 @@ import { useUser } from '@/contexts/UserContext';
 import { CustomThemeProvider } from '@/contexts/CustomThemeContext';
 import { SocialNavbar } from '@/components/social/SocialNavbar';
 import { SocialSidebar } from '@/components/social/SocialSidebar';
-import { socialDB, SocialPost, SocialComment } from '@/lib/social';
+import { socialDB, SocialPost, SocialComment, Group } from '@/lib/social';
 import MessagingSystem from '@/components/chat/MessagingSystem';
 import FriendshipManager from '@/components/users/FriendshipManager';
+import { GroupsManager } from '@/components/groups/GroupsManager';
+import { GroupFeed } from '@/components/groups/GroupFeed';
 
 function SocialPageContent() {
   const { theme } = useTheme();
@@ -33,6 +35,7 @@ function SocialPageContent() {
   const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({});
   const [commentInputs, setCommentInputs] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
 
   // Load posts from database
   const loadPosts = async () => {
@@ -383,18 +386,19 @@ function SocialPageContent() {
             <FriendshipManager />
           )}
 
-          {activeTab === 'challenges' && (
-            <div className="text-center py-12">
-              <h2 className={`text-2xl font-bold mb-4 ${
-                theme === 'light' ? 'text-gray-900' : 'text-white'
-              }`}>
-                {language === 'ar' ? 'التحديات' : 'Challenges'}
-              </h2>
-              <p className={`${
-                theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-              }`}>
-                {language === 'ar' ? 'قيد التطوير...' : 'Coming soon...'}
-              </p>
+          {activeTab === 'groups' && (
+            <div>
+              {selectedGroup ? (
+                <GroupFeed 
+                  group={selectedGroup} 
+                  onBack={() => setSelectedGroup(null)} 
+                />
+              ) : (
+                <GroupsManager 
+                  onGroupSelect={setSelectedGroup}
+                  selectedGroup={selectedGroup}
+                />
+              )}
             </div>
           )}
 

@@ -338,8 +338,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   const getCurrentUser = (): UserAccountFrontend | null => {
-    if (!currentAccountId) return null;
-    return users.find(user => user.accountId === currentAccountId) || null;
+    const user = users.find(user => user.accountId === currentAccountId);
+    if (!user) return null;
+    
+    return user;
   };
 
   const updateUserName = async (name: string) => {

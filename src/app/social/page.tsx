@@ -12,6 +12,8 @@ import MessagingSystem from '@/components/chat/MessagingSystem';
 import FriendshipManager from '@/components/users/FriendshipManager';
 import { GroupsManager } from '@/components/groups/GroupsManager';
 import { GroupFeed } from '@/components/groups/GroupFeed';
+import { FeedTab } from '@/components/social/FeedTab';
+import { ProfileTab } from '@/components/social/ProfileTab';
 
 function SocialPageContent() {
   const { theme } = useTheme();
@@ -34,8 +36,16 @@ function SocialPageContent() {
   const [newPost, setNewPost] = useState('');
   const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({});
   const [commentInputs, setCommentInputs] = useState<{ [key: string]: string }>({});
+  const [replyInputs, setReplyInputs] = useState<{ [key: string]: string }>({});
+  const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  
+  // Edit and delete state
+  const [editingPost, setEditingPost] = useState<{ [key: string]: boolean }>({});
+  const [editingComment, setEditingComment] = useState<{ [key: string]: boolean }>({});
+  const [editingPostContent, setEditingPostContent] = useState<{ [key: string]: string }>({});
+  const [editingCommentContent, setEditingCommentContent] = useState<{ [key: string]: string }>({});
 
   // Load posts from database
   const loadPosts = async () => {
@@ -156,6 +166,154 @@ function SocialPageContent() {
     setShowComments({ ...showComments, [postId]: !showComments[postId] });
   };
 
+  // FeedTab handlers
+  const handleNewPostChange = (value: string) => {
+    setNewPost(value);
+  };
+
+  const handleCommentInputChange = (postId: string, value: string) => {
+    setCommentInputs({ ...commentInputs, [postId]: value });
+  };
+
+  // Reply system handlers
+  const handleReplyInputChange = (commentId: string, value: string) => {
+    setReplyInputs({ ...replyInputs, [commentId]: value });
+  };
+
+  const handleToggleReplies = (commentId: string) => {
+    setShowReplies({ ...showReplies, [commentId]: !showReplies[commentId] });
+  };
+
+  const handleReplySubmit = async (postId: string, commentId: string) => {
+    if (!currentUser) return;
+    
+    const replyText = replyInputs[commentId];
+    if (!replyText?.trim()) return;
+    
+    try {
+      // For now, we'll add the reply as a regular comment
+      // In a real implementation, you'd have a separate replies table or parent_comment_id field
+      const newReply = await socialDB.createComment(
+        postId,
+        currentUser.accountId,
+        currentUser.username || 'User',
+        currentUser.avatar || 'User',
+        `@${commentId.split('-')[0]} ${replyText}` // Prefix with comment ID to indicate it's a reply
+      );
+      
+      if (newReply) {
+        // Update the post in state
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: post.comments + 1,
+              commentsList: [...post.commentsList, newReply]
+            };
+          }
+          return post;
+        }));
+        
+        // Clear the reply input
+        setReplyInputs({ ...replyInputs, [commentId]: '' });
+        setShowReplies({ ...showReplies, [commentId]: false });
+      }
+    } catch (error) {
+      console.error('Error creating reply:', error);
+    }
+  };
+
+  // Edit and delete handlers
+  const handleEditPost = (postId: string, content: string) => {
+    setEditingPost({ ...editingPost, [postId]: true });
+    setEditingPostContent({ ...editingPostContent, [postId]: content });
+  };
+
+  const handleSavePostEdit = async (postId: string) => {
+    if (!currentUser || !editingPostContent[postId]?.trim()) return;
+    
+    try {
+      await socialDB.updateGroupPost(postId, currentUser.accountId, editingPostContent[postId]);
+      setPosts(posts.map(post => {
+        if (post.id === postId) {
+          return { ...post, content: editingPostContent[postId] };
+        }
+        return post;
+      }));
+      setEditingPost({ ...editingPost, [postId]: false });
+      setEditingPostContent({ ...editingPostContent, [postId]: '' });
+    } catch (error) {
+      console.error('Error updating post:', error);
+    }
+  };
+
+  const handleEditComment = (commentId: string, content: string) => {
+    setEditingComment({ ...editingComment, [commentId]: true });
+    setEditingCommentContent({ ...editingCommentContent, [commentId]: content });
+  };
+
+  const handleSaveCommentEdit = async (commentId: string, postId: string) => {
+    if (!currentUser || !editingCommentContent[commentId]?.trim()) return;
+    
+    try {
+      await socialDB.updateGroupComment(commentId, currentUser.accountId, editingCommentContent[commentId]);
+      setPosts(posts.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            commentsList: post.commentsList.map(comment => 
+              comment.id === commentId ? { ...comment, content: editingCommentContent[commentId] } : comment
+            )
+          };
+        }
+        return post;
+      }));
+      setEditingComment({ ...editingComment, [commentId]: false });
+      setEditingCommentContent({ ...editingCommentContent, [commentId]: '' });
+    } catch (error) {
+      console.error('Error updating comment:', error);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!currentUser) return;
+    
+    try {
+      await socialDB.deletePost(postId, currentUser.accountId);
+      setPosts(posts.filter(post => post.id !== postId));
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string, postId: string) => {
+    if (!currentUser) return;
+    
+    try {
+      await socialDB.deleteComment(commentId, currentUser.accountId);
+      setPosts(posts.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            comments: post.comments - 1,
+            commentsList: post.commentsList.filter(comment => comment.id !== commentId)
+          };
+        }
+        return post;
+      }));
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
+  const handleEditPostContentChange = (postId: string, value: string) => {
+    setEditingPostContent({ ...editingPostContent, [postId]: value });
+  };
+
+  const handleEditCommentContentChange = (commentId: string, value: string) => {
+    setEditingCommentContent({ ...editingCommentContent, [commentId]: value });
+  };
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -189,193 +347,36 @@ function SocialPageContent() {
           }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {activeTab === 'feed' && (
-            <div className="grid lg:grid-cols-3 gap-8">
-              {/* Main Feed */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Post Creation */}
-                <div className={`p-6 rounded-2xl border-2 ${
-                  theme === 'light' ? 'bg-white border-gray-200' : 'bg-black border-gray-800'
-                }`}>
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                      {currentUser?.username?.charAt(0) || 'U'}
-                    </div>
-                    <div className="flex-1">
-                      <textarea
-                        value={newPost}
-                        onChange={(e) => setNewPost(e.target.value)}
-                        placeholder={language === 'ar' ? 'Share your study progress...' : 'Share your study progress...'}
-                        className={`w-full p-3 rounded-lg border resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          theme === 'light'
-                            ? 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
-                            : 'bg-gray-900 border-gray-700 text-white placeholder-gray-400'
-                        }`}
-                        rows={3}
-                      />
-                      <div className="flex justify-between items-center mt-3">
-                        <span className={`text-sm ${
-                          theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                        }`}>
-                          {newPost.length}/280
-                        </span>
-                        <button
-                          onClick={handlePostSubmit}
-                          disabled={!newPost.trim() || !currentUser}
-                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                            newPost.trim() && currentUser
-                              ? theme === 'light'
-                                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                              : theme === 'light'
-                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                : 'bg-gray-800 text-gray-600 cursor-not-allowed'
-                          }`}
-                        >
-                          {language === 'ar' ? 'Post' : 'Post'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Loading State */}
-                {loading && (
-                  <div className="text-center py-8">
-                    <div className={`text-lg ${
-                      theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-                    }`}>
-                      Loading posts...
-                    </div>
-                  </div>
-                )}
-
-                {/* Posts */}
-                {!loading && posts.map((post) => (
-                  <div 
-                    key={post.id}
-                    className="p-6 rounded-2xl border-2"
-                    style={{
-                      backgroundColor: theme === 'light' ? '#ffffff' : '#000000',
-                      borderColor: theme === 'light' ? '#e5e7eb' : '#333333'
-                    }}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white font-bold">
-                        {post.username.charAt(0)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`font-semibold ${
-                            theme === 'light' ? 'text-gray-900' : 'text-white'
-                          }`}>
-                            {post.username}
-                          </span>
-                          <span className={`text-sm ${
-                            theme === 'light' ? 'text-gray-500' : 'text-gray-300'
-                          }`}>
-                            {formatTimeAgo(post.created_at)}
-                          </span>
-                        </div>
-                        <p className={`mb-4 ${
-                          theme === 'light' ? 'text-gray-700' : 'text-gray-200'
-                        }`}>
-                          {post.content}
-                        </p>
-                        <div className="flex items-center gap-4">
-                          <button
-                            onClick={() => handleLike(post.id)}
-                            className={`flex items-center gap-1 text-sm transition-colors ${
-                              post.liked
-                                ? 'text-red-500'
-                                : theme === 'light'
-                                  ? 'text-gray-500 hover:text-red-500'
-                                  : 'text-gray-400 hover:text-red-400'
-                            }`}
-                          >
-                            <span>{post.liked ? 'Heart' : 'Heart'}</span> {post.likes}
-                          </button>
-                          <button
-                            onClick={() => toggleComments(post.id)}
-                            className={`flex items-center gap-1 text-sm transition-colors ${
-                              theme === 'light'
-                                ? 'text-gray-500 hover:text-blue-500'
-                                : 'text-gray-400 hover:text-blue-400'
-                            }`}
-                          >
-                            <span>Message</span> {post.comments}
-                          </button>
-                          <button className={`text-sm transition-colors ${
-                            theme === 'light'
-                              ? 'text-gray-500 hover:text-green-500'
-                              : 'text-gray-400 hover:text-green-400'
-                          }`}>
-                            <span>Refresh</span>
-                          </button>
-                        </div>
-
-                        {/* Comments Section */}
-                        {showComments[post.id] && (
-                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            {/* Existing Comments */}
-                            {post.commentsList.map((comment) => (
-                              <div key={comment.id} className="flex items-start gap-3 mb-3">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white text-sm font-bold">
-                                  {comment.username.charAt(0)}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className={`font-medium text-sm ${
-                                      theme === 'light' ? 'text-gray-900' : 'text-white'
-                                    }`}>
-                                      {comment.username}
-                                    </span>
-                                    <span className={`text-xs ${
-                                      theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                                    }`}>
-                                      {formatTimeAgo(comment.created_at)}
-                                    </span>
-                                  </div>
-                                  <p className={`text-sm ${
-                                    theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                                  }`}>
-                                    {comment.content}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-
-                            {/* Add Comment */}
-                            <div className="flex items-start gap-3 mt-4">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
-                                {currentUser?.username?.charAt(0) || 'U'}
-                              </div>
-                              <div className="flex-1">
-                                <input
-                                  type="text"
-                                  value={commentInputs[post.id] || ''}
-                                  onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                                  placeholder={language === 'ar' ? 'Add a comment...' : 'Add a comment...'}
-                                  className={`w-full p-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    theme === 'light'
-                                      ? 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
-                                      : 'bg-gray-900 border-gray-700 text-white placeholder-gray-400'
-                                  }`}
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                      handleComment(post.id);
-                                    }
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <FeedTab
+              posts={posts}
+              newPost={newPost}
+              loading={loading}
+              showComments={showComments}
+              commentInputs={commentInputs}
+              replyInputs={replyInputs}
+              showReplies={showReplies}
+              editingPost={editingPost}
+              editingComment={editingComment}
+              editingPostContent={editingPostContent}
+              editingCommentContent={editingCommentContent}
+              onNewPostChange={handleNewPostChange}
+              onPostSubmit={handlePostSubmit}
+              onLike={handleLike}
+              onToggleComments={toggleComments}
+              onCommentChange={handleCommentInputChange}
+              onCommentSubmit={handleComment}
+              onReplyChange={handleReplyInputChange}
+              onReplySubmit={handleReplySubmit}
+              onToggleReplies={handleToggleReplies}
+              onEditPost={handleEditPost}
+              onSavePostEdit={handleSavePostEdit}
+              onEditComment={handleEditComment}
+              onSaveCommentEdit={handleSaveCommentEdit}
+              onDeletePost={handleDeletePost}
+              onDeleteComment={handleDeleteComment}
+              onEditPostContentChange={handleEditPostContentChange}
+              onEditCommentContentChange={handleEditCommentContentChange}
+            />
           )}
 
           {activeTab === 'messages' && (
@@ -403,18 +404,7 @@ function SocialPageContent() {
           )}
 
           {activeTab === 'profile' && (
-            <div className="text-center py-12">
-              <h2 className={`text-2xl font-bold mb-4 ${
-                theme === 'light' ? 'text-gray-900' : 'text-white'
-              }`}>
-                {language === 'ar' ? 'Profile' : 'Profile'}
-              </h2>
-              <p className={`${
-                theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-              }`}>
-                {language === 'ar' ? 'Coming soon...' : 'Coming soon...'}
-              </p>
-            </div>
+            <ProfileTab posts={posts} />
           )}
             </div>
           </div>

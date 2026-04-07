@@ -30,6 +30,13 @@ export interface PostLike {
   created_at: string;
 }
 
+export interface GroupPostLike {
+  id: string;
+  group_post_id: string;
+  user_id: string;
+  created_at: string;
+}
+
 export interface Group {
   id: string;
   name: string;
@@ -281,6 +288,211 @@ export class SocialDB {
       });
     } catch (error) {
       console.error('Error updating like count:', error);
+    }
+  }
+
+  // Like or unlike a group post
+  async toggleGroupPostLike(postId: string, userId: string): Promise<{ liked: boolean; likesCount: number }> {
+    try {
+      // Get authenticated user ID
+      const { data: authData } = await this.supabase.auth.getUser();
+      const likeUserId = authData?.user?.id || userId;
+
+      // Check if user already liked the group post
+      const { data: existingLike } = await this.supabase
+        .from('group_post_likes')
+        .select('*')
+        .eq('group_post_id', postId)
+        .eq('user_id', likeUserId)
+        .single();
+
+      if (existingLike) {
+        // Unlike the group post
+        await this.supabase
+          .from('group_post_likes')
+          .delete()
+          .eq('group_post_id', postId)
+          .eq('user_id', likeUserId);
+
+        await this.updateGroupPostLikeCount(postId, -1);
+        
+        // Get updated post to return new like count
+        const { data: post } = await this.supabase
+          .from('group_posts')
+          .select('likes')
+          .eq('id', postId)
+          .single();
+
+        return { liked: false, likesCount: post?.likes || 0 };
+      } else {
+        // Like the group post
+        await this.supabase
+          .from('group_post_likes')
+          .insert({
+            group_post_id: postId,
+            user_id: likeUserId
+          });
+
+        await this.updateGroupPostLikeCount(postId, 1);
+        
+        // Get updated post to return new like count
+        const { data: post } = await this.supabase
+          .from('group_posts')
+          .select('likes')
+          .eq('id', postId)
+          .single();
+
+        return { liked: true, likesCount: post?.likes || 0 };
+      }
+    } catch (error) {
+      console.error('Error toggling group post like:', error);
+      return { liked: false, likesCount: 0 };
+    }
+  }
+
+  // Check if user liked a group post
+  async didUserLikeGroupPost(postId: string, userId: string): Promise<boolean> {
+    try {
+      const { data, error } = await this.supabase
+        .from('group_post_likes')
+        .select('*')
+        .eq('group_post_id', postId)
+        .eq('user_id', userId)
+        .single();
+
+      return !error && data !== null;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Update group post like count
+  private async updateGroupPostLikeCount(postId: string, increment: number): Promise<void> {
+    try {
+      // Get current like count
+      const { data: post } = await this.supabase
+        .from('group_posts')
+        .select('likes')
+        .eq('id', postId)
+        .single();
+      
+      if (post) {
+        const newLikes = Math.max(0, post.likes + increment);
+        await this.supabase
+          .from('group_posts')
+          .update({ likes: newLikes })
+          .eq('id', postId);
+      }
+    } catch (error) {
+      console.error('Error updating group post like count:', error);
+    }
+  }
+
+  // Delete a group post
+  async deleteGroupPost(postId: string, userId: string): Promise<boolean> {
+    try {
+      // Get post to verify ownership
+      const { data: post } = await this.supabase
+        .from('group_posts')
+        .select('user_id')
+        .eq('id', postId)
+        .single();
+
+      if (!post || post.user_id !== userId) {
+        return false;
+      }
+
+      // Delete the post
+      const { error } = await this.supabase
+        .from('group_posts')
+        .delete()
+        .eq('id', postId);
+
+      return !error;
+    } catch (error) {
+      console.error('Error deleting group post:', error);
+      return false;
+    }
+  }
+
+  // Delete a group comment
+  async deleteGroupComment(commentId: string, userId: string): Promise<boolean> {
+    try {
+      // Get comment to verify ownership
+      const { data: comment } = await this.supabase
+        .from('group_comments')
+        .select('user_id')
+        .eq('id', commentId)
+        .single();
+
+      if (!comment || comment.user_id !== userId) {
+        return false;
+      }
+
+      // Delete the comment
+      const { error } = await this.supabase
+        .from('group_comments')
+        .delete()
+        .eq('id', commentId);
+
+      return !error;
+    } catch (error) {
+      console.error('Error deleting group comment:', error);
+      return false;
+    }
+  }
+
+  // Update a group post
+  async updateGroupPost(postId: string, userId: string, content: string): Promise<boolean> {
+    try {
+      // Get post to verify ownership
+      const { data: post } = await this.supabase
+        .from('group_posts')
+        .select('user_id')
+        .eq('id', postId)
+        .single();
+
+      if (!post || post.user_id !== userId) {
+        return false;
+      }
+
+      // Update the post
+      const { error } = await this.supabase
+        .from('group_posts')
+        .update({ content })
+        .eq('id', postId);
+
+      return !error;
+    } catch (error) {
+      console.error('Error updating group post:', error);
+      return false;
+    }
+  }
+
+  // Update a group comment
+  async updateGroupComment(commentId: string, userId: string, content: string): Promise<boolean> {
+    try {
+      // Get comment to verify ownership
+      const { data: comment } = await this.supabase
+        .from('group_comments')
+        .select('user_id')
+        .eq('id', commentId)
+        .single();
+
+      if (!comment || comment.user_id !== userId) {
+        return false;
+      }
+
+      // Update the comment
+      const { error } = await this.supabase
+        .from('group_comments')
+        .update({ content })
+        .eq('id', commentId);
+
+      return !error;
+    } catch (error) {
+      console.error('Error updating group comment:', error);
+      return false;
     }
   }
 

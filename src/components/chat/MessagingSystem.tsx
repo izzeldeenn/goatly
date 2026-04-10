@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { messageDB, MessageFrontend } from '@/lib/friendship';
 import { userDB, UserAccount } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
-import { Send, ArrowLeft, Search, MoreVertical } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Send, ArrowLeft, Search, MoreVertical, MessageCircle, Phone, Video, Info, Smile, Paperclip, Mic } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import UniversalAvatar from '../users/UniversalAvatar';
 
@@ -32,21 +33,43 @@ const Message: React.FC<MessageProps> = ({ message, isOwn, user }) => {
   };
 
   return (
-    <div className={`flex ${isOwn ? 'justify-start' : 'justify-end'} mb-4`}>
-      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-2' : 'order-1'}`}>
-        <div className={`px-4 py-2 rounded-lg ${
+    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4 group animate-fade-in`}>
+      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-1' : 'order-2'} flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+        <div className={`relative px-4 py-3 rounded-2xl transition-all duration-200 hover:scale-105 ${
           isOwn 
-            ? 'bg-blue-600 text-white' 
-            : 'bg-gray-200 text-gray-800'
+            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25' 
+            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 shadow-md shadow-gray-500/10'
         }`}>
-          <p className="text-sm">{message.content}</p>
+          {/* Message bubble tail */}
+          <div className={`absolute w-3 h-3 transform rotate-45 ${
+            isOwn 
+              ? 'bg-gradient-to-r from-blue-600 to-blue-700 -right-1.5 bottom-2' 
+              : 'bg-gradient-to-r from-gray-100 to-gray-200 -left-1.5 bottom-2'
+          }`}></div>
+          
+          <p className="text-sm leading-relaxed relative z-10">{message.content}</p>
+          
+          {/* Read status indicator */}
+          {isOwn && (
+            <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-green-400 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          )}
         </div>
-        <p className={`text-xs text-gray-500 mt-1 ${
-          isOwn ? 'text-right' : 'text-left'
+        
+        <div className={`flex items-center gap-2 mt-1 px-2 ${
+          isOwn ? 'flex-row-reverse' : 'flex-row'
         }`}>
-          {formatTime(message.createdAt)}
-          {message.readAt && isOwn && ' • تمت القراءة'}
-        </p>
+          <p className={`text-xs opacity-70 transition-colors duration-200 ${
+            isOwn ? 'text-blue-100' : 'text-gray-500'
+          }`}>
+            {formatTime(message.createdAt)}
+          </p>
+          {message.readAt && isOwn && (
+            <span className="flex items-center gap-1 text-xs text-blue-100">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+              تمت القراءة
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -66,27 +89,14 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDark, setIsDark] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const subscriptionRef = useRef<any>(null);
   
   const { getCurrentUser } = useUser();
-
-  // Check for system dark mode preference
-  useEffect(() => {
-    const darkModePreference = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setIsDark(darkModePreference);
-    
-    const handleThemeChange = (e: MediaQueryListEvent) => {
-      setIsDark(e.matches);
-    };
-    
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', handleThemeChange);
-    
-    return () => {
-      window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', handleThemeChange);
-    };
-  }, []);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     loadConversations();
@@ -650,183 +660,399 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className={`min-h-screen flex items-center justify-center ${
+        isDark ? 'bg-black' : 'bg-gray-50'
+      }`}>
+        <div className="relative">
+          <div className="w-16 h-16 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+          <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-purple-500/20 border-b-purple-500 animate-spin animation-delay-150"></div>
+          <div className="absolute inset-2 w-12 h-12 rounded-full border-4 border-pink-500/20 border-t-pink-500 animate-spin animation-delay-300"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`w-full h-full flex ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
-      {/* Conversations List */}
-      <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-l'}`}>
-        <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-b'}`}>
-          <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>الرسائل</h2>
-          <div className="relative">
-            <Search className={`absolute right-3 top-3 w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} />
-            <input
-              type="text"
-              placeholder="البحث عن محادثة..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pr-10 pl-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isDark ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-200 text-gray-800'
-              }`}
-            />
-          </div>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto">
-          {filteredConversations.length === 0 ? (
-            <div className={`p-4 text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              {searchTerm ? 'لا توجد نتائج للبحث' : 'لا توجد محادثات حالية'}
-            </div>
-          ) : (
-            filteredConversations.map((conversation, index) => (
-              <div
-                key={`conv_${conversation.id || `index_${index}`}_user_${conversation.user.id}`}
-                onClick={() => setSelectedConversation(conversation)}
-                className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b ${
-                  (selectedConversation?.id && selectedConversation.id === conversation.id) || 
-                  (selectedConversation?.user.id === conversation.user.id) ? 
-                    (isDark ? 'bg-blue-900' : 'bg-blue-50') : ''
-                } ${isDark ? 'border-gray-700' : 'border-b'}`}
-              >
-                <UniversalAvatar 
-                  src={conversation.user.avatar} 
-                  username={conversation.user.username}
-                  size="large"
-                  className="ml-3"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <h3 className={`font-semibold truncate ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
-                      {conversation.user.username}
-                    </h3>
-                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {conversation.lastMessage?.createdAt && formatLastMessageTime(conversation.lastMessage.createdAt)}
-                    </span>
-                  </div>
-                  <p className={`text-sm truncate ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {conversation.lastMessage?.content}
-                  </p>
-                </div>
-                {conversation.unreadCount && conversation.unreadCount > 0 && (
-                  <div className="w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center mr-2">
-                    {conversation.unreadCount}
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
+    <div className={`min-h-screen ${
+      isDark ? 'bg-black' : 'bg-gray-50'
+    }`}>
+      {/* Elegant background decoration */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className={`absolute top-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-20 ${
+          isDark ? 'bg-blue-500' : 'bg-blue-400'
+        }`}></div>
+        <div className={`absolute bottom-0 right-0 w-80 h-80 rounded-full blur-3xl opacity-20 ${
+          isDark ? 'bg-purple-500' : 'bg-purple-400'
+        }`}></div>
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-3xl opacity-20 ${
+          isDark ? 'bg-pink-500' : 'bg-pink-400'
+        }`}></div>
       </div>
 
-      {/* Chat Area */}
-      {selectedConversation ? (
-        <div className="flex-1 flex flex-col">
-          {/* Chat Header */}
-          <div className={`p-4 border-b flex items-center justify-between ${
-            isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-b'
+      <div className="relative z-10 flex h-screen">
+        {/* Conversations List */}
+        <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-96 transition-all duration-300`}>
+          <div className={`p-6 backdrop-blur-xl border-b ${
+            isDark ? 'bg-gray-900/40 border-gray-800/30' : 'bg-white/60 border-gray-200/50'
           }`}>
-            <div className="flex items-center">
-              <button
-                onClick={() => setSelectedConversation(null)}
-                className="md:hidden p-2 hover:bg-gray-100 rounded-full mr-2"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <UniversalAvatar 
-                  src={selectedConversation.user.avatar} 
-                  username={selectedConversation.user.username}
-                  size="medium"
-                  className="ml-3"
-                />
-              <div>
-                <h3 className={`font-semibold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
-                  {selectedConversation.user.username}
-                </h3>
-                <p className="text-sm text-green-600">متصل الآن</p>
-              </div>
+            <div className="mb-6">
+              <h1 className={`text-3xl font-bold bg-gradient-to-r bg-clip-text mb-2 ${
+                isDark 
+                  ? 'from-blue-400 via-purple-400 to-pink-400 text-transparent' 
+                  : 'from-blue-600 via-purple-600 to-pink-600 text-transparent'
+              }`}>
+                الرسائل
+              </h1>
+              <p className={`text-sm font-medium ${
+                isDark ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                تواصل مع أصدقائك
+              </p>
             </div>
-            <button className={`p-2 hover:bg-gray-100 rounded-full ${
-              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-            }`}>
-              <MoreVertical className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div className={`flex-1 overflow-y-auto p-4 space-y-4 ${
-            isDark ? 'bg-gray-900' : 'bg-gray-50'
-          }`}>
-            {messages.map((message, index) => {
-              const currentUserId = getCurrentUserId();
-              const isOwn = message.senderId === currentUserId;
-              return (
-                <Message
-                  key={`${message.id}_${index}`}
-                  message={message}
-                  isOwn={isOwn}
-                  user={selectedConversation.user}
-                />
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Message Input */}
-          <div className={`p-4 border-t ${
-            isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-t'
-          }`}>
-            <div className="flex items-end space-x-2 space-x-reverse">
-              <div className="flex-1">
-                <textarea
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="اكتب رسالتك..."
-                  className={`w-full px-4 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-200 text-gray-800'
-                  }`}
-                  rows={1}
-                />
-              </div>
-              <button
-                onClick={sendMessage}
-                disabled={!newMessage.trim()}
-                className={`p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  isDark 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+            
+            {/* Search Bar */}
+            <div className="relative group">
+              <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${
+                isDark 
+                  ? 'from-blue-500/30 to-purple-500/30' 
+                  : 'from-blue-500/20 to-purple-500/20'
+              } blur-lg group-hover:blur-xl transition-all duration-300`}></div>
+              <input
+                type="text"
+                placeholder="البحث عن محادثة..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`relative w-full px-6 py-4 text-lg rounded-2xl border focus:outline-none transition-all duration-300 backdrop-blur-xl ${
+                  isDark
+                    ? 'bg-gray-900/80 border-gray-700/50 text-white placeholder-gray-400 focus:bg-gray-800/90 focus:border-blue-400/50 focus:shadow-2xl focus:shadow-blue-500/20'
+                    : 'bg-white/80 border-gray-200/50 text-gray-900 placeholder-gray-500 focus:bg-white/90 focus:border-blue-400/50 focus:shadow-2xl focus:shadow-blue-500/20'
                 }`}
-              >
-                <Send className="w-5 h-5" />
-              </button>
+              />
+              <div className={`absolute left-4 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
+                isDark ? 'text-gray-500 group-focus-within:text-blue-400' : 'text-gray-400 group-focus-within:text-blue-500'
+              }`}>
+                <Search className="w-5 h-5" />
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <div className={`hidden md:flex flex-1 items-center justify-center ${
-          isDark ? 'bg-gray-800' : 'bg-gray-50'
-        }`}>
-          <div className="text-center">
-            <div className={`w-24 h-24 ${
-              isDark ? 'bg-gray-700' : 'bg-gray-200'
-            } rounded-full flex items-center justify-center mx-auto mb-4`}>
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 7.5-9 7.5s4.032 7.5-9 7.5-9z" />
-              </svg>
-            </div>
-            <h3 className={`text-xl font-semibold mb-2 ${
-              isDark ? 'text-gray-100' : 'text-gray-700'
-            }`}>مرحباً!</h3>
-            <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              اختر محادثة لبدء الدردشة
-            </p>
+          
+          <div className="flex-1 overflow-y-auto p-4">
+            {filteredConversations.length === 0 ? (
+              <div className={`flex flex-col items-center justify-center py-20 px-8 rounded-3xl backdrop-blur-xl border ${
+                isDark 
+                  ? 'bg-gray-900/40 border-gray-800/30' 
+                  : 'bg-white/60 border-gray-200/50'
+              }`}>
+                <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-6 ${
+                  isDark ? 'bg-gray-800/50 border border-gray-700/30' : 'bg-gray-100 border border-gray-200/50'
+                }`}>
+                  <MessageCircle className={`w-12 h-12 ${
+                    isDark ? 'text-gray-600' : 'text-gray-400'
+                  }`} />
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  {searchTerm ? 'لا توجد نتائج للبحث' : 'لا توجد محادثات حالية'}
+                </h3>
+                <p className={`text-sm text-center ${
+                  isDark ? 'text-gray-500' : 'text-gray-400'
+                }`}>
+                  {searchTerm ? 'جرب كلمات بحث مختلفة' : 'ابدأ محادثة جديدة مع صديق'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredConversations.map((conversation, index) => (
+                  <div
+                    key={`conv_${conversation.id || `index_${index}`}_user_${conversation.user.id}`}
+                    onClick={() => setSelectedConversation(conversation)}
+                    className={`group relative p-4 rounded-2xl backdrop-blur-xl border transition-all duration-300 cursor-pointer hover:scale-105 hover:shadow-2xl ${
+                      (selectedConversation?.id && selectedConversation.id === conversation.id) || 
+                      (selectedConversation?.user.id === conversation.user.id) 
+                        ? isDark
+                          ? 'bg-gradient-to-br from-blue-900/40 to-purple-900/20 border-blue-800/50 shadow-xl shadow-blue-500/10'
+                          : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/60 shadow-lg shadow-blue-500/10'
+                        : isDark
+                          ? 'bg-gray-900/40 border-gray-800/30 hover:border-blue-800/50 shadow-lg shadow-black/20'
+                          : 'bg-white/60 border-gray-200/50 hover:border-blue-200/60 shadow-lg shadow-gray-500/10'
+                    }`}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    {/* Glow effect for active conversation */}
+                    {((selectedConversation?.id && selectedConversation.id === conversation.id) || 
+                      (selectedConversation?.user.id === conversation.user.id)) && (
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 animate-pulse"></div>
+                    )}
+                    
+                    <div className="relative z-10 flex items-center gap-4">
+                      <div className="relative">
+                        <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${
+                          isDark
+                            ? 'from-blue-500 to-purple-500'
+                            : 'from-blue-400 to-purple-400'
+                        } opacity-20 blur-xl animate-pulse`}></div>
+                        <UniversalAvatar 
+                          src={conversation.user.avatar} 
+                          username={conversation.user.username}
+                          size="large"
+                          className="relative"
+                        />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start mb-1">
+                          <h3 className={`font-bold text-lg truncate bg-gradient-to-r bg-clip-text ${
+                            isDark 
+                              ? 'from-gray-200 to-gray-300 text-transparent' 
+                              : 'from-gray-700 to-gray-900 text-transparent'
+                          }`}>
+                            {conversation.user.username}
+                          </h3>
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            isDark
+                              ? 'bg-gray-800/50 text-gray-400'
+                              : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            {conversation.lastMessage?.createdAt && formatLastMessageTime(conversation.lastMessage.createdAt)}
+                          </span>
+                        </div>
+                        <p className={`text-sm truncate transition-colors duration-200 ${
+                          isDark ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                          {conversation.lastMessage?.content || 'بدء محادثة...'}
+                        </p>
+                      </div>
+                      
+                      {conversation.unreadCount && conversation.unreadCount > 0 && (
+                        <div className={`relative flex-shrink-0`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold animate-pulse ${
+                            isDark
+                              ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg shadow-red-500/25'
+                              : 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-500/25'
+                          }`}>
+                            {conversation.unreadCount}
+                          </div>
+                          <div className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-20"></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Chat Area */}
+        {selectedConversation ? (
+          <div className="flex-1 flex flex-col">
+            {/* Chat Header */}
+            <div className={`p-6 backdrop-blur-xl border-b flex items-center justify-between ${
+              isDark ? 'bg-gray-900/40 border-gray-800/30' : 'bg-white/60 border-gray-200/50'
+            }`}>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setSelectedConversation(null)}
+                  className={`md:hidden p-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                    isDark
+                      ? 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                
+                <div className="relative">
+                  <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${
+                    isDark
+                      ? 'from-green-500 to-emerald-500'
+                      : 'from-green-400 to-emerald-400'
+                  } opacity-20 blur-xl animate-pulse`}></div>
+                  <UniversalAvatar 
+                    src={selectedConversation.user.avatar} 
+                    username={selectedConversation.user.username}
+                    size="large"
+                    className="relative"
+                  />
+                  <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white animate-pulse"></div>
+                </div>
+                
+                <div>
+                  <h3 className={`font-bold text-lg bg-gradient-to-r bg-clip-text ${
+                    isDark 
+                      ? 'from-gray-200 to-gray-300 text-transparent' 
+                      : 'from-gray-700 to-gray-900 text-transparent'
+                  }`}>
+                    {selectedConversation.user.username}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <p className={`text-sm font-medium ${
+                      isDark ? 'text-green-400' : 'text-green-600'
+                    }`}>
+                      متصل الآن
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button className={`p-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                  isDark
+                    ? 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 hover:text-blue-400'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-blue-600'
+                }`}>
+                  <Phone className="w-5 h-5" />
+                </button>
+                <button className={`p-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                  isDark
+                    ? 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 hover:text-purple-400'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-purple-600'
+                }`}>
+                  <Video className="w-5 h-5" />
+                </button>
+                <button className={`p-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                  isDark
+                    ? 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}>
+                  <Info className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div className={`flex-1 overflow-y-auto p-6 space-y-4 backdrop-blur-sm ${
+              isDark ? 'bg-gray-900/20' : 'bg-gray-50/50'
+            }`}>
+              {messages.map((message, index) => {
+                const currentUserId = getCurrentUserId();
+                const isOwn = message.senderId === currentUserId;
+                return (
+                  <Message
+                    key={`${message.id}_${index}`}
+                    message={message}
+                    isOwn={isOwn}
+                    user={selectedConversation.user}
+                  />
+                );
+              })}
+              
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="flex justify-start mb-4">
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-gray-100 to-gray-200 shadow-md">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Message Input */}
+            <div className={`p-6 backdrop-blur-xl border-t ${
+              isDark ? 'bg-gray-900/40 border-gray-800/30' : 'bg-white/60 border-gray-200/50'
+            }`}>
+              <div className="flex items-end gap-3">
+                <button className={`p-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                  isDark
+                    ? 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 hover:text-purple-400'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-purple-600'
+                }`}>
+                  <Paperclip className="w-5 h-5" />
+                </button>
+                
+                <div className="flex-1 relative">
+                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${
+                    isDark 
+                      ? 'from-blue-500/20 to-purple-500/20' 
+                      : 'from-blue-500/10 to-purple-500/10'
+                  } blur-lg`}></div>
+                  <textarea
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="اكتب رسالتك..."
+                    className={`relative w-full px-6 py-4 rounded-2xl border resize-none focus:outline-none transition-all duration-300 backdrop-blur-xl ${
+                      isDark
+                        ? 'bg-gray-900/80 border-gray-700/50 text-white placeholder-gray-400 focus:bg-gray-800/90 focus:border-blue-400/50'
+                        : 'bg-white/80 border-gray-200/50 text-gray-900 placeholder-gray-500 focus:bg-white/90 focus:border-blue-400/50'
+                    }`}
+                    rows={1}
+                  />
+                </div>
+                
+                <button className={`p-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                  isDark
+                    ? 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 hover:text-yellow-400'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-yellow-600'
+                }`}>
+                  <Smile className="w-5 h-5" />
+                </button>
+                
+                <button className={`p-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                  isDark
+                    ? 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 hover:text-green-400'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-green-600'
+                }`}>
+                  <Mic className="w-5 h-5" />
+                </button>
+                
+                <button
+                  onClick={sendMessage}
+                  disabled={!newMessage.trim()}
+                  className={`p-3 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 px-4 ${
+                    isDark
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-500 hover:to-purple-500 shadow-lg shadow-blue-500/25 disabled:from-gray-600 disabled:to-gray-700'
+                      : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 shadow-lg shadow-blue-500/25 disabled:from-gray-400 disabled:to-gray-500'
+                  }`}
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className={`hidden md:flex flex-1 items-center justify-center p-8`}>
+            <div className={`text-center max-w-md p-8 rounded-3xl backdrop-blur-xl border ${
+              isDark 
+                ? 'bg-gray-900/40 border-gray-800/30' 
+                : 'bg-white/60 border-gray-200/50'
+            }`}>
+              <div className={`w-32 h-32 rounded-3xl flex items-center justify-center mx-auto mb-6 relative ${
+                isDark ? 'bg-gray-800/50 border border-gray-700/30' : 'bg-gray-100 border border-gray-200/50'
+              }`}>
+                <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${
+                  isDark
+                    ? 'from-blue-500 to-purple-500'
+                    : 'from-blue-400 to-purple-400'
+                } opacity-20 blur-xl animate-pulse`}></div>
+                <MessageCircle className={`w-16 h-16 relative z-10 ${
+                  isDark ? 'text-gray-600' : 'text-gray-400'
+                }`} />
+              </div>
+              <h3 className={`text-2xl font-bold mb-3 bg-gradient-to-r bg-clip-text ${
+                isDark 
+                  ? 'from-blue-400 to-purple-400 text-transparent' 
+                  : 'from-blue-600 to-purple-600 text-transparent'
+              }`}>
+                مرحباً!
+              </h3>
+              <p className={`text-sm leading-relaxed ${
+                isDark ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                اختر محادثة من القائمة لبدء الدردشة مع أصدقائك
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

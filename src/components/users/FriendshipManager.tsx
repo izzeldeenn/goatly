@@ -135,10 +135,22 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
   };
 
   const openMessaging = (friend: UserAccount) => {
-    const friendId = friend.id || friend.account_id;
+    const friendId = friend.id; // Use the UUID for messaging
     
-    if (onSwitchToMessaging) {
+    console.log('🔘 Messaging button clicked:', { 
+      friendId, 
+      friendName: friend.username,
+      hasOnSwitchToMessaging: !!onSwitchToMessaging 
+    });
+    
+    if (onSwitchToMessaging && friendId) {
+      console.log('📞 Calling onSwitchToMessaging with friendId:', friendId);
       onSwitchToMessaging(friendId);
+    } else {
+      console.error('❌ Cannot open messaging:', { 
+        hasFriendId: !!friendId, 
+        hasCallback: !!onSwitchToMessaging 
+      });
     }
   };
 

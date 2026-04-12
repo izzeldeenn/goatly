@@ -172,6 +172,22 @@ export class FriendshipDB {
 
       if (friendshipError) throw friendshipError;
 
+      // Create conversation record for the new friendship
+      const { error: conversationError } = await supabase
+        .from('conversations')
+        .insert({
+          user1_id: request.sender_id,
+          user2_id: request.receiver_id,
+          last_message: null,
+          last_message_at: new Date().toISOString(),
+          last_message_sender_id: null,
+          other_user_id: request.receiver_id
+        });
+
+      if (conversationError) {
+        console.error('❌ Error creating conversation:', conversationError);
+      }
+
       // Delete the request after accepting
       const { error: deleteError } = await supabase
         .from('friendship_requests')
@@ -398,7 +414,7 @@ export class MessageDB {
   async getUserConversations(userId: string): Promise<any[]> {
     try {
       const { data, error } = await supabase
-        .from('conversations')
+        .from('conversations_base') // Use base table for consistency
         .select('*')
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
         .order('last_message_at', { ascending: false });

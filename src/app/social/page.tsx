@@ -41,6 +41,15 @@ function SocialPageContent() {
   const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [selectedFriendForMessaging, setSelectedFriendForMessaging] = useState<string | null>(null);
+
+  // Debug logging for tab changes
+  useEffect(() => {
+    console.log('🔄 Active tab changed:', {
+      newTab: activeTab,
+      selectedFriendForMessaging
+    });
+  }, [activeTab]);
   
   // Edit and delete state
   const [editingPost, setEditingPost] = useState<{ [key: string]: boolean }>({});
@@ -382,11 +391,20 @@ function SocialPageContent() {
           )}
 
           {activeTab === 'messages' && (
-            <MessagingSystem />
+            <MessagingSystem selectedFriendId={selectedFriendForMessaging} />
           )}
 
           {activeTab === 'friends' && (
-            <FriendshipManager />
+            <FriendshipManager 
+              onSwitchToMessaging={(friendId: string) => {
+                console.log('🎯 onSwitchToMessaging called in social/page.tsx:', {
+                  friendId,
+                  currentTab: activeTab
+                });
+                setSelectedFriendForMessaging(friendId);
+                setActiveTab('messages');
+              }}
+            />
           )}
 
           {activeTab === 'groups' && (

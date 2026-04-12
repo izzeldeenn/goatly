@@ -104,6 +104,12 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
 
   // Track selectedFriendId changes
   useEffect(() => {
+    console.log('📱 MessagingSystem selectedFriendId changed:', {
+      newSelectedFriendId: selectedFriendId,
+      currentSelectedFriendIdState: selectedFriendIdState,
+      areDifferent: selectedFriendId !== selectedFriendIdState
+    });
+    
     if (selectedFriendId !== selectedFriendIdState) {
       setSelectedFriendIdState(selectedFriendId || null);
     }
@@ -237,40 +243,69 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
   }, [selectedConversation]);
 
   useEffect(() => {
-    if (selectedFriendIdState && conversations.length > 0 && !isCreatingConversation) {
-      const currentUserId = getCurrentUserId();
-      
-      // Prevent selecting conversation with self
-      if (selectedFriendIdState === currentUserId) {
-        console.error('❌ Cannot select conversation with self');
-        return;
+    const handleConversationSelection = async () => {
+      if (selectedFriendIdState && conversations.length > 0 && !isCreatingConversation) {
+        const currentUserId = getCurrentUserId();
+        
+        // Prevent selecting conversation with self
+        if (selectedFriendIdState === currentUserId) {
+          console.error('❌ Cannot select conversation with self');
+          return;
+        }
+        
+        // Find conversation with the selected friend
+        const conversation = conversations.find(conv => {
+          const convUserId = conv.user?.id || conv.user?.account_id;
+          return convUserId === selectedFriendIdState;
+        });
+        
+        if (conversation) {
+          setSelectedConversation(conversation);
+        } else {
+          // Create a new conversation but don't select it automatically
+          createConversationWithFriend(selectedFriendIdState);
+        }
+      } else if (selectedFriendIdState && conversations.length === 0 && !isCreatingConversation) {
+        const currentUserId = getCurrentUserId();
+        
+        // Prevent creating conversation with self
+        if (selectedFriendIdState === currentUserId) {
+          console.error('❌ Cannot create conversation with self');
+          return;
+        }
+        
+        // Check if conversation already exists before creating
+        const { data: existingConv } = await supabase
+          .from('conversations_base')
+          .select('*')
+          .or(`user1_id.eq.${currentUserId},user2_id.eq.${selectedFriendIdState})`)
+          .or(`user1_id.eq.${selectedFriendIdState},user2_id.eq.${currentUserId})`)
+          .single();
+
+        if (existingConv) {
+          console.log('📝 Conversation already exists, loading and selecting existing one');
+          loadConversations();
+          
+          // Find and select the existing conversation after loading
+          setTimeout(() => {
+            const existingConversation = conversations.find(conv => {
+              const convUserId = conv.user?.id || conv.user?.account_id;
+              return convUserId === selectedFriendIdState;
+            });
+            
+            if (existingConversation) {
+              setSelectedConversation(existingConversation);
+            }
+          }, 100);
+        } else {
+          console.log('📝 No existing conversation found, creating new one');
+          // Create conversation but don't automatically select it
+          createConversationWithFriend(selectedFriendIdState);
+        }
       }
-      
-   
-      
-      // Find conversation with the selected friend
-      const conversation = conversations.find(conv => {
-        return conv.user?.id === selectedFriendIdState || conv.user?.account_id === selectedFriendIdState;
-      });
-      
-      
-      if (conversation) {
-        setSelectedConversation(conversation);
-      } else {
-        // Create a new conversation
-        createConversationWithFriend(selectedFriendIdState);
-      }
-    } else if (selectedFriendIdState && conversations.length === 0 && !isCreatingConversation) {
-      const currentUserId = getCurrentUserId();
-      
-      // Prevent creating conversation with self
-      if (selectedFriendIdState === currentUserId) {
-        console.error('❌ Cannot create conversation with self');
-        return;
-      }
-      
-      createConversationWithFriend(selectedFriendIdState);
-    }
+    };
+
+    handleConversationSelection();
   }, [selectedFriendIdState, conversations, isCreatingConversation]);
 
   useEffect(() => {
@@ -339,31 +374,63 @@ export default function MessagingSystem({ selectedFriendId }: MessagingSystemPro
     if (existingConv) {
       // Reload conversations and select the existing one
       await loadConversations();
+      
+      // Find and select the existing conversation
+      const updatedConv = conversations.find(conv => 
+        conv.user?.id === selectedFriendIdState || conv.user?.account_id === selectedFriendIdState
+      );
+      if (updatedConv) {
+        setSelectedConversation(updatedConv);
+      }
       return true;
     }
     
-    // Create conversation entry in the base table (not the view)
+    // Check if conversation already exists before creating new one
+    console.log('🔍 Checking if conversation already exists between:', currentUserId, 'and', friendId);
+    
+    const { data: existingConvBase } = await supabase
+      .from('conversations_base')
+      .select('*')
+      .or(`user1_id.eq.${currentUserId},user2_id.eq.${friendId})`)
+      .or(`user1_id.eq.${friendId},user2_id.eq.${currentUserId})`)
+      .single();
+
+    if (existingConvBase) {
+      console.log('📝 Conversation already exists, selecting existing one');
+      // Reload conversations to get the latest data
+      await loadConversations();
+      
+      // Find and select the existing conversation
+      const updatedConv = conversations.find(conv => 
+        conv.user?.id === friendId || conv.user?.account_id === friendId
+      );
+      if (updatedConv) {
+        setSelectedConversation(updatedConv);
+      }
+      return true;
+    }
+
+    // Create new conversation if none exists
+    console.log('📝 Creating new conversation between users');
     const { data, error } = await supabase
-      .from('conversations_base') // Try the base table first
+      .from('conversations_base') // Use base table for inserting
       .insert({
         user1_id: currentUserId,
         user2_id: friendId,
         last_message: null,
         last_message_at: new Date().toISOString(),
-        last_message_sender_id: null
+        last_message_sender_id: null,
+        other_user_id: friendId
       })
-      .select();
+      .select()
+      .single();
 
     if (error) {
-      // If table creation fails, just reload conversations
-      await loadConversations();
-      return true;
+      console.error('❌ Error creating conversation:', error);
+      return false;
     }
-    
-    
-    // Don't send automatic welcome message
-    // Just reload conversations to get the new one
-    await loadConversations();
+
+    console.log('✅ New conversation created:', data);
     return true;
   } catch (error) {
     return false;

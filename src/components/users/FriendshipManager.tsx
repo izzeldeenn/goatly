@@ -28,6 +28,7 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
   const [tablesError, setTablesError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   const { getCurrentUser } = useUser();
   const { theme } = useTheme();
@@ -107,8 +108,21 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
         createdAt: req.created_at,
         updatedAt: req.updated_at
       })));
-      setAllUsers(usersData.filter(u => u.account_id !== currentUser.accountId));
+      const filteredUsers = usersData.filter(u => u.account_id !== currentUser.accountId);
+      setAllUsers(filteredUsers);
+      
+      // Debug information
+      setDebugInfo(`Total users: ${usersData.length}, Filtered users: ${filteredUsers.length}, Current user: ${currentUser.accountId}`);
+      console.log('FriendshipManager Debug:', {
+        totalUsers: usersData.length,
+        filteredUsers: filteredUsers.length,
+        currentUserAccountId: currentUser.accountId,
+        currentUserId: currentUser.id,
+        sampleUsers: usersData.slice(0, 3).map(u => ({ id: u.id, accountId: u.account_id, username: u.username }))
+      });
     } catch (error) {
+      console.error('Error in loadData:', error);
+      setDebugInfo(`Error: ${error}`);
     } finally {
       setLoading(false);
     }
@@ -734,11 +748,18 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
                 }`}>
                   لا يوجد مستخدمون آخرون حالياً
                 </h3>
-                <p className={`text-sm text-center ${
+                <p className={`text-sm text-center mb-4 ${
                   isDark ? 'text-gray-500' : 'text-gray-400'
                 }`}>
                   جرب البحث لاحقاً عندما ينضم المزيد من المستخدمين
                 </p>
+                {debugInfo && (
+                  <div className={`text-xs p-3 rounded-lg font-mono ${
+                    isDark ? 'bg-gray-800/50 text-gray-400' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    Debug: {debugInfo}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

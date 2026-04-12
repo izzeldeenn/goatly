@@ -90,7 +90,7 @@ export class UserAccountDB {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('account_id, username, email, avatar, score, last_active, created_at, hash_key')
+        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key')
         .order('last_active', { ascending: false }) // Sort by last_active instead of score
         .limit(100); // Limit to last 100 active users to reduce egress
 
@@ -106,7 +106,7 @@ export class UserAccountDB {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('account_id, username, email, avatar, score, last_active, created_at, hash_key')
+        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key')
         .eq('account_id', accountId)
         .single();
 

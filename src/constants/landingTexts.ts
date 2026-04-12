@@ -4,6 +4,7 @@ export const landingTexts = {
     features: 'Community Features',
     reviews: 'Success Stories',
     stats: 'Community Impact',
+    community: 'Community',
     startNow: 'Join Community',
     
     // Hero Section
@@ -70,6 +71,25 @@ export const landingTexts = {
     joinDiscord: 'Join Discord Server',
     supportCommunity: 'Support Our Mission',
     
+    // GitHub Section
+    githubRepository: 'GitHub Repository',
+    githubSubtitle: 'Open Source • Community Driven',
+    starRepo: '⭐ Star',
+    
+    // Discord Section
+    discordCommunity: 'Discord Community',
+    discordSubtitle: 'Real-time Chat • Support',
+    chatButton: '💬 Chat',
+    
+    // Community Support
+    contributionText: 'Every contribution matters! Whether you\'re a developer, designer, or student passionate about focus and productivity, your involvement helps us build a better community for everyone.',
+    startContributing: '🚀 Start Contributing',
+    joinDiscussion: '🤝 Join Discussion',
+    
+    // Ethical Digital Economy
+    ethicalFramework: 'Frogo is built on an Ethical Digital Economy framework designed by its creator and formally documented under the Sahwa Foundation on GitHub.',
+    sahwafoundationLink: 'Sahwa Foundation Documentation',
+    
     // Footer
     product: 'Community Resources',
     pricing: 'Free Forever',
@@ -90,6 +110,7 @@ export const landingTexts = {
     features: 'مميزات المجتمع',
     reviews: 'قصص نجاح',
     stats: 'تأثير المجتمع',
+    community: 'المجتمع',
     startNow: 'انضم للمجتمع',
     
     // Hero Section
@@ -155,6 +176,25 @@ export const landingTexts = {
     contribute: 'ساهم في GitHub',
     joinDiscord: 'انضم لخادم Discord',
     supportCommunity: 'ادعم مهمتنا',
+    
+    // GitHub Section
+    githubRepository: 'مستودع GitHub',
+    githubSubtitle: 'مفتوح المصدر • يقوده المجتمع',
+    starRepo: '⭐ نجمة',
+    
+    // Discord Section
+    discordCommunity: 'مجتمع Discord',
+    discordSubtitle: 'دردشة فورية • دعم',
+    chatButton: '💬 دردشة',
+    
+    // Community Support
+    contributionText: 'كل مساهمة مهمة! سواء كنت مطوراً، مصمماً، أو طالباً شغوفاً بالتركيز والإنتاجية، فإن مشاركتك تساعدنا في بناء مجتمع أفضل للجميع.',
+    startContributing: '🚀 ابدأ المساهمة',
+    joinDiscussion: '🤝 انضم للنقاش',
+    
+    // Ethical Digital Economy
+    ethicalFramework: 'فروجو مبني على إطار الاقتصاد الرقمي الأخلاقي الذي صممه منشئه وموثق رسمياً تحت مؤسسة صحوة على GitHub.',
+    sahwafoundationLink: 'توثيق مؤسسة صحوة',
     
     // Footer
     product: 'موارد المجتمع',

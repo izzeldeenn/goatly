@@ -111,6 +111,22 @@ export class DailyActivityDB {
     }
   }
 
+  // Get all daily activities for all users (for aggregation)
+  async getAllDailyActivities(limit = 365): Promise<DailyActivity[]> {
+    try {
+      const { data, error } = await supabase
+        .from('daily_activities')
+        .select('*')
+        .order('date', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      return [];
+    }
+  }
+
   // Get today's rankings for all users
   async getTodayRankings(): Promise<DailyActivity[]> {
     const today = new Date().toISOString().split('T')[0];

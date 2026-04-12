@@ -10,6 +10,8 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { CustomThemeProvider } from '@/contexts/CustomThemeContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { landingTexts, features, testimonials, stats } from '@/constants/landingTexts';
+import { useGitHubStars } from '@/hooks/useGitHubStars';
+import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 
 export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -40,11 +42,32 @@ function LandingPageContent() {
   const [email, setEmail] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const customTheme = useCustomThemeClasses();
+  const { stars, loading: starsLoading } = useGitHubStars();
+  const realTimeStats = useRealTimeStats();
   
   const texts = landingTexts[language];
   const currentFeatures = features[language];
   const currentTestimonials = testimonials[language];
-  const currentStats = stats[language];
+  
+  // Create dynamic stats based on real data
+  const currentStats = [
+    { 
+      number: realTimeStats.loading ? '...' : realTimeStats.totalUsers.toLocaleString() + '+', 
+      labelKey: 'activeStudents' as const 
+    },
+    { 
+      number: realTimeStats.loading ? '...' : realTimeStats.totalFocusHours.toLocaleString() + '+', 
+      labelKey: 'focusHours' as const 
+    },
+    { 
+      number: realTimeStats.loading ? '...' : realTimeStats.totalGoalsAchieved.toLocaleString() + '+', 
+      labelKey: 'levelsCompleted' as const 
+    },
+    { 
+      number: realTimeStats.loading ? '...' : realTimeStats.communitySuccessRate + '%', 
+      labelKey: 'userSatisfaction' as const 
+    }
+  ];
 
   return (
     <LanguageLayout>
@@ -96,15 +119,38 @@ function LandingPageContent() {
                 }`}>
                   {texts.reviews}
                 </a>
-                <a href="#stats" className={`transition-colors hover:text-lime-600 ${
+                <a href="#community" className={`transition-colors hover:text-lime-600 ${
                   theme === 'light' ? 'text-lime-800' : 'text-yellow-300'
                 }`}>
-                  {texts.stats}
+                  {texts.community}
                 </a>
               </nav>
 
               {/* Desktop Actions */}
               <div className="hidden md:flex items-center gap-3">
+                <a 
+                  href="https://github.com/izzeldeenn/FROGO"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`px-3 py-1 rounded-lg text-sm font-semibold transition-all transform hover:scale-105 flex items-center gap-1 ${
+                    theme === 'light'
+                      ? 'bg-yellow-50 border-lime-300 text-lime-700 hover:bg-lime-100'
+                      : 'bg-yellow-900 border-lime-600 text-yellow-300 hover:bg-yellow-800'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  <span className="text-yellow-500">
+                    {starsLoading ? (
+                      <span className="animate-pulse">...</span>
+                    ) : (
+                      <>
+                        ⭐ {stars.toLocaleString()}
+                      </>
+                    )}
+                  </span>
+                </a>
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
@@ -168,18 +214,41 @@ function LandingPageContent() {
                   {texts.reviews}
                 </a>
                 <a 
-                  href="#stats" 
+                  href="#community" 
                   onClick={() => setIsMenuOpen(false)}
                   className={`px-3 py-2 rounded-lg transition-colors text-center ${
                     theme === 'light' ? 'text-lime-800 hover:bg-lime-100' : 'text-yellow-300 hover:bg-yellow-900'
                   }`}
                 >
-                  {texts.stats}
+                  {texts.community}
                 </a>
               </nav>
               
               {/* Mobile Actions */}
               <div className="flex flex-col gap-3">
+                <a 
+                  href="https://github.com/izzeldeenn/FROGO"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all transform hover:scale-105 flex items-center justify-center gap-2 ${
+                    theme === 'light'
+                      ? 'bg-yellow-50 border-lime-300 text-lime-700 hover:bg-lime-100'
+                      : 'bg-yellow-900 border-lime-600 text-yellow-300 hover:bg-yellow-800'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  <span className="text-yellow-500">
+                    {starsLoading ? (
+                      <span className="animate-pulse">...</span>
+                    ) : (
+                      <>
+                        ⭐ {stars.toLocaleString()}
+                      </>
+                    )}
+                  </span>
+                </a>
                 <div className="flex items-center justify-center gap-3">
                   <select
                     value={language}
@@ -398,8 +467,8 @@ function LandingPageContent() {
         </section>
 
         {/* Community Section */}
-        <section className={`py-24 px-4 sm:px-6 lg:px-8 ${
-          theme === 'light' ? 'bg-lime-50' : 'bg-yellow-950'
+        <section id="community" className={`py-24 px-4 sm:px-6 lg:px-8 ${
+          theme === 'light' ? 'bg-gradient-to-br from-lime-50 via-yellow-50 to-amber-50' : 'bg-gradient-to-br from-lime-950 via-yellow-950 to-amber-950'
         }`}>
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
@@ -415,11 +484,13 @@ function LandingPageContent() {
             
             <div className="grid md:grid-cols-2 gap-8 mb-16">
               {/* GitHub Card */}
-              <div className={`group p-8 rounded-xl transition-all duration-300 transform hover:scale-105 ${
-                theme === 'light' 
-                  ? 'bg-white border border-lime-200 hover:shadow-xl' 
-                  : 'bg-gray-900 border border-lime-800 hover:shadow-2xl'
-              }`}>
+              <div 
+                className={`group relative p-8 rounded-lg transition-all duration-300 transform hover:scale-105 ${
+                  theme === 'light' 
+                    ? 'bg-lime-50 border border-lime-200 hover:shadow-xl' 
+                    : 'bg-yellow-900 border border-lime-800 hover:shadow-2xl'
+                }`}
+              >
                 <div className="flex items-center mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-gray-700 to-black rounded-xl flex items-center justify-center mr-4">
                     <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -430,12 +501,12 @@ function LandingPageContent() {
                     <h3 className={`text-2xl font-bold mb-2 ${
                       theme === 'light' ? 'text-lime-900' : 'text-yellow-100'
                     }`}>
-                      GitHub Repository
+                      {texts.githubRepository}
                     </h3>
                     <p className={`text-sm ${
                       theme === 'light' ? 'text-lime-600' : 'text-yellow-400'
                     }`}>
-                      Open Source • Community Driven
+                      {texts.githubSubtitle}
                     </p>
                   </div>
                 </div>
@@ -453,27 +524,17 @@ function LandingPageContent() {
                   >
                     {texts.contribute}
                   </a>
-                  <a 
-                    href="https://github.com/izzeldeenn/FROGO"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`px-6 py-3 rounded-lg font-semibold border-2 transition-all transform hover:scale-105 text-center ${
-                      theme === 'light' 
-                        ? 'border-lime-300 text-lime-700 hover:bg-lime-50' 
-                        : 'border-lime-600 text-yellow-300 hover:bg-yellow-900'
-                    }`}
-                  >
-                    ⭐ Star
-                  </a>
                 </div>
               </div>
               
               {/* Discord Card */}
-              <div className={`group p-8 rounded-xl transition-all duration-300 transform hover:scale-105 ${
-                theme === 'light' 
-                  ? 'bg-white border border-lime-200 hover:shadow-xl' 
-                  : 'bg-gray-900 border border-lime-800 hover:shadow-2xl'
-              }`}>
+              <div 
+                className={`group relative p-8 rounded-lg transition-all duration-300 transform hover:scale-105 ${
+                  theme === 'light' 
+                    ? 'bg-lime-50 border border-lime-200 hover:shadow-xl' 
+                    : 'bg-yellow-900 border border-lime-800 hover:shadow-2xl'
+                }`}
+              >
                 <div className="flex items-center mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
                     <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -484,12 +545,12 @@ function LandingPageContent() {
                     <h3 className={`text-2xl font-bold mb-2 ${
                       theme === 'light' ? 'text-lime-900' : 'text-yellow-100'
                     }`}>
-                      Discord Community
+                      {texts.discordCommunity}
                     </h3>
                     <p className={`text-sm ${
                       theme === 'light' ? 'text-lime-600' : 'text-yellow-400'
                     }`}>
-                      Real-time Chat • Support
+                      {texts.discordSubtitle}
                     </p>
                   </div>
                 </div>
@@ -507,23 +568,11 @@ function LandingPageContent() {
                   >
                     {texts.joinDiscord}
                   </a>
-                  <a 
-                    href="https://discord.gg/5wBNne8Z3f"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`px-6 py-3 rounded-lg font-semibold border-2 transition-all transform hover:scale-105 text-center ${
-                      theme === 'light' 
-                        ? 'border-purple-300 text-purple-700 hover:bg-purple-50' 
-                        : 'border-purple-600 text-purple-300 hover:bg-purple-900'
-                    }`}
-                  >
-                    💬 Chat
-                  </a>
                 </div>
               </div>
             </div>
             
-            <div className={`text-center p-8 rounded-xl ${
+            <div className={`text-center p-8 rounded-lg ${
               theme === 'light' 
                 ? 'bg-gradient-to-r from-lime-100 to-yellow-100 border border-lime-200' 
                 : 'bg-gradient-to-r from-lime-900 to-yellow-900 border border-lime-800'
@@ -536,7 +585,7 @@ function LandingPageContent() {
               <p className={`mb-6 max-w-2xl mx-auto ${
                 theme === 'light' ? 'text-lime-700' : 'text-yellow-300'
               }`}>
-                Every contribution matters! Whether you're a developer, designer, or student passionate about focus and productivity, your involvement helps us build a better community for everyone.
+                {texts.contributionText}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a 
@@ -545,7 +594,7 @@ function LandingPageContent() {
                   rel="noopener noreferrer"
                   className="px-8 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 bg-gradient-to-r from-lime-500 to-yellow-500 text-white text-center"
                 >
-                  🚀 Start Contributing
+                  {texts.startContributing}
                 </a>
                 <a 
                   href="https://discord.gg/5wBNne8Z3f"
@@ -557,7 +606,7 @@ function LandingPageContent() {
                       : 'border-lime-600 text-yellow-300 hover:bg-yellow-900'
                   }`}
                 >
-                  🤝 Join Discussion
+                  {texts.joinDiscussion}
                 </a>
               </div>
             </div>
@@ -694,7 +743,41 @@ function LandingPageContent() {
               </div>
             </div>
             
-            <div className={`pt-8 border-t text-center text-sm ${
+            {/* Ethical Digital Economy Framework Section */}
+            <div className={`mt-8 pt-8 border-t ${
+              theme === 'light' 
+                ? 'border-lime-200' 
+                : 'border-lime-800'
+            }`}>
+              <div className={`text-center mb-6 p-6 rounded-lg ${
+                theme === 'light' 
+                  ? 'bg-lime-50/50 border border-lime-200' 
+                  : 'bg-yellow-900/30 border border-lime-800'
+              }`}>
+                <p className={`text-sm font-medium mb-3 ${
+                  theme === 'light' ? 'text-lime-800' : 'text-yellow-200'
+                }`}>
+                  {texts.ethicalFramework}
+                </p>
+                <a 
+                  href="https://github.com/sahwa-foundation"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all transform hover:scale-105 ${
+                    theme === 'light' 
+                      ? 'bg-gradient-to-r from-lime-500 to-yellow-500 text-white hover:shadow-lg' 
+                      : 'bg-gradient-to-r from-lime-600 to-yellow-600 text-white hover:shadow-lg'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  {texts.sahwafoundationLink}
+                </a>
+              </div>
+            </div>
+            
+            <div className={`pt-4 border-t text-center text-sm ${
               theme === 'light' 
                 ? 'border-lime-200 text-lime-600' 
                 : 'border-lime-800 text-yellow-400'

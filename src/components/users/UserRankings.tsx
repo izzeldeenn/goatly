@@ -284,7 +284,7 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
                 return (
                   <div
                     key={user.accountId}
-                    className={`p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer w-full max-w-md ${
+                    className={`p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer w-full ${
                       isCurrent ? 'ring-4 ring-blue-400 ring-offset-2' : ''
                     }`}
                     onClick={() => onUserClick && onUserClick(user)}

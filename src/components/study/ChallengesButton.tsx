@@ -1,21 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { useGamification } from '@/contexts/GamificationContext';
 
 import { Challenges } from './Challenges';
+import { Store } from '../store/Store';
 
 export function ChallengesButton() {
   const { theme } = useTheme();
   const { language } = useLanguage();
   const customTheme = useCustomThemeClasses();
   const { coins } = useGamification();
-  const router = useRouter();
   const [isChallengesOpen, setIsChallengesOpen] = useState(false);
+  const [showStore, setShowStore] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -60,7 +60,7 @@ export function ChallengesButton() {
 
   const renderStoreButton = () => (
     <button
-      onClick={() => router.push('/store')}
+      onClick={() => setShowStore(true)}
       className="group relative w-12 h-12 rounded-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 inline-flex items-center justify-center overflow-hidden"
       style={{
         background: `linear-gradient(135deg, #8b5cf6, #7c3aed)`,
@@ -152,7 +152,7 @@ export function ChallengesButton() {
 
   const renderRealTimeChallengeButton = () => (
     <button
-      onClick={() => router.push('/challenge')}
+      onClick={() => window.location.href = '/challenge'}
       className="group relative w-12 h-12 rounded-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 inline-flex items-center justify-center overflow-hidden"
       style={{
         background: `linear-gradient(135deg, #ef4444, #dc2626)`,
@@ -248,6 +248,10 @@ export function ChallengesButton() {
       {renderChallengesButton()}
       {renderRealTimeChallengeButton()}
       {renderChallengesModal()}
+      <Store 
+        isOpen={showStore} 
+        onClose={() => setShowStore(false)} 
+      />
     </div>
   );
 }

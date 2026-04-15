@@ -5,7 +5,6 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
 import { useGamification } from '@/contexts/GamificationContext';
-import { useRouter } from 'next/navigation';
 import { StoreItem, defaultStoreItems, specialOfferItems } from './storeProducts';
 
 interface UserInventory {
@@ -21,12 +20,15 @@ interface UserInventory {
   };
 }
 
-export function Store() {
+interface StoreProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Store({ isOpen, onClose }: StoreProps) {
   const { theme } = useTheme();
-  const { t } = useLanguage();
   const { getCurrentUser } = useUser();
   const { coins, level, addCoins, removeCoins } = useGamification();
-  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [storeItems, setStoreItems] = useState<StoreItem[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -256,9 +258,24 @@ export function Store() {
     );
   }
 
+  if (!isOpen) return null;
+
   return (
-    <div className={`min-h-screen flex ${
-      theme === 'light' 
+    <>
+      {/* Modal Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] transition-opacity duration-300"
+        onClick={onClose}
+      />
+      
+      {/* Modal Content */}
+      <div 
+        className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-7xl max-h-[90vh] shadow-2xl rounded-3xl transition-all duration-300 ease-in-out z-[9999] overflow-hidden ${
+          theme === 'light' ? 'bg-white' : 'bg-gray-800'
+        }`}
+      >
+        <div className={`flex h-[90vh] overflow-hidden ${
+          theme === 'light' 
         ? 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100' 
         : 'bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900'
     }`}>
@@ -270,8 +287,9 @@ export function Store() {
       }`}>
         <div className="p-6">
           {/* Back Button */}
+          {/* Close Button */}
           <button
-            onClick={() => router.push('/focus')}
+            onClick={onClose}
             className={`mb-6 px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${
               theme === 'light'
                 ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -281,7 +299,7 @@ export function Store() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Focus
+            Close Store
           </button>
 
           {/* User Stats */}
@@ -351,7 +369,7 @@ export function Store() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-10">
+      <div className="flex-1 p-10 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
           {/* Special Offers Banner */}
           <div className={`mb-8 p-6 rounded-3xl bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 text-white shadow-2xl`}>
@@ -796,6 +814,8 @@ export function Store() {
           </div>
         </div>
       )}
-    </div>
+        </div>
+      </div>
+    </>
   );
 }

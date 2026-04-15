@@ -46,6 +46,7 @@ export function SettingsButton() {
     { id: 'profile', name: t.profile || 'الملف الشخصي', icon: '👤' },
     { id: 'appearance', name: t.appearance || 'المظهر', icon: '🎨' },
     { id: 'themes', name: t.themes || 'الثيمات', icon: '🎭' },
+    { id: 'backgrounds', name: t.backgrounds || 'الخلفيات', icon: '🖼️' },
     { id: 'rankings', name: t.rankings || 'عرض الترتيب', icon: '🏆' },
     { id: 'timer', name: t.timer || 'التايمر', icon: '⏱️' },
     { id: 'countdown', name: t.countdown || 'العد التنازلي', icon: '⏳' },
@@ -473,25 +474,26 @@ export function SettingsButton() {
                           }}
                         />
                       </div>
-                      <div>
-                        <h3 className={`text-lg font-black tracking-tight ${
-                          theme === 'light' ? 'text-gray-900' : 'text-gray-50'
-                        }`}>
-                          {getSettingsSections().find(s => s.id === activeSection)?.name}
-                        </h3>
-                        <div className={`text-xs opacity-70 mt-1 ${
-                          theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-                        }`}>
-                          {activeSection === 'presets' && 'اختر شكلاً جاهزاً مع إعدادات متكاملة'}
-                          {activeSection === 'profile' && 'إدارة ملفك الشخصي والصورة الرمزية'}
-                          {activeSection === 'appearance' && 'تخصيص المظهر واللغة'}
-                          {activeSection === 'themes' && 'اختيار وتخصيص الثيمات والخلفيات'}
-                          {activeSection === 'rankings' && 'اختر طريقة عرض الترتيب التي تناسبك'}
-                          {activeSection === 'timer' && 'تخصيص شكل وألوان المؤقت'}
-                          {activeSection === 'countdown' && 'إعداد العد التنازلي'}
-                          {activeSection === 'pomodoro' && 'تخصيص مؤقت بومودورو'}
-                          {activeSection === 'account' && 'إعدادات الحساب والأمان'}
-                        </div>
+                    </div>
+                    <div>
+                      <h3 className={`text-lg font-black tracking-tight ${
+                        theme === 'light' ? 'text-gray-900' : 'text-gray-50'
+                      }`}>
+                        {getSettingsSections().find(s => s.id === activeSection)?.name}
+                      </h3>
+                      <div className={`text-xs opacity-70 mt-1 ${
+                        theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                      }`}>
+                        {activeSection === 'presets' && 'اختر شكلاً جاهزاً مع إعدادات متكاملة'}
+                        {activeSection === 'profile' && 'إدارة ملفك الشخصي والصورة الرمزية'}
+                        {activeSection === 'appearance' && 'تخصيص المظهر واللغة'}
+                        {activeSection === 'themes' && 'اختيار وتخصيص الثيمات'}
+                        {activeSection === 'backgrounds' && 'اختيار خلفيات'}
+                        {activeSection === 'rankings' && 'اختر طريقة عرض الترتيب التي تناسبك'}
+                        {activeSection === 'timer' && 'تخصيص شكل وألوان المؤقت'}
+                        {activeSection === 'countdown' && 'إعداد العد التنازلي'}
+                        {activeSection === 'pomodoro' && 'تخصيص مؤقت بومودورو'}
+                        {activeSection === 'account' && 'إعدادات الحساب والأمان'}
                       </div>
                     </div>
                     
@@ -1065,20 +1067,26 @@ export function SettingsButton() {
                               >
                                 <div className="flex items-center space-x-reverse space-x-2 mb-3">
                                   <div 
-                                    className="w-6 h-6 rounded-full border-2 border-gray-300"
+                                    className={`w-6 h-6 rounded-full border-2 ${
+                                      theme === 'light' ? 'border-gray-300' : 'border-gray-600'
+                                    }`}
                                     style={{ backgroundColor: themeOption.colors.primary }}
                                   />
                                   <div 
-                                    className="w-6 h-6 rounded-full border-2 border-gray-300"
+                                    className={`w-6 h-6 rounded-full border-2 ${
+                                      theme === 'light' ? 'border-gray-300' : 'border-gray-600'
+                                    }`}
                                     style={{ backgroundColor: themeOption.colors.secondary }}
                                   />
                                   <div 
-                                    className="w-6 h-6 rounded-full border-2 border-gray-300"
+                                    className={`w-6 h-6 rounded-full border-2 ${
+                                      theme === 'light' ? 'border-gray-300' : 'border-gray-600'
+                                    }`}
                                     style={{ backgroundColor: themeOption.colors.accent }}
                                   />
                                 </div>
                                 <div className={`text-sm font-bold ${
-                                  currentTheme.name === themeOption.name ? 'text-white' : customTheme.colors.text
+                                  currentTheme.name === themeOption.name ? 'text-white' : (theme === 'light' ? 'text-gray-900' : 'text-gray-50')
                                 }`}>
                                   {themeOption.name}
                                 </div>
@@ -1129,7 +1137,11 @@ export function SettingsButton() {
                           />
                         </button>
                       </div>
+                    </div>
+                  )}
 
+                  {activeSection === 'backgrounds' && (
+                    <div className="space-y-6">
                       {/* Background Selection */}
                       <div 
                         className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
@@ -1154,12 +1166,12 @@ export function SettingsButton() {
                                 boxShadow: `0 4px 16px ${customTheme.colors.accent}40`
                               }}
                             >
-                              <span className="text-white text-sm">🎭</span>
+                              <span className="text-white text-sm"> </span>
                             </div>
                             <label className={`text-sm font-black uppercase tracking-wider ${
                               theme === 'light' ? 'text-gray-700' : 'text-gray-300'
                             }`}>
-                              خلفية القسم الأيمن
+                              
                             </label>
                           </div>
                           
@@ -1173,7 +1185,7 @@ export function SettingsButton() {
                             <h4 className={`text-lg font-semibold mb-4 ${
                               theme === 'light' ? 'text-gray-700' : 'text-gray-300'
                             }`}>
-                              الخلفيات الافتراضية
+                              
                             </h4>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                               {BACKGROUNDS.filter(bg => ['default', 'gradient1', 'gradient2', 'gradient3', 'gradient4', 'gradient5', 'pattern1', 'pattern2', 'focus1', 'focus2', 'focus3', 'focus4', 'focus5', 'focus6', 'focus7'].includes(bg.id)).map((background) => (
@@ -1198,14 +1210,14 @@ export function SettingsButton() {
                                     className="w-full h-12 rounded mb-2"
                                     style={{ 
                                       background: background.value,
-                                      border: background.value === 'transparent' ? '2px dashed #d1d5db' : 'none',
+                                      border: background.value === 'transparent' ? `2px dashed ${theme === 'light' ? '#d1d5db' : '#4b5563'}` : 'none',
                                       backgroundImage: background.value.startsWith('url(') ? background.value : 'none',
                                       backgroundSize: background.value.startsWith('url(') ? 'cover' : 'auto',
                                       backgroundPosition: background.value.startsWith('url(') ? 'center' : 'auto'
                                     }}
                                   />
                                   <div className={`text-xs font-medium ${
-                                    selectedBackground === background.id ? 'text-white' : customTheme.colors.text
+                                    selectedBackground === background.id ? (theme === 'light' ? 'text-white' : 'text-black') : (theme === 'light' ? 'text-gray-900' : 'text-gray-50')
                                   }`}>
                                     {background.name}
                                   </div>
@@ -1222,154 +1234,6 @@ export function SettingsButton() {
                             </div>
                           </div>
                         </div>
-
-                        {showCustomCreator && (
-                          <div 
-                            className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
-                            style={{
-                              background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                              border: `1px solid ${customTheme.colors.border}20`,
-                              boxShadow: `0 8px 32px ${customTheme.colors.border}15`
-                            }}
-                          >
-                            <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20"
-                              style={{
-                                background: `radial-gradient(circle, ${customTheme.colors.primary}, transparent)`
-                              }}
-                            />
-                            
-                            <div className="relative">
-                              <h4 className={`text-lg font-black mb-6 ${
-                                theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                              }`}>
-                                مصمم الألوان
-                              </h4>
-
-                              {/* Theme Name */}
-                              <div className="mb-6">
-                                <label className={`block text-sm font-bold mb-2 ${
-                                  theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                                }`}>
-                                  اسم الثيم
-                                </label>
-                                <div className="relative">
-                                  <input
-                                    type="text"
-                                    value={customThemeName}
-                                    onChange={(e) => setCustomThemeName(e.target.value)}
-                                    placeholder="أدخل اسم الثيم"
-                                    className="w-full px-5 py-3 rounded-2xl focus:outline-none transition-all duration-300 text-sm font-medium peer"
-                                    style={{
-                                      backgroundColor: customTheme.colors.surface + '40',
-                                      color: customTheme.colors.text,
-                                      border: `2px solid ${customTheme.colors.border}30`
-                                    }}
-                                    onFocus={(e) => {
-                                      e.currentTarget.style.backgroundColor = customTheme.colors.surface + '80';
-                                      e.currentTarget.style.borderColor = customTheme.colors.primary;
-                                      e.currentTarget.style.boxShadow = `0 0 0 4px ${customTheme.colors.primary}20, 0 8px 32px ${customTheme.colors.primary}30`;
-                                    }}
-                                    onBlur={(e) => {
-                                      e.currentTarget.style.backgroundColor = customTheme.colors.surface + '40';
-                                      e.currentTarget.style.borderColor = customTheme.colors.border + '30';
-                                      e.currentTarget.style.boxShadow = 'none';
-                                    }}
-                                  />
-                                  <div 
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 w-1 h-6 rounded-full transition-all duration-300 peer-focus:scale-x-150 peer-focus:scale-y-125"
-                                    style={{
-                                      background: `linear-gradient(180deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
-                                      boxShadow: `0 0 12px ${customTheme.colors.primary}60`
-                                    }}
-                                  />
-                                </div>
-                              </div>
-
-                              {/* Color Pickers */}
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                {Object.entries(customColors).map(([key, value]) => (
-                                  <div key={key}>
-                                    <label className={`block text-sm font-bold mb-2 ${
-                                      theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                                    }`}>
-                                      {key.charAt(0).toUpperCase() + key.slice(1)}
-                                    </label>
-                                    <div className="flex items-center space-x-3">
-                                      <input
-                                        type="color"
-                                        value={value}
-                                        onChange={(e) => handleColorChange(key as keyof ThemeColors, e.target.value)}
-                                        className="w-12 h-12 rounded cursor-pointer"
-                                      />
-                                      <input
-                                        type="text"
-                                        value={value}
-                                        onChange={(e) => handleColorChange(key as keyof ThemeColors, e.target.value)}
-                                        className="flex-1 px-5 py-3 rounded-2xl focus:outline-none transition-all duration-300 text-sm font-medium peer"
-                                        style={{
-                                          backgroundColor: customTheme.colors.surface + '40',
-                                          color: customTheme.colors.text,
-                                          border: `2px solid ${customTheme.colors.border}30`
-                                        }}
-                                        onFocus={(e) => {
-                                          e.currentTarget.style.backgroundColor = customTheme.colors.surface + '80';
-                                          e.currentTarget.style.borderColor = customTheme.colors.primary;
-                                          e.currentTarget.style.boxShadow = `0 0 0 4px ${customTheme.colors.primary}20, 0 8px 32px ${customTheme.colors.primary}30`;
-                                        }}
-                                        onBlur={(e) => {
-                                          e.currentTarget.style.backgroundColor = customTheme.colors.surface + '40';
-                                          e.currentTarget.style.borderColor = customTheme.colors.border + '30';
-                                          e.currentTarget.style.boxShadow = 'none';
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-
-                              {/* Action Buttons */}
-                              <div className="flex space-x-4">
-                                <button
-                                  onClick={handleQuickColorUpdate}
-                                  className="px-6 py-3 rounded-2xl font-bold transition-all duration-300 relative overflow-hidden group"
-                                  style={{
-                                    background: `linear-gradient(135deg, #10b981, #059669)`,
-                                    color: '#ffffff',
-                                    boxShadow: `0 8px 32px #10b98140`
-                                  }}
-                                >
-                                  <span className="relative z-10">معاينة سريعة</span>
-                                  <div 
-                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                    style={{
-                                      background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)'
-                                    }}
-                                  />
-                                </button>
-                                <button
-                                  onClick={handleCreateCustomTheme}
-                                  disabled={!customThemeName.trim()}
-                                  className="px-6 py-3 rounded-2xl font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
-                                  style={{
-                                    background: customThemeName.trim() 
-                                      ? `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`
-                                      : `linear-gradient(135deg, #6b7280, #a78bfa)`,
-                                    color: '#ffffff',
-                                    boxShadow: !customThemeName.trim() ? '0 4px 16px #6b728040' : `0 12px 48px ${customTheme.colors.primary}40`
-                                  }}
-                                >
-                                  <span className="relative z-10">حفظظ الثيم</span>
-                                  <div 
-                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                    style={{
-                                      background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)'
-                                    }}
-                                  />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}

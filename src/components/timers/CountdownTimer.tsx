@@ -227,6 +227,30 @@ export function CountdownTimer() {
     };
   }, [isRunning, timeLeft]);
 
+  // Handle background tab throttling with Document Visibility API
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isRunning) {
+        // Save timestamp when tab goes to background
+        const lastActiveTime = Date.now();
+        localStorage.setItem('countdown_background_start', lastActiveTime.toString());
+      } else if (!document.hidden && isRunning) {
+        // Restore lost time when tab becomes visible again
+        const backgroundStart = localStorage.getItem('countdown_background_start');
+        if (backgroundStart) {
+          const timeLost = Math.floor((Date.now() - parseInt(backgroundStart)) / 1000);
+          if (timeLost > 0 && timeLost < 3600) { // Only restore if less than 1 hour lost
+            updateSessionTime(timeLost);
+          }
+          localStorage.removeItem('countdown_background_start');
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isRunning]);
+
   // Get design-specific styles
   const getDesignStyles = () => {
     switch (timerSettings.design) {

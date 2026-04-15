@@ -1,0 +1,37 @@
+{
+  "name": "frogo-study-timer-extension",
+  "version": "1.0.0",
+  "description": "Browser extension for frogo study timer that works in the background",
+  "main": "background.js",
+  "scripts": {
+    "build": "npm run build-chrome && npm run build-firefox",
+    "build-chrome": "node scripts/build-chrome.js",
+    "build-firefox": "node scripts/build-firefox.js",
+    "dev": "npm run build-chrome && npm run watch",
+    "watch": "node scripts/watch.js",
+    "lint": "eslint *.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "browser-extension",
+    "study-timer",
+    "pomodoro",
+    "frogo",
+    "productivity",
+    "education"
+  ],
+  "author": "frogo team",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "web-ext": "^7.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frogo-app/study-timer-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/frogo-app/study-timer-extension/issues"
+  },
+  "homepage": "https://github.com/frogo-app/study-timer-extension#readme"
+}

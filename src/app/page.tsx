@@ -423,7 +423,7 @@ function LandingPageContent() {
               <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
                 theme === 'light' ? 'bg-blue-100 text-blue-800' : 'bg-blue-900 text-blue-200'
               }`}>
-                🧩 New
+                🧩 {texts.browserExtensionTitle}
               </span>
             </div>
             <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${

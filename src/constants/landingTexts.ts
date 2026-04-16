@@ -90,6 +90,20 @@ export const landingTexts = {
     ethicalFramework: 'Frogo is built on an Ethical Digital Economy framework designed by its creator and formally documented under the Sahwa Foundation on GitHub.',
     sahwafoundationLink: 'Sahwa Foundation Documentation',
     
+    // Browser Extension Section
+    browserExtensionTitle: " extention of browser is available",
+    browserExtensionDescription: "Take your focus to the next level with our powerful browser extension. Block distractions, track productivity, and stay focused across all websites.",
+    smartSiteBlocking: "Smart Site Blocking",
+    smartSiteBlockingDesc: "Block distracting websites with customizable schedules and exceptions",
+    focusTimer: "Focus Timer",
+    focusTimerDesc: "Built-in Pomodoro timer to boost your productivity",
+    analyticsDashboard: "Analytics Dashboard",
+    analyticsDashboardDesc: "Track your focus time and productivity metrics",
+    installExtension: "Install Extension",
+    installExtensionEn: "Install Extension",
+    browserExtensionLink: "Browser Extension",
+    browserExtensionNav: "Browser Extension",
+    extensionRating: "4.8 (50K+ users)",
     // Footer
     product: 'Community Resources',
     pricing: 'Free Forever',
@@ -195,6 +209,21 @@ export const landingTexts = {
     // Ethical Digital Economy
     ethicalFramework: 'فروجو مبني على إطار الاقتصاد الرقمي الأخلاقي الذي صممه منشئه وموثق رسمياً تحت مؤسسة صحوة على GitHub.',
     sahwafoundationLink: 'توثيق مؤسسة صحوة',
+    
+    // Browser Extension Section
+    browserExtensionTitle: "الاضافة الخاصة بالمتصفح",
+    browserExtensionDescription: "خذ تركيزك إلى المستوى التالي مع إضافة المتصفح القوية. احجب المشتتات، راقب إنتاجيتك، وابقَ مركزاً عبر جميع المواقع.",
+    smartSiteBlocking: "حظر المواقع الذكية",
+    smartSiteBlockingDesc: "احجب المواقع المشتتة بجداول زمنية واستثناءات قابلة للتخصيص",
+    focusTimer: "مؤقت التركيز",
+    focusTimerDesc: "مؤقت بومودورو مدمج لتعزيز إنتاجيتك",
+    analyticsDashboard: "لوحة التحليلات",
+    analyticsDashboardDesc: "تتبع وقت تركيزك ومعدلات إنتاجيتك",
+    installExtension: "تثبيت الإضافة",
+    browserExtensionLink: "استكشف الاضافة",
+    browserExtensionNav: "استكشف الاضافة",
+    extensionRating: "4.8 (50 ألف مستخدم)",
+    
     
     // Footer
     product: 'موارد المجتمع',

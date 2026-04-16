@@ -1,22 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
-
-interface Notification {
-  id: string;
-  type: 'like' | 'comment' | 'follow' | 'mention' | 'group_invite' | 'post_approved';
-  user_id: string;
-  username: string;
-  user_avatar: string;
-  message: string;
-  created_at: string;
-  read: boolean;
-  related_post_id?: string;
-  related_group_id?: string;
-}
+import { socialDB, Notification } from '@/lib/social';
 
 interface NotificationsTabProps {
   activeTab: string;
@@ -27,74 +15,34 @@ export function NotificationsTab({ activeTab }: NotificationsTabProps) {
   const { language } = useLanguage();
   const currentUser = useUser().getCurrentUser();
 
-  // Sample notifications data (in real app, this would come from database)
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'like',
-      user_id: 'user1',
-      username: 'John Doe',
-      user_avatar: 'JD',
-      message: 'liked your post "Study session completed"',
-      created_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-      read: false,
-      related_post_id: 'post1'
-    },
-    {
-      id: '2',
-      type: 'comment',
-      user_id: 'user2',
-      username: 'Sarah Miller',
-      user_avatar: 'SM',
-      message: 'commented on your post: "Great progress! Keep it up!"',
-      created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-      read: false,
-      related_post_id: 'post1'
-    },
-    {
-      id: '3',
-      type: 'follow',
-      user_id: 'user3',
-      username: 'Alex Johnson',
-      user_avatar: 'AJ',
-      message: 'started following you',
-      created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      read: true
-    },
-    {
-      id: '4',
-      type: 'mention',
-      user_id: 'user4',
-      username: 'Emma Wilson',
-      user_avatar: 'EW',
-      message: 'mentioned you in a comment',
-      created_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-      read: true,
-      related_post_id: 'post2'
-    },
-    {
-      id: '5',
-      type: 'group_invite',
-      user_id: 'user5',
-      username: 'Study Group Admin',
-      user_avatar: 'SG',
-      message: 'invited you to join "Advanced Mathematics Study Group"',
-      created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-      read: false,
-      related_group_id: 'group1'
-    },
-    {
-      id: '6',
-      type: 'post_approved',
-      user_id: 'system',
-      username: 'System',
-      user_avatar: 'SYS',
-      message: 'Your post was approved and is now visible to everyone',
-      created_at: new Date(Date.now() - 120 * 60 * 1000).toISOString(),
-      read: true,
-      related_post_id: 'post3'
-    }
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load notifications from database
+  useEffect(() => {
+    const loadNotifications = async () => {
+      if (!currentUser) return;
+      
+      setLoading(true);
+      try {
+        // Get user UUID from accountId
+        const userUuid = await socialDB.getUserUuid(currentUser.accountId);
+        if (!userUuid) {
+          console.error('Could not get user UUID for notifications');
+          return;
+        }
+        
+        const userNotifications = await socialDB.getNotifications(userUuid);
+        setNotifications(userNotifications);
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNotifications();
+  }, [currentUser]);
 
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
@@ -198,14 +146,33 @@ export function NotificationsTab({ activeTab }: NotificationsTabProps) {
     ? notifications 
     : notifications.filter(n => !n.read);
 
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ));
+  const markAsRead = async (id: string) => {
+    try {
+      await socialDB.markNotificationAsRead(id);
+      setNotifications(notifications.map(n => 
+        n.id === id ? { ...n, read: true } : n
+      ));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  const markAllAsRead = async () => {
+    if (!currentUser) return;
+    
+    try {
+      // Get user UUID from accountId
+      const userUuid = await socialDB.getUserUuid(currentUser.accountId);
+      if (!userUuid) {
+        console.error('Could not get user UUID for marking notifications as read');
+        return;
+      }
+      
+      await socialDB.markAllNotificationsAsRead(userUuid);
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -299,7 +266,20 @@ export function NotificationsTab({ activeTab }: NotificationsTabProps) {
 
       {/* Notifications list */}
       <div className="space-y-3">
-        {filteredNotifications.length === 0 ? (
+        {loading ? (
+          <div className={`text-center py-16 rounded-2xl backdrop-blur-sm transition-all duration-300 ${
+            theme === 'light' 
+              ? 'bg-white/95 border border-gray-200/60 shadow-sm shadow-gray-500/10' 
+              : 'bg-gray-900/95 border border-gray-800/60 shadow-xl shadow-black/20'
+          }`}>
+            <div className="w-12 h-12 rounded-full mx-auto mb-4 border-2 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+            <p className={`text-lg font-medium transition-colors duration-300 ${
+              theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+            }`}>
+              {language === 'ar' ? 'Loading notifications...' : 'Loading notifications...'}
+            </p>
+          </div>
+        ) : filteredNotifications.length === 0 ? (
           <div className={`text-center py-16 rounded-2xl backdrop-blur-sm transition-all duration-300 ${
             theme === 'light' 
               ? 'bg-white/95 border border-gray-200/60 shadow-sm shadow-gray-500/10' 

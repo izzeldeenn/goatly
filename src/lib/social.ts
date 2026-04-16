@@ -85,6 +85,39 @@ export interface GroupComment {
   updated_at: string;
 }
 
+export interface Notification {
+  id: string;
+  type: 'like' | 'comment' | 'follow' | 'mention' | 'group_invite' | 'post_approved' | 'admin_announcement';
+  user_id: string;
+  username: string;
+  user_avatar: string;
+  message: string;
+  created_at: string;
+  read: boolean;
+  related_post_id?: string;
+  related_user_id?: string;
+}
+
+export interface AdminNotificationRequest {
+  message: string;
+  type: 'admin_announcement' | 'system_update' | 'maintenance' | 'welcome';
+  targetUsers?: string[]; // Array of user accountIds, if empty send to all users
+  targetGroups?: string[]; // Array of group IDs
+  sendToAll?: boolean; // Send to all users
+  priority?: 'low' | 'medium' | 'high';
+  scheduledAt?: string; // ISO date string for scheduled sending
+}
+
+export interface NotificationTemplate {
+  id: string;
+  name: string;
+  type: 'admin_announcement' | 'system_update' | 'maintenance' | 'welcome';
+  message: string;
+  variables?: string[]; // Variables that can be substituted in message
+  created_at: string;
+  updated_at: string;
+}
+
 export class SocialDB {
   private supabase = supabase;
 
@@ -1026,6 +1059,485 @@ export class SocialDB {
       return !error && data !== null;
     } catch (error) {
       return false;
+    }
+  }
+
+  // Get user UUID from accountId
+  async getUserUuid(accountId: string): Promise<string | null> {
+    try {
+      const { data, error } = await this.supabase
+        .from('users')
+        .select('id')
+        .eq('account_id', accountId)
+        .single();
+
+      if (error) {
+        console.error('Error getting user UUID:', error);
+        return null;
+      }
+
+      return data?.id || null;
+    } catch (error) {
+      console.error('Error getting user UUID:', error);
+      return null;
+    }
+  }
+
+  // Create a notification
+  async createNotification(
+    userId: string,
+    type: Notification['type'],
+    message: string,
+    relatedPostId?: string,
+    relatedUserId?: string
+  ): Promise<Notification | null> {
+    try {
+      const { data: authData } = await this.supabase.auth.getUser();
+      if (!authData?.user) return null;
+
+      // Get user info for notification
+      const { data: userData } = await this.supabase
+        .from('users')
+        .select('username, avatar')
+        .eq('account_id', authData.user.id)
+        .single();
+
+      const { data, error } = await this.supabase
+        .from('notifications')
+        .insert({
+          user_id: userId,
+          type,
+          username: userData?.username || 'User',
+          user_avatar: userData?.avatar || 'User',
+          message,
+          related_post_id: relatedPostId,
+          related_user_id: relatedUserId,
+          read: false
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating notification:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      return null;
+    }
+  }
+
+  // Create post liked notification
+  async createPostLikedNotification(postId: string, userId: string, likerId: string, content: string): Promise<void> {
+    try {
+      const { data: likerData } = await this.supabase
+        .from('users')
+        .select('username, avatar')
+        .eq('account_id', likerId)
+        .single();
+
+      if (!likerData) return;
+
+      // Convert userId (accountId) to UUID
+      const userUuid = await this.getUserUuid(userId);
+      if (!userUuid) return;
+
+      await this.createNotification(
+        userUuid,
+        'like',
+        `${likerData.username} أعجب بهذا المنشور: "${content.length > 50 ? content.substring(0, 50) + '...' : content}"`,
+        postId,
+        likerId
+      );
+    } catch (error) {
+      console.error('Error creating post liked notification:', error);
+    }
+  }
+
+  // Create post commented notification
+  async createPostCommentedNotification(postId: string, userId: string, commenterId: string, content: string, comment: string): Promise<void> {
+    try {
+      const { data: commenterData } = await this.supabase
+        .from('users')
+        .select('username, avatar')
+        .eq('account_id', commenterId)
+        .single();
+
+      if (!commenterData) return;
+
+      // Convert userId (accountId) to UUID
+      const userUuid = await this.getUserUuid(userId);
+      if (!userUuid) return;
+
+      await this.createNotification(
+        userUuid,
+        'comment',
+        `${commenterData.username} تعليق على منشورك: "${content.length > 50 ? content.substring(0, 50) + '...' : content}": "${comment.length > 50 ? comment.substring(0, 50) + '...' : comment}"`,
+        postId,
+        commenterId
+      );
+    } catch (error) {
+      console.error('Error creating post commented notification:', error);
+    }
+  }
+
+  // Create post published notification
+  async createPostPublishedNotification(postId: string, userId: string, content: string): Promise<void> {
+    try {
+      const { data: userData } = await this.supabase
+        .from('users')
+        .select('username, avatar')
+        .eq('account_id', userId)
+        .single();
+
+      if (!userData) return;
+
+      // Convert userId (accountId) to UUID
+      const userUuid = await this.getUserUuid(userId);
+      if (!userUuid) return;
+
+      await this.createNotification(
+        userUuid,
+        'post_approved',
+        `تم نشر منشورك: "${content.length > 50 ? content.substring(0, 50) + '...' : content}"`,
+        postId
+      );
+    } catch (error) {
+      console.error('Error creating post published notification:', error);
+    }
+  }
+
+  // Get notifications for a user
+  async getNotifications(userId: string): Promise<Notification[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error getting notifications:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error getting notifications:', error);
+      return [];
+    }
+  }
+
+  // Mark notification as read
+  async markNotificationAsRead(notificationId: string): Promise<boolean> {
+    try {
+      const { error } = await this.supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+
+      if (error) {
+        console.error('Error marking notification as read:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      return false;
+    }
+  }
+
+  // Mark all notifications as read for a user
+  async markAllNotificationsAsRead(userId: string): Promise<boolean> {
+    try {
+      const { error } = await this.supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error marking all notifications as read:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      return false;
+    }
+  }
+
+  // Get unread notification count for a user
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    try {
+      const { data, error } = await this.supabase
+        .from('notifications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('read', false);
+
+      if (error) {
+        console.error('Error getting unread notification count:', error);
+        return 0;
+      }
+
+      return data?.length || 0;
+    } catch (error) {
+      console.error('Error getting unread notification count:', error);
+      return 0;
+    }
+  }
+
+  // Delete a notification
+  async deleteNotification(notificationId: string): Promise<boolean> {
+    try {
+      const { error } = await this.supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) {
+        console.error('Error deleting notification:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      return false;
+    }
+  }
+
+  // Check if current user is admin
+  async isAdmin(): Promise<boolean> {
+    try {
+      const { data: authData } = await this.supabase.auth.getUser();
+      if (!authData?.user) {
+        console.log('No authenticated user found');
+        return false;
+      }
+
+      console.log('Checking admin status for user:', authData.user.id);
+
+      // First try to find user by id (UUID)
+      let { data: userData } = await this.supabase
+        .from('users')
+        .select('role, account_id')
+        .eq('id', authData.user.id)
+        .single();
+
+      // If not found by id, try by account_id (in case auth.uid returns account_id)
+      if (!userData) {
+        console.log('User not found by id, trying account_id...');
+        const { data: userDataByAccount } = await this.supabase
+          .from('users')
+          .select('role, account_id')
+          .eq('account_id', authData.user.id)
+          .single();
+        userData = userDataByAccount;
+      }
+
+      console.log('User data found:', userData);
+      console.log('User role:', userData?.role);
+
+      return userData?.role === 'admin';
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+  }
+
+  // Send admin notification to specific users or all users
+  async sendAdminNotification(request: AdminNotificationRequest): Promise<{ success: boolean; sentCount?: number; error?: string }> {
+    try {
+      // Check admin permissions
+      const isAdminUser = await this.isAdmin();
+      if (!isAdminUser) {
+        return { success: false, error: 'Unauthorized: Admin access required' };
+      }
+
+      const { data: authData } = await this.supabase.auth.getUser();
+      if (!authData?.user) {
+        return { success: false, error: 'Authentication required' };
+      }
+
+      let targetUuids: string[] = [];
+
+      if (request.sendToAll) {
+        // Get all user UUIDs
+        const { data: allUsers } = await this.supabase
+          .from('users')
+          .select('id');
+        
+        targetUuids = allUsers?.map(user => user.id) || [];
+      } else if (request.targetUsers && request.targetUsers.length > 0) {
+        // Convert accountIds to UUIDs
+        for (const accountId of request.targetUsers) {
+          const userUuid = await this.getUserUuid(accountId);
+          if (userUuid) {
+            targetUuids.push(userUuid);
+          }
+        }
+      }
+
+      if (targetUuids.length === 0) {
+        return { success: false, error: 'No valid target users found' };
+      }
+
+      // Create notifications for all target users
+      const notifications = targetUuids.map(userUuid => ({
+        user_id: userUuid,
+        type: request.type,
+        username: 'Admin',
+        user_avatar: 'Admin',
+        message: request.message,
+        read: false
+      }));
+
+      const { data, error } = await this.supabase
+        .from('notifications')
+        .insert(notifications)
+        .select();
+
+      if (error) {
+        console.error('Error sending admin notifications:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, sentCount: data?.length || 0 };
+    } catch (error) {
+      console.error('Error sending admin notification:', error);
+      return { success: false, error: 'Internal server error' };
+    }
+  }
+
+  // Create notification template
+  async createNotificationTemplate(template: Omit<NotificationTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<NotificationTemplate | null> {
+    try {
+      const isAdminUser = await this.isAdmin();
+      if (!isAdminUser) {
+        return null;
+      }
+
+      const { data, error } = await this.supabase
+        .from('notification_templates')
+        .insert(template)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating notification template:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating notification template:', error);
+      return null;
+    }
+  }
+
+  // Get all notification templates
+  async getNotificationTemplates(): Promise<NotificationTemplate[]> {
+    try {
+      const isAdminUser = await this.isAdmin();
+      if (!isAdminUser) {
+        return [];
+      }
+
+      const { data, error } = await this.supabase
+        .from('notification_templates')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error getting notification templates:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error getting notification templates:', error);
+      return [];
+    }
+  }
+
+  // Send notification using template
+  async sendNotificationFromTemplate(templateId: string, variables?: Record<string, string>, targetUsers?: string[], sendToAll?: boolean): Promise<{ success: boolean; sentCount?: number; error?: string }> {
+    try {
+      const isAdminUser = await this.isAdmin();
+      if (!isAdminUser) {
+        return { success: false, error: 'Unauthorized: Admin access required' };
+      }
+
+      // Get template
+      const { data: template } = await this.supabase
+        .from('notification_templates')
+        .select('*')
+        .eq('id', templateId)
+        .single();
+
+      if (!template) {
+        return { success: false, error: 'Template not found' };
+      }
+
+      // Substitute variables in message
+      let message = template.message;
+      if (variables) {
+        for (const [key, value] of Object.entries(variables)) {
+          message = message.replace(new RegExp(`{{${key}}}`, 'g'), value);
+        }
+      }
+
+      // Send notification with template data
+      const notificationRequest: AdminNotificationRequest = {
+        message,
+        type: template.type,
+        targetUsers,
+        sendToAll
+      };
+
+      return await this.sendAdminNotification(notificationRequest);
+    } catch (error) {
+      console.error('Error sending notification from template:', error);
+      return { success: false, error: 'Internal server error' };
+    }
+  }
+
+  // Get notification statistics
+  async getNotificationStats(): Promise<{ total: number; sent: number; read: number; unread: number }> {
+    try {
+      const isAdminUser = await this.isAdmin();
+      if (!isAdminUser) {
+        return { total: 0, sent: 0, read: 0, unread: 0 };
+      }
+
+      const { data: totalData } = await this.supabase
+        .from('notifications')
+        .select('id', { count: 'exact' });
+
+      const { data: readData } = await this.supabase
+        .from('notifications')
+        .select('id', { count: 'exact' })
+        .eq('read', true);
+
+      const { data: unreadData } = await this.supabase
+        .from('notifications')
+        .select('id', { count: 'exact' })
+        .eq('read', false);
+
+      return {
+        total: totalData?.length || 0,
+        sent: totalData?.length || 0,
+        read: readData?.length || 0,
+        unread: unreadData?.length || 0
+      };
+    } catch (error) {
+      console.error('Error getting notification stats:', error);
+      return { total: 0, sent: 0, read: 0, unread: 0 };
     }
   }
 }

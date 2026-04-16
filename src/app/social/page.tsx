@@ -7,11 +7,9 @@ import { useUser } from '@/contexts/UserContext';
 import { CustomThemeProvider } from '@/contexts/CustomThemeContext';
 import { SocialNavbar } from '@/components/social/SocialNavbar';
 import { SocialSidebar } from '@/components/social/SocialSidebar';
-import { socialDB, SocialPost, SocialComment, Group } from '@/lib/social';
+import { socialDB, SocialPost, SocialComment } from '@/lib/social';
 import MessagingSystem from '@/components/chat/MessagingSystem';
 import FriendshipManager from '@/components/users/FriendshipManager';
-import { GroupsManager } from '@/components/groups/GroupsManager';
-import { GroupFeed } from '@/components/groups/GroupFeed';
 import { FeedTab } from '@/components/social/FeedTab';
 import { NotificationsTab } from '@/components/social/NotificationsTab';
 import { ProfileTab } from '@/components/social/ProfileTab';
@@ -40,7 +38,6 @@ function SocialPageContent() {
   const [replyInputs, setReplyInputs] = useState<{ [key: string]: string }>({});
   const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [selectedFriendForMessaging, setSelectedFriendForMessaging] = useState<string | null>(null);
 
   // Debug logging for tab changes
@@ -386,8 +383,7 @@ function SocialPageContent() {
               onDeleteComment={handleDeleteComment}
               onEditPostContentChange={handleEditPostContentChange}
               onEditCommentContentChange={handleEditCommentContentChange}
-              onExploreGroups={() => setActiveTab('groups')}
-            />
+                          />
           )}
 
           {activeTab === 'messages' && (
@@ -407,22 +403,7 @@ function SocialPageContent() {
             />
           )}
 
-          {activeTab === 'groups' && (
-            <div>
-              {selectedGroup ? (
-                <GroupFeed 
-                  group={selectedGroup} 
-                  onBack={() => setSelectedGroup(null)} 
-                />
-              ) : (
-                <GroupsManager 
-                  onGroupSelect={setSelectedGroup}
-                  selectedGroup={selectedGroup}
-                />
-              )}
-            </div>
-          )}
-
+          
           {activeTab === 'notifications' && (
             <NotificationsTab activeTab={activeTab} />
           )}

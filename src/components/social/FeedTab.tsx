@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
-import { socialDB, SocialComment, Group } from '@/lib/social';
+import { socialDB, SocialComment } from '@/lib/social';
 
 interface Post {
   id: string;
@@ -49,7 +49,6 @@ interface FeedTabProps {
   onDeleteComment: (commentId: string, postId: string) => void;
   onEditPostContentChange: (postId: string, value: string) => void;
   onEditCommentContentChange: (commentId: string, value: string) => void;
-  onExploreGroups: () => void;
 }
 
 export function FeedTab({
@@ -81,7 +80,6 @@ export function FeedTab({
   onDeleteComment,
   onEditPostContentChange,
   onEditCommentContentChange,
-  onExploreGroups
 }: FeedTabProps) {
   const { theme } = useTheme();
   const { language } = useLanguage();
@@ -98,64 +96,7 @@ export function FeedTab({
     return `${Math.floor(seconds / 86400)} days ago`;
   };
 
-  // State for suggested groups
-  const [suggestedGroups, setSuggestedGroups] = useState<Group[]>([]);
-  const [userGroups, setUserGroups] = useState<Group[]>([]);
-  const [joiningGroups, setJoiningGroups] = useState<{ [key: string]: boolean }>({});
-
-  // Load groups from database
-  useEffect(() => {
-    const loadGroups = async () => {
-      try {
-        const [allGroups, myGroups] = await Promise.all([
-          socialDB.getGroups(5, 0), // Get first 5 groups
-          currentUser ? socialDB.getUserGroups(currentUser.accountId) : Promise.resolve([])
-        ]);
-        setSuggestedGroups(allGroups);
-        setUserGroups(myGroups);
-      } catch (error) {
-        console.error('Error loading groups:', error);
-      }
-    };
-
-    loadGroups();
-  }, [currentUser?.accountId]);
-
-  // Check if user is member of group
-  const isUserMember = (groupId: string) => {
-    return userGroups.some(group => group.id === groupId);
-  };
-
-  // Handle joining a group - using GroupsManager logic
-  const handleJoinGroup = async (groupId: string) => {
-    if (!currentUser) return;
-    
-    setJoiningGroups(prev => ({ ...prev, [groupId]: true }));
-    
-    try {
-      const success = await socialDB.joinGroup(
-        groupId,
-        currentUser.accountId,
-        currentUser.username || 'User',
-        currentUser.avatar || 'User'
-      );
-      
-      if (success) {
-        // Reload groups to update the UI
-        const [allGroups, myGroups] = await Promise.all([
-          socialDB.getGroups(5, 0),
-          socialDB.getUserGroups(currentUser.accountId)
-        ]);
-        setSuggestedGroups(allGroups);
-        setUserGroups(myGroups);
-      }
-    } catch (error) {
-      console.error('Error joining group:', error);
-    } finally {
-      setJoiningGroups(prev => ({ ...prev, [groupId]: false }));
-    }
-  };
-
+  
   return (
     <div className="grid lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-6">
@@ -622,165 +563,6 @@ export function FeedTab({
         )}
       </div>
 
-      {/* Right Sidebar - Suggested Groups */}
-      <div className="space-y-6">
-        {/* Elegant background decoration for sidebar */}
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none overflow-hidden -z-10">
-          <div className={`absolute top-10 right-10 w-28 h-28 rounded-full blur-2xl ${
-            theme === 'light' ? 'bg-purple-400' : 'bg-purple-300'
-          }`}></div>
-          <div className={`absolute bottom-20 right-20 w-20 h-20 rounded-full blur-xl ${
-            theme === 'light' ? 'bg-pink-400' : 'bg-pink-300'
-          }`}></div>
-        </div>
-
-        <div className={`p-6 rounded-2xl border backdrop-blur-xl transition-all duration-300 ${
-          theme === 'light' 
-            ? 'bg-white/95 border-gray-200/60 shadow-lg shadow-gray-500/10' 
-            : 'bg-gray-900/95 border-gray-800/60 shadow-xl shadow-black/20'
-        }`}>
-          <div className="flex items-center justify-between mb-6">
-            <h3 className={`text-lg font-bold bg-gradient-to-r bg-clip-text transition-all duration-300 ${
-              theme === 'light' 
-                ? 'from-purple-600 via-pink-600 to-red-600 text-transparent' 
-                : 'from-purple-400 via-pink-400 to-red-400 text-transparent'
-            }`}>
-              {language === 'ar' ? 'Discover Groups' : 'Discover Groups'}
-            </h3>
-            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-              theme === 'light' 
-                ? 'bg-blue-100 text-blue-700' 
-                : 'bg-blue-900/50 text-blue-300'
-            }`}>
-              {suggestedGroups.length} {language === 'ar' ? 'groups' : 'groups'}
-            </div>
           </div>
-          
-          <div className="space-y-3">
-            {suggestedGroups.map((group) => (
-              <div 
-                key={group.id} 
-                className={`group relative overflow-hidden rounded-xl border transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${
-                  theme === 'light' 
-                    ? 'bg-gradient-to-br from-gray-50 to-white border-gray-200 hover:border-blue-300 hover:shadow-blue-500/10' 
-                    : 'bg-gradient-to-br from-gray-900 to-black border-gray-700 hover:border-blue-500/50 hover:shadow-blue-500/20'
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <div className={`h-full w-full ${
-                    theme === 'light' 
-                      ? 'bg-gradient-to-r from-blue-500/5 to-purple-500/5' 
-                      : 'bg-gradient-to-r from-blue-500/10 to-purple-500/10'
-                  }`}></div>
-                </div>
-                
-                <div className="relative p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="relative">
-                      <img 
-                        src={group.creator_avatar} 
-                        alt={group.creator_username}
-                        className="w-12 h-12 rounded-full object-cover ring-2 ring-offset-2 transition-all duration-300 group-hover:scale-110 ${
-                          theme === 'light' 
-                            ? 'ring-gray-200 ring-offset-white' 
-                            : 'ring-gray-700 ring-offset-black'
-                        }"
-                      />
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white"></div>
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <h4 className={`font-semibold text-sm mb-1 truncate transition-colors group-hover:text-blue-500 ${
-                        theme === 'light' ? 'text-gray-900' : 'text-white'
-                      }`}>
-                        {group.name}
-                      </h4>
-                      <p className={`text-xs mb-3 line-clamp-2 leading-relaxed ${
-                        theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-                      }`}>
-                        {group.description}
-                      </p>
-                      
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className={`flex items-center gap-1 text-xs ${
-                            theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                          }`}>
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                            </svg>
-                            <span>{group.members_count}</span>
-                          </div>
-                          <div className={`flex items-center gap-1 text-xs ${
-                            theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                          }`}>
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
-                            </svg>
-                            <span>{group.posts_count}</span>
-                          </div>
-                        </div>
-                        {group.is_private && (
-                          <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                            theme === 'light' 
-                              ? 'bg-amber-100 text-amber-700' 
-                              : 'bg-amber-900/50 text-amber-300'
-                          }`}>
-                            {language === 'ar' ? 'private' : 'Private'}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {isUserMember(group.id) ? (
-                        <button
-                          disabled
-                          className={`w-full px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-300 ${
-                            theme === 'light'
-                              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white cursor-not-allowed'
-                              : 'bg-gradient-to-r from-green-600 to-green-700 text-white cursor-not-allowed'
-                          }`}
-                        >
-                          {language === 'ar' ? 'Joined' : 'Joined'}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleJoinGroup(group.id)}
-                          disabled={joiningGroups[group.id] || !currentUser}
-                          className={`w-full px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
-                            joiningGroups[group.id] || !currentUser
-                              ? theme === 'light'
-                                ? 'bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed'
-                                : 'bg-gradient-to-r from-gray-600 to-gray-700 text-white cursor-not-allowed'
-                              : theme === 'light'
-                                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg'
-                                : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl'
-                          }`}
-                        >
-                          {joiningGroups[group.id] 
-                            ? (language === 'ar' ? 'Joining...' : 'Joining...')
-                            : (language === 'ar' ? 'Join Group' : 'Join Group')
-                          }
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <button 
-            onClick={onExploreGroups}
-            className={`mt-4 w-full px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 ${
-              theme === 'light'
-                ? 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300'
-                : 'bg-gradient-to-r from-gray-800 to-gray-700 text-gray-300 hover:from-gray-700 hover:to-gray-600'
-            }`}
-          >
-            {language === 'ar' ? 'Explore All Groups' : 'Explore All Groups'}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }

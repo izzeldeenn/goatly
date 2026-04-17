@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
 import { useStudySession } from '@/contexts/StudySessionContext';
 import { useTimerIndicator } from '@/contexts/TimerIndicatorContext';
+import { getTimerDesignStyle } from '@/constants/timerDesignStyles';
 
 interface PomodoroSettings {
   workMinutes: number;
@@ -327,56 +328,6 @@ export function PomodoroTimer() {
     return icons;
   };
 
-  // Get design-specific styles
-  const getDesignStyles = () => {
-    switch (timerSettings.design) {
-      case 'minimal':
-        return {
-          background: 'transparent',
-          padding: '0',
-          border: 'none',
-          boxShadow: 'none',
-          letterSpacing: '0.05em'
-        };
-      case 'modern':
-        return {
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
-          padding: '20px 40px',
-          borderRadius: '20px',
-          border: '2px solid rgba(255,255,255,0.2)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-          letterSpacing: '0.1em'
-        };
-      case 'classic':
-        return {
-          background: 'rgba(0,0,0,0.3)',
-          padding: '16px 32px',
-          borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.3)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-          fontFamily: 'Georgia, serif'
-        };
-      case 'digital':
-        return {
-          background: 'linear-gradient(135deg, #1a1a1a, #2d2d2d)',
-          padding: '24px 48px',
-          borderRadius: '12px',
-          border: '2px solid #333',
-          boxShadow: '0 0 20px rgba(0,255,255,0.3), inset 0 0 20px rgba(0,255,255,0.1)',
-          fontFamily: 'Courier New, monospace',
-          textShadow: '0 0 10px currentColor',
-          letterSpacing: '0.2em'
-        };
-      default:
-        return {
-          background: 'transparent',
-          padding: '0',
-          border: 'none',
-          boxShadow: 'none',
-          letterSpacing: '0.05em'
-        };
-    }
-  };
 
   const handleStart = async () => {
     // Get current user and validate
@@ -407,6 +358,10 @@ export function PomodoroTimer() {
                currentSession === 'shortBreak' ? settings.shortBreakMinutes * 60 : 
                settings.longBreakMinutes * 60);
     clearSavedState();
+  };
+
+  const handleResetSessions = () => {
+    setCompletedSessions(0);
   };
 
   const handleSkip = async () => {
@@ -469,7 +424,7 @@ export function PomodoroTimer() {
       <h1 className={`${timerSettings.size} font-bold mb-8 ${timerSettings.font}`}
         style={{ 
           color: timerSettings.color,
-          ...getDesignStyles()
+          ...getTimerDesignStyle(timerSettings.design)
         }}
       >
         {formatTime(timeLeft)}
@@ -525,6 +480,30 @@ export function PomodoroTimer() {
             >
               <path
                 d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              ></path>
+            </svg>
+          </button>
+
+          <button
+            onClick={handleResetSessions}
+            className={`px-4 py-2 font-medium transition-colors duration-200 sm:px-6 ${
+              theme === 'light'
+                ? 'text-red-600 hover:bg-red-100'
+                : 'text-red-400 hover:bg-red-900'
+            }`}
+          >
+            <svg
+              className="w-5 h-5 sm:w-6 sm:h-6"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
                 strokeLinejoin="round"
                 strokeLinecap="round"
               ></path>

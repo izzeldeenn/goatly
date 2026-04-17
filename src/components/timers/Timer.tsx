@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
 import { useStudySession } from '@/contexts/StudySessionContext';
+import { getTimerDesignStyle } from '@/constants/timerDesignStyles';
 
 export function Timer() {
   const { theme } = useTheme();
@@ -227,55 +228,6 @@ export function Timer() {
     clearSavedState();
   };
 
-  // Get design-specific styles
-  const getDesignStyles = () => {
-    switch (timerSettings.design) {
-      case 'minimal':
-        return {
-          background: 'transparent',
-          padding: '0',
-          border: 'none',
-          boxShadow: 'none',
-          letterSpacing: '0.05em'
-        };
-      case 'modern':
-        return {
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
-          padding: '20px 40px',
-          borderRadius: '20px',
-          border: '2px solid rgba(255,255,255,0.2)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-          letterSpacing: '0.1em'
-        };
-      case 'classic':
-        return {
-          background: 'rgba(0,0,0,0.3)',
-          padding: '16px 32px',
-          borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.3)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-          fontFamily: 'Georgia, serif'
-        };
-      case 'digital':
-        return {
-          background: 'linear-gradient(135deg, #1a1a1a, #2d2d2d)',
-          padding: '24px 48px',
-          borderRadius: '12px',
-          border: '2px solid #333',
-          boxShadow: '0 0 20px rgba(0,255,255,0.3), inset 0 0 20px rgba(0,255,255,0.1)',
-          fontFamily: 'Courier New, monospace',
-          textShadow: '0 0 10px currentColor',
-          letterSpacing: '0.2em'
-        };
-      default:
-        return {
-          background: 'transparent',
-          padding: '0',
-          border: 'none',
-          boxShadow: 'none'
-        };
-    }
-  };
 
   return (
     <div className="text-center">
@@ -283,7 +235,7 @@ export function Timer() {
         <h1 className={`${timerSettings.size} font-bold mb-8 ${timerSettings.font}`}
           style={{ 
             color: timerSettings.color,
-            ...getDesignStyles()
+            ...getTimerDesignStyle(timerSettings.design)
           }}
         >
           00:00:00
@@ -293,7 +245,7 @@ export function Timer() {
           <h1 className={`${timerSettings.size} font-bold mb-8 ${timerSettings.font}`}
             style={{ 
               color: timerSettings.color,
-              ...getDesignStyles()
+              ...getTimerDesignStyle(timerSettings.design)
             }}
           >
             {formatTime(time)}

@@ -319,6 +319,7 @@ export function SettingsButton() {
   return (
     <>
       <button
+        data-settings-button="true"
         onClick={handleLoadSettings}
         className="p-2 rounded-xl transition-all duration-200 hover:scale-110"
         style={{

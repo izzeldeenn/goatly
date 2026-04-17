@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { useUser } from '@/contexts/UserContext';
 import { dailyActivityDB } from '@/lib/dailyActivity';
+import { SettingsButton } from '@/components/settings/Settings';
 
 interface UserAccount {
   accountId: string;
@@ -59,6 +60,18 @@ export function UserProfileModal({ isOpen, user, onClose }: UserProfileModalProp
   const isCurrentUser = (user: UserAccount) => {
     const currentUser = getCurrentUser();
     return currentUser?.accountId === user.accountId;
+  };
+
+  const openSettings = () => {
+    // Close the profile modal first
+    onClose();
+    // Trigger the settings modal by simulating a click on the settings button
+    setTimeout(() => {
+      const settingsButton = document.querySelector('[data-settings-button="true"]') as HTMLButtonElement;
+      if (settingsButton) {
+        settingsButton.click();
+      }
+    }, 100);
   };
 
   // Calculate total study time since user registration
@@ -284,6 +297,7 @@ export function UserProfileModal({ isOpen, user, onClose }: UserProfileModalProp
         <div className="flex gap-3 mt-6">
           {isCurrentUser(user) && (
             <button
+              onClick={openSettings}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg text-white`}
               style={{ 
                 background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.secondary})` 

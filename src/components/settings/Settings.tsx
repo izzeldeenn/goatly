@@ -1,6 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+// Custom CSS for hiding scrollbars
+const customScrollbarStyles = `
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+`;
 import { useTheme } from '@/contexts/ThemeContext';
 import { useGamification } from '@/contexts/GamificationContext';
 import { useUser } from '@/contexts/UserContext';
@@ -114,6 +125,17 @@ export function SettingsButton() {
   });
 
   const currentUser = getCurrentUser();
+
+  // Inject custom styles for scrollbar hiding
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = customScrollbarStyles;
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   // Filter and paginate avatars
   const filteredAvatars = avatarSearch 
@@ -345,7 +367,7 @@ export function SettingsButton() {
             onClick={() => setShowSettings(false)}
           />
           <div 
-            className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-6xl max-h-[90vh] shadow-2xl rounded-3xl transition-all duration-300 ease-in-out z-[9999] overflow-hidden ${
+            className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-11/12 md:w-11/12 lg:w-10/12 xl:w-9/12 max-w-7xl max-h-[95vh] shadow-2xl rounded-3xl transition-all duration-300 ease-in-out z-[9999] overflow-hidden ${
               showSettings ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
             }`}
             style={{
@@ -353,10 +375,10 @@ export function SettingsButton() {
               border: `2px solid ${customTheme.colors.border}`
             }}
           >
-            <div className="flex h-[90vh]">
+            <div className="flex h-[85vh] flex-col md:flex-row overflow-hidden">
               {/* Sidebar - redesigned compact vertical layout */}
               <div
-                className="w-44 relative overflow-hidden flex-shrink-0"
+                className="w-44 relative overflow-hidden flex-shrink-0 md:block hidden"
                 style={{
                   background: `linear-gradient(180deg, ${customTheme.colors.primary}06 0%, transparent 100%)`,
                 }}
@@ -440,11 +462,74 @@ export function SettingsButton() {
                 </div>
               </div>
 
+              {/* Mobile Navigation Header */}
+              <div className="md:hidden bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden"
+                      style={{
+                        background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
+                        boxShadow: `0 4px 16px ${customTheme.colors.primary}30`
+                      }}
+                    >
+                      {currentUser?.avatar ? (
+                        <img src={currentUser.avatar} alt={currentUser.username} className="w-10 h-10 object-cover rounded-lg" />
+                      ) : (
+                        <span className="text-white text-sm">{currentUser?.username ? currentUser.username.charAt(0).toUpperCase() : '⚙️'}</span>
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold" style={{ color: theme === 'light' ? '#0b1220' : '#f8fafc' }}>
+                        {currentUser?.username || t.settings}
+                      </div>
+                      <div className="text-xs opacity-70" style={{ color: theme === 'light' ? '#64748b' : '#9aa4b2' }}>
+                        {coins} {t.coins || 'عملات'} · Lv {level}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowSettings(false)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+                    style={{
+                      backgroundColor: customTheme.colors.surface,
+                      color: customTheme.colors.text
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                {/* Mobile Navigation Tabs */}
+                <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+                  {getSettingsSections().map((section) => {
+                    const active = activeSection === section.id;
+                    return (
+                      <button
+                        key={section.id}
+                        onClick={() => setActiveSection(section.id)}
+                        className={`flex-shrink-0 px-4 py-3 min-w-fit rounded-xl text-xs font-medium transition-all duration-200 touch-manipulation ${
+                          active ? 'shadow-md scale-105' : 'hover:bg-gray-100 dark:hover:bg-gray-700 active:scale-95'
+                        }`}
+                        style={{
+                          background: active ? `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})` : 'transparent',
+                          color: active ? '#ffffff' : (theme === 'light' ? customTheme.colors.text : '#e6eef8')
+                        }}
+                      >
+                        <span className="mr-1">{section.icon}</span>
+                        <span className="hidden sm:inline">{section.name}</span>
+                        <span className="sm:hidden">{section.name.length > 8 ? section.name.substring(0, 6) + '...' : section.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Main Content */}
-              <div className="flex-1 flex flex-col">
-                {/* Premium Header */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Premium Header - Hidden on mobile since we have mobile header */}
                 <div 
-                  className="px-8 py-6 relative overflow-hidden"
+                  className="hidden md:block px-8 py-6 relative overflow-hidden flex-shrink-0"
                   style={{
                     background: `linear-gradient(135deg, ${customTheme.colors.background} 0%, ${customTheme.colors.surface}30 100%)`,
                     borderBottom: `1px solid ${customTheme.colors.border}10`
@@ -521,7 +606,7 @@ export function SettingsButton() {
                   </div>
                 </div>
 
-                <div className="px-8 py-6 overflow-y-auto flex-1">
+                <div className="px-4 md:px-8 py-4 md:py-6 overflow-y-auto flex-1" style={{ height: 'calc(85vh - 120px)', maxHeight: 'calc(85vh - 120px)' }}>
                   {activeSection === 'profile' && (
                     <div className="space-y-6">
                       {/* Username Section */}
@@ -563,7 +648,7 @@ export function SettingsButton() {
                               value={username}
                               onChange={(e) => setUsername(e.target.value)}
                               placeholder={t.enterUsername}
-                              className="w-full px-5 py-4 rounded-2xl focus:outline-none transition-all duration-300 text-sm font-medium peer"
+                              className="w-full px-4 md:px-5 py-3 md:py-4 rounded-xl md:rounded-2xl focus:outline-none transition-all duration-300 text-sm font-medium peer"
                               style={{
                                 backgroundColor: customTheme.colors.surface + '40',
                                 color: customTheme.colors.text,
@@ -593,7 +678,7 @@ export function SettingsButton() {
 
                       {/* Avatar Section */}
                       <div 
-                        className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
+                        className="relative overflow-hidden rounded-2xl md:rounded-3xl p-4 md:p-6 backdrop-blur-xl"
                         style={{
                           background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
                           border: `1px solid ${customTheme.colors.border}20`,
@@ -2147,6 +2232,34 @@ export function SettingsButton() {
                         }}
                       />
                     </button>
+                  </div>
+                  
+                  {/* Mobile Save Button Area */}
+                  <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white to-white/95 dark:from-gray-900 dark:to-gray-900/95 border-t border-gray-200 dark:border-gray-700 z-50">
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowSettings(false)}
+                        className="flex-1 px-4 py-3 rounded-xl font-medium transition-all duration-300 text-sm active:scale-95"
+                        style={{
+                          backgroundColor: customTheme.colors.surface,
+                          color: customTheme.colors.text,
+                          border: `1px solid ${customTheme.colors.border}`
+                        }}
+                      >
+                        {t.cancel}
+                      </button>
+                      <button
+                        onClick={handleSaveSettings}
+                        className="flex-1 px-4 py-3 rounded-xl font-black transition-all duration-300 text-sm active:scale-95 relative overflow-hidden"
+                        style={{
+                          background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
+                          color: '#ffffff',
+                          boxShadow: `0 8px 32px ${customTheme.colors.primary}30`
+                        }}
+                      >
+                        <span className="relative z-10">{t.saveChanges}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

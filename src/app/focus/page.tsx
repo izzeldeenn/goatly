@@ -465,26 +465,31 @@ function HomeContent() {
         </div>
 
         {/* Mobile Layout - Vertical */}
-        <div className="md:hidden flex flex-col w-full h-screen overflow-hidden">
+        <div 
+          className="md:hidden flex flex-col w-full h-screen overflow-hidden"
+          style={getBackgroundStyles(selectedBackground)}
+        >
           {/* Mobile Header */}
-          <div 
-            className="flex justify-between items-center p-4 border-b sticky top-0 z-10 flex-shrink-0"
-            style={{
-              backgroundColor: customTheme.colors.surface,
-              borderColor: customTheme.colors.border
-            }}
-          >
+          <div className="flex justify-between items-center p-4">
             <Logo />
-            <SettingsMobileButton />
+            <div className="flex gap-2">
+              <MusicToggleButton />
+              <button
+                onClick={() => window.location.href = '/social'}
+                className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                title="الانتقال إلى الاجتماعي"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Mobile Content */}
           <div className="flex-1 flex flex-col min-h-0 relative">
             {/* Timer Section - Takes most space */}
-            <div 
-              className="flex-1 flex items-center justify-center p-4 min-h-[60vh] relative"
-              style={getBackgroundStyles(selectedBackground)}
-            >
+            <div className="flex-1 flex items-center justify-center p-4 min-h-[60vh] relative">
               <ServiceSelector />
             </div>
             

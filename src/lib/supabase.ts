@@ -74,6 +74,60 @@ export interface ResetTokenFrontend {
   userId?: string;
 }
 
+// Challenge interface for database (snake_case - matches Supabase)
+export interface Challenge {
+  id?: string;
+  challenger_id: string;
+  opponent_id: string;
+  status: 'pending' | 'active' | 'completed' | 'cancelled';
+  winner_id?: string;
+  started_at?: string;
+  ended_at?: string;
+  duration_seconds: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Challenge interface for frontend (camelCase)
+export interface ChallengeFrontend {
+  id?: string;
+  challengerId: string;
+  opponentId: string;
+  status: 'pending' | 'active' | 'completed' | 'cancelled';
+  winnerId?: string;
+  startedAt?: string;
+  endedAt?: string;
+  durationSeconds: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Challenge session interface for database (snake_case - matches Supabase)
+export interface ChallengeSession {
+  id?: string;
+  challenge_id: string;
+  user_id: string;
+  study_time_seconds: number;
+  is_studying: boolean;
+  session_start_time: string;
+  last_update_time: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Challenge session interface for frontend (camelCase)
+export interface ChallengeSessionFrontend {
+  id?: string;
+  challengeId: string;
+  userId: string;
+  studyTimeSeconds: number;
+  isStudying: boolean;
+  sessionStartTime: string;
+  lastUpdateTime: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Database operations for user accounts
 export class UserAccountDB {
   private static instance: UserAccountDB;
@@ -389,9 +443,245 @@ export class ResetTokenDB {
   }
 }
 
+// Database operations for challenges
+export class ChallengeDB {
+  private static instance: ChallengeDB;
+
+  static getInstance(): ChallengeDB {
+    if (!ChallengeDB.instance) {
+      ChallengeDB.instance = new ChallengeDB();
+    }
+    return ChallengeDB.instance;
+  }
+
+  // Create a new challenge
+  async createChallenge(challengerId: string, opponentId: string, durationSeconds: number = 600): Promise<Challenge | null> {
+    try {
+      const { data, error } = await supabase
+        .from('challenges')
+        .insert({
+          challenger_id: challengerId,
+          opponent_id: opponentId,
+          status: 'active',
+          started_at: new Date().toISOString(),
+          duration_seconds: durationSeconds
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating challenge:', error);
+      return null;
+    }
+  }
+
+  // Get challenge by ID
+  async getChallengeById(challengeId: string): Promise<Challenge | null> {
+    try {
+      const { data, error } = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('id', challengeId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Get active challenges for a user
+  async getActiveChallengesForUser(userId: string): Promise<Challenge[]> {
+    try {
+      const { data, error } = await supabase
+        .from('challenges')
+        .select('*')
+        .or(`challenger_id.eq.${userId},opponent_id.eq.${userId}`)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  // Update challenge status
+  async updateChallengeStatus(challengeId: string, status: 'pending' | 'active' | 'completed' | 'cancelled', winnerId?: string): Promise<Challenge | null> {
+    try {
+      const updateData: any = { status };
+      
+      if (status === 'completed') {
+        updateData.ended_at = new Date().toISOString();
+      }
+      
+      if (winnerId) {
+        updateData.winner_id = winnerId;
+      }
+
+      const { data, error } = await supabase
+        .from('challenges')
+        .update(updateData)
+        .eq('id', challengeId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Subscribe to challenge changes
+  subscribeToChallenge(challengeId: string, callback: (payload: any) => void) {
+    try {
+      const subscription = supabase
+        .channel(`challenge_${challengeId}`)
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'challenges', filter: `id=eq.${challengeId}` },
+          callback
+        )
+        .subscribe();
+
+      return subscription;
+    } catch (error) {
+      console.error('Error subscribing to challenge:', error);
+    }
+  }
+
+  // Unsubscribe from challenge
+  unsubscribeFromChallenge(challengeId: string) {
+    try {
+      supabase.channel(`challenge_${challengeId}`).unsubscribe();
+    } catch (error) {
+      console.error('Error unsubscribing from challenge:', error);
+    }
+  }
+}
+
+// Database operations for challenge sessions
+export class ChallengeSessionDB {
+  private static instance: ChallengeSessionDB;
+
+  static getInstance(): ChallengeSessionDB {
+    if (!ChallengeSessionDB.instance) {
+      ChallengeSessionDB.instance = new ChallengeSessionDB();
+    }
+    return ChallengeSessionDB.instance;
+  }
+
+  // Create a new challenge session
+  async createSession(challengeId: string, userId: string): Promise<ChallengeSession | null> {
+    try {
+      const { data, error } = await supabase
+        .from('challenge_sessions')
+        .insert({
+          challenge_id: challengeId,
+          user_id: userId,
+          study_time_seconds: 0,
+          is_studying: true,
+          session_start_time: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating challenge session:', error);
+      return null;
+    }
+  }
+
+  // Get sessions for a challenge
+  async getSessionsForChallenge(challengeId: string): Promise<ChallengeSession[]> {
+    try {
+      const { data, error } = await supabase
+        .from('challenge_sessions')
+        .select('*')
+        .eq('challenge_id', challengeId);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  // Get session for a user in a challenge
+  async getSessionForUser(challengeId: string, userId: string): Promise<ChallengeSession | null> {
+    try {
+      const { data, error } = await supabase
+        .from('challenge_sessions')
+        .select('*')
+        .eq('challenge_id', challengeId)
+        .eq('user_id', userId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Update session study time and status
+  async updateSession(sessionId: string, studyTimeSeconds: number, isStudying: boolean): Promise<ChallengeSession | null> {
+    try {
+      const { data, error } = await supabase
+        .from('challenge_sessions')
+        .update({
+          study_time_seconds: studyTimeSeconds,
+          is_studying: isStudying
+        })
+        .eq('id', sessionId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Subscribe to session changes for a challenge
+  subscribeToChallengeSessions(challengeId: string, callback: (payload: any) => void) {
+    try {
+      const subscription = supabase
+        .channel(`challenge_sessions_${challengeId}`)
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'challenge_sessions', filter: `challenge_id=eq.${challengeId}` },
+          callback
+        )
+        .subscribe();
+
+      return subscription;
+    } catch (error) {
+      console.error('Error subscribing to challenge sessions:', error);
+    }
+  }
+
+  // Unsubscribe from challenge sessions
+  unsubscribeFromChallengeSessions(challengeId: string) {
+    try {
+      supabase.channel(`challenge_sessions_${challengeId}`).unsubscribe();
+    } catch (error) {
+      console.error('Error unsubscribing from challenge sessions:', error);
+    }
+  }
+}
+
 // Export singleton instances
 export const userDB = UserAccountDB.getInstance();
 export const resetTokenDB = ResetTokenDB.getInstance();
+export const challengeDB = ChallengeDB.getInstance();
+export const challengeSessionDB = ChallengeSessionDB.getInstance();
 
 // Check if Supabase is available
 export const isSupabaseAvailable = async (): Promise<boolean> => {

@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'next/navigation';
+import { challengeDB, challengeSessionDB, userDB } from '@/lib/supabase';
+import { UserAccount, UserAccountFrontend } from '@/lib/supabase';
 
 // Opponent interface
 interface Opponent {
@@ -32,6 +34,9 @@ interface ChallengeState {
   challengeDuration: number; // Total challenge duration in seconds
   userProgress: number;
   opponentProgress: number;
+  challengeId: string | null; // Database challenge ID
+  userSessionId: string | null; // Database session ID for current user
+  opponentSessionId: string | null; // Database session ID for opponent
 }
 
 // Arabic names for realistic opponents
@@ -55,12 +60,28 @@ const isUrl = (str: string) => {
 // Generate DiceBear avatar URL
 const generateAvatar = (seed: string) => `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
 
-// Generate random seed for avatar
-const generateRandomSeed = () => Math.random().toString(36).substring(2, 15);
+// Convert UserAccount to Opponent interface
+const convertUserToOpponent = (user: UserAccount): Opponent => {
+  const rank = Math.floor(user.score / 100) + 1;
+  const level = Math.floor(user.score / 200) + 1;
+  
+  return {
+    id: user.id || '',
+    username: user.username,
+    avatar: user.avatar || generateAvatar(user.account_id),
+    score: user.score,
+    studyTime: 0,
+    isStudying: true,
+    lastActive: new Date(user.last_active).getTime(),
+    behavior: 'consistent',
+    rank,
+    level
+  };
+};
 
 export default function ChallengePage() {
   const { theme } = useTheme();
-  const { getCurrentUser, updateUserStudyTime, setTimerActive, isTimerActive } = useUser();
+  const { getCurrentUser, updateUserStudyTime, updateUserScore, setTimerActive, isTimerActive } = useUser();
   const router = useRouter();
   
   const [challengeState, setChallengeState] = useState<ChallengeState>({
@@ -73,7 +94,10 @@ export default function ChallengePage() {
     isUserStudying: true, // Start studying immediately
     challengeDuration: 0,
     userProgress: 0,
-    opponentProgress: 0
+    opponentProgress: 0,
+    challengeId: null,
+    userSessionId: null,
+    opponentSessionId: null
   });
   
   const [isSearching, setIsSearching] = useState(false);
@@ -81,97 +105,57 @@ export default function ChallengePage() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const opponentIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Generate realistic random opponent
-  const generateOpponent = (): Opponent => {
-    const behaviors: Array<'consistent' | 'competitive' | 'strategic'> = ['consistent', 'competitive', 'strategic'];
-    const behavior = behaviors[Math.floor(Math.random() * behaviors.length)];
-    
-    // Generate score based on behavior
-    let score: number;
-    switch (behavior) {
-      case 'competitive':
-        score = Math.floor(Math.random() * 500) + 800; // High score
-        break;
-      case 'consistent':
-        score = Math.floor(Math.random() * 300) + 400; // Medium score
-        break;
-      case 'strategic':
-        score = Math.floor(Math.random() * 400) + 600; // Medium-high score
-        break;
+  // Find a real opponent from the database
+  const findRealOpponent = async (currentUser: UserAccountFrontend): Promise<Opponent | null> => {
+    try {
+      // Get all users except current user
+      const allUsers = await userDB.getAllUsers();
+      const otherUsers = allUsers.filter(user => user.account_id !== currentUser.accountId);
+      
+      if (otherUsers.length === 0) {
+        return null;
+      }
+      
+      // Find a user with similar score (within 200 points)
+      const similarScoreUsers = otherUsers.filter(
+        user => Math.abs(user.score - currentUser.score) <= 200
+      );
+      
+      // If no similar score users, pick random from all
+      const candidateUsers = similarScoreUsers.length > 0 ? similarScoreUsers : otherUsers;
+      
+      // Pick random opponent
+      const randomIndex = Math.floor(Math.random() * candidateUsers.length);
+      const opponentUser = candidateUsers[randomIndex];
+      
+      return convertUserToOpponent(opponentUser);
+    } catch (error) {
+      console.error('Error finding opponent:', error);
+      return null;
     }
-    
-    const rank = Math.floor(score / 100) + 1;
-    const level = Math.floor(score / 200) + 1;
-    const avatarSeed = generateRandomSeed();
-    
-    return {
-      id: `opponent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      username: ARABIC_NAMES[Math.floor(Math.random() * ARABIC_NAMES.length)],
-      avatar: generateAvatar(avatarSeed),
-      score,
-      studyTime: 0,
-      isStudying: true,
-      studyStartTime: Date.now(),
-      lastActive: Date.now(),
-      behavior,
-      rank,
-      level
-    };
   };
 
-  // Simulate opponent study behavior
-  const simulateOpponentBehavior = (opponent: Opponent) => {
-    if (!challengeState.isActive || !opponent) return;
-
-    const now = Date.now();
-    const sessionDuration = (now - (opponent.studyStartTime || now)) / 1000; // in seconds
-
-    switch (opponent.behavior) {
-      case 'consistent':
-        // Studies consistently with short breaks
-        if (Math.random() > 0.95) { // 5% chance to take a short break
-          opponent.isStudying = false;
-          setTimeout(() => {
-            opponent.isStudying = true;
-          }, Math.random() * 30000 + 10000); // 10-40 seconds break
-        }
-        break;
-        
-      case 'competitive':
-        // Studies aggressively, rarely takes breaks
-        if (sessionDuration > 300 && Math.random() > 0.98) { // Only after 5 minutes, 2% chance
-          opponent.isStudying = false;
-          setTimeout(() => {
-            opponent.isStudying = true;
-          }, Math.random() * 15000 + 5000); // 5-20 seconds break
-        }
-        break;
-        
-      case 'strategic':
-        // Takes strategic breaks every few minutes
-        if (sessionDuration > 180 && Math.random() > 0.90) { // After 3 minutes, 10% chance
-          opponent.isStudying = false;
-          setTimeout(() => {
-            opponent.isStudying = true;
-          }, Math.random() * 45000 + 15000); // 15-60 seconds break
-        }
-        break;
-    }
-
-    // Update opponent study time
-    if (opponent.isStudying) {
-      opponent.studyTime += 1;
-    }
-
+  // Update opponent progress from database
+  const updateOpponentFromSession = async (sessionData: any) => {
+    if (!challengeState.opponent) return;
+    
     setChallengeState(prev => ({
       ...prev,
-      opponent: { ...opponent },
-      opponentStudyTime: opponent.studyTime
+      opponentStudyTime: sessionData.study_time_seconds,
+      opponentProgress: Math.min((sessionData.study_time_seconds / 600) * 100, 100)
     }));
   };
 
   // Start challenge
   const startChallenge = async () => {
+    const currentUser = getCurrentUser();
+    if (!currentUser || !currentUser.id) {
+      alert('يجب تسجيل الدخول للبدء في التحدي');
+      return;
+    }
+    
+    const currentUserId = currentUser.id;
+    
     // Reset challenge state completely before starting new search
     resetChallenge();
     
@@ -189,9 +173,40 @@ export default function ChallengePage() {
       });
     }, 200);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       clearInterval(searchInterval);
-      const opponent = generateOpponent();
+      
+      // Find real opponent
+      const opponent = await findRealOpponent(currentUser);
+      
+      if (!opponent || !opponent.id) {
+        setIsSearching(false);
+        setSearchProgress(0);
+        alert('لم يتم العثور على خصم حالياً. حاول مرة أخرى لاحقاً');
+        return;
+      }
+      
+      // Create challenge in database
+      const challenge = await challengeDB.createChallenge(currentUserId, opponent.id, 600);
+      
+      if (!challenge) {
+        setIsSearching(false);
+        setSearchProgress(0);
+        alert('فشل إنشاء التحدي. حاول مرة أخرى');
+        return;
+      }
+      
+      // Create sessions for both users
+      const userSession = await challengeSessionDB.createSession(challenge.id!, currentUserId);
+      const opponentSession = await challengeSessionDB.createSession(challenge.id!, opponent.id);
+      
+      if (!userSession || !opponentSession) {
+        setIsSearching(false);
+        setSearchProgress(0);
+        alert('فشل إنشاء جلسة التحدي. حاول مرة أخرى');
+        return;
+      }
+      
       const startTime = Date.now();
       
       setChallengeState({
@@ -204,19 +219,24 @@ export default function ChallengePage() {
         isUserStudying: true, // Start studying immediately
         challengeDuration: 0,
         userProgress: 0,
-        opponentProgress: 0
+        opponentProgress: 0,
+        challengeId: challenge.id!,
+        userSessionId: userSession.id!,
+        opponentSessionId: opponentSession.id!
       });
       
       setIsSearching(false);
       setSearchProgress(0);
       
-      // Start opponent simulation
-      opponentIntervalRef.current = setInterval(() => {
-        simulateOpponentBehavior(opponent);
-      }, 1000);
+      // Subscribe to opponent session updates
+      challengeSessionDB.subscribeToChallengeSessions(challenge.id!, (payload) => {
+        if (payload.new && payload.new.user_id === opponent.id) {
+          updateOpponentFromSession(payload.new);
+        }
+      });
       
-      // Start main timer - both timers count immediately
-      intervalRef.current = setInterval(() => {
+      // Start main timer
+      intervalRef.current = setInterval(async () => {
         const now = Date.now();
         const elapsed = Math.floor((now - startTime) / 1000);
         
@@ -227,16 +247,14 @@ export default function ChallengePage() {
           // Update user study time (always counting)
           const newUserTime = newDuration;
           
-          // Update opponent study time based on their behavior
-          let newOpponentTime = prev.opponentStudyTime;
-          if (opponent.isStudying) {
-            newOpponentTime = newOpponentTime + 1;
-          }
-          
           // Calculate progress (based on study time)
           const maxTime = 600; // 10 minutes max for progress bar
           const newUserProgress = Math.min((newUserTime / maxTime) * 100, 100);
-          const newOpponentProgress = Math.min((newOpponentTime / maxTime) * 100, 100);
+          
+          // Update user session in database
+          if (prev.userSessionId && prev.isUserStudying) {
+            challengeSessionDB.updateSession(prev.userSessionId, newUserTime, true);
+          }
           
           // Check if user stopped (user is not studying anymore)
           if (!prev.isUserStudying && prev.userStudyTime > 0) {
@@ -244,19 +262,11 @@ export default function ChallengePage() {
             return prev;
           }
           
-          // Check if opponent stopped
-          if (!opponent.isStudying && newOpponentTime > 0) {
-            endChallenge('user');
-            return prev;
-          }
-          
           return {
             ...prev,
             challengeDuration: newDuration,
             userStudyTime: newUserTime,
-            opponentStudyTime: newOpponentTime,
-            userProgress: newUserProgress,
-            opponentProgress: newOpponentProgress
+            userProgress: newUserProgress
           };
         });
         
@@ -269,13 +279,26 @@ export default function ChallengePage() {
   };
 
   // Handle user stopping study (user can only stop, not start)
-  const handleUserStopStudy = () => {
-    if (!challengeState.isActive || !challengeState.isUserStudying) return;
+  // Stop studying
+  const stopStudying = async () => {
+    if (!challengeState.isActive) return;
+    
+    // Update session in database to mark as not studying
+    if (challengeState.userSessionId) {
+      await challengeSessionDB.updateSession(challengeState.userSessionId, challengeState.userStudyTime, false);
+    }
     
     setChallengeState(prev => ({
       ...prev,
       isUserStudying: false
     }));
+  };
+
+  // Handle user stopping study (user can only stop, not start)
+  const handleUserStopStudy = () => {
+    if (!challengeState.isActive || !challengeState.isUserStudying) return;
+    
+    stopStudying();
     
     setTimerActive(false);
     
@@ -323,7 +346,15 @@ export default function ChallengePage() {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Reset challenge
   const resetChallenge = () => {
+    clearInterval(intervalRef.current!);
+    
+    // Unsubscribe from sessions if exists
+    if (challengeState.challengeId) {
+      challengeSessionDB.unsubscribeFromChallengeSessions(challengeState.challengeId);
+    }
+    
     setChallengeState({
       isActive: false,
       opponent: null,
@@ -331,11 +362,16 @@ export default function ChallengePage() {
       userStudyTime: 0,
       opponentStudyTime: 0,
       winner: null,
-      isUserStudying: true, // Reset to default
+      isUserStudying: true,
       challengeDuration: 0,
       userProgress: 0,
-      opponentProgress: 0
+      opponentProgress: 0,
+      challengeId: null,
+      userSessionId: null,
+      opponentSessionId: null
     });
+    
+    setTimerActive(false);
   };
 
   const goBack = () => {
@@ -346,9 +382,11 @@ export default function ChallengePage() {
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      if (opponentIntervalRef.current) clearInterval(opponentIntervalRef.current);
+      if (challengeState.challengeId) {
+        challengeSessionDB.unsubscribeFromChallengeSessions(challengeState.challengeId);
+      }
     };
-  }, []);
+  }, [challengeState.challengeId]);
 
   return (
     <div className="min-h-screen bg-black text-gray-100 flex flex-col items-center justify-center p-4">

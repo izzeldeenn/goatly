@@ -229,7 +229,7 @@ export function ServiceSelector() {
           {/* Service Buttons */}
           <div
             ref={mobileScrollRef}
-            className="flex justify-center items-center gap-4 p-4 overflow-x-auto flex-1"
+            className="flex items-center gap-4 p-4 overflow-x-auto flex-1 min-w-0 snap-x snap-mandatory md:justify-center"
           >
             {/* Notes Button */}
             <button
@@ -296,20 +296,6 @@ export function ServiceSelector() {
             <SettingsButton />
           </div>
         </div>
-        
-        {/* Right Arrow */}
-        {canScrollMobile.right && (
-          <button
-            onClick={scrollMobileRight}
-            className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-xl flex items-center justify-center transition-all duration-200 border-2 ${
-              theme === 'light'
-                ? 'bg-white text-gray-700 border-gray-400 hover:bg-gray-100 hover:border-gray-600'
-                : 'bg-gray-900 text-gray-300 border-gray-500 hover:bg-gray-800 hover:border-gray-300'
-            }`}
-          >
-            <span className="text-sm">→</span>
-          </button>
-        )}
       </div>
 
       {/* Notes Component */}

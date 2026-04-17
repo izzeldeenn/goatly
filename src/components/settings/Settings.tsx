@@ -98,10 +98,62 @@ export function SettingsButton() {
   const avatarsPerPage = 20;
 
   // Timer settings
-  const [timerColor, setTimerColor] = useState('#ffffff');
-  const [timerFont, setTimerFont] = useState('font-mono');
-  const [timerDesign, setTimerDesign] = useState('minimal');
-  const [timerSize, setTimerSize] = useState('text-4xl');
+  const [timerColor, setTimerColor] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('timer_settings');
+      if (saved) {
+        try {
+          const settings = JSON.parse(saved);
+          return settings.color || '#ffffff';
+        } catch (error) {
+          console.error('Failed to load timer color:', error);
+        }
+      }
+    }
+    return '#ffffff';
+  });
+  const [timerFont, setTimerFont] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('timer_settings');
+      if (saved) {
+        try {
+          const settings = JSON.parse(saved);
+          return settings.font || 'font-mono';
+        } catch (error) {
+          console.error('Failed to load timer font:', error);
+        }
+      }
+    }
+    return 'font-mono';
+  });
+  const [timerDesign, setTimerDesign] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('timer_settings');
+      if (saved) {
+        try {
+          const settings = JSON.parse(saved);
+          return settings.design || 'minimal';
+        } catch (error) {
+          console.error('Failed to load timer design:', error);
+        }
+      }
+    }
+    return 'minimal';
+  });
+  const [timerSize, setTimerSize] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('timer_settings');
+      if (saved) {
+        try {
+          const settings = JSON.parse(saved);
+          return settings.size || 'text-4xl';
+        } catch (error) {
+          console.error('Failed to load timer size:', error);
+        }
+      }
+    }
+    return 'text-4xl';
+  });
 
   // Countdown timer settings
   const [countdownColor, setCountdownColor] = useState('#ffffff');

@@ -26,12 +26,24 @@ export function useTimerState() {
   const { startSession, endSession, updateSessionTime, isSessionActive } = useStudySession();
   
   // Timer settings from localStorage
-  const [timerSettings, setTimerSettings] = useState<TimerSettings>({
-    color: '#ffffff',
-    font: 'font-mono',
-    design: 'minimal',
-    size: 'text-4xl',
-    completedIcon: 'star'
+  const [timerSettings, setTimerSettings] = useState<TimerSettings>(() => {
+    if (typeof window !== 'undefined') {
+      const savedSettings = localStorage.getItem('timer_settings');
+      if (savedSettings) {
+        try {
+          return JSON.parse(savedSettings);
+        } catch (error) {
+          console.error('Failed to load timer settings:', error);
+        }
+      }
+    }
+    return {
+      color: '#ffffff',
+      font: 'font-mono',
+      design: 'minimal',
+      size: 'text-4xl',
+      completedIcon: 'star'
+    };
   });
   
   const [time, setTime] = useState(() => {

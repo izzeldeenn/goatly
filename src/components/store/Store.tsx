@@ -74,14 +74,6 @@ export function Store({ isOpen, onClose }: StoreProps) {
             equipped: Object.values(parsed.equippedItems).includes(item.id)
           }))
         );
-        
-        // Apply equipped items on load
-        Object.entries(parsed.equippedItems).forEach(([category, itemId]) => {
-          const item = defaultStoreItems.find(item => item.id === itemId);
-          if (item) {
-            applyItemEffects(item);
-          }
-        });
       } catch (error) {
         console.error('Failed to load inventory:', error);
       }
@@ -158,13 +150,33 @@ export function Store({ isOpen, onClose }: StoreProps) {
           localStorage.setItem('customTheme', JSON.stringify(item.data.colors));
           window.dispatchEvent(new CustomEvent('customThemeChange', { detail: item.data.colors }));
           
-          // Also update timer settings to match the theme
-          const timerSettings = {
-            color: item.data.colors.primary || '#ffffff',
-            font: 'font-mono',
-            design: 'minimal',
-            size: 'text-6xl'
-          };
+          // Update timer settings color while preserving user's custom settings
+          const currentTimerSettings = localStorage.getItem('timer_settings');
+          let timerSettings;
+          if (currentTimerSettings) {
+            try {
+              const parsed = JSON.parse(currentTimerSettings);
+              timerSettings = {
+                ...parsed,
+                color: item.data.colors.primary || parsed.color
+              };
+            } catch (error) {
+              console.error('Error parsing timer settings:', error);
+              timerSettings = {
+                color: item.data.colors.primary || '#ffffff',
+                font: 'font-mono',
+                design: 'minimal',
+                size: 'text-6xl'
+              };
+            }
+          } else {
+            timerSettings = {
+              color: item.data.colors.primary || '#ffffff',
+              font: 'font-mono',
+              design: 'minimal',
+              size: 'text-6xl'
+            };
+          }
           localStorage.setItem('timer_settings', JSON.stringify(timerSettings));
           window.dispatchEvent(new CustomEvent('timerSettingsChanged', { detail: timerSettings }));
         }
@@ -217,9 +229,22 @@ export function Store({ isOpen, onClose }: StoreProps) {
   const equipItem = (item: StoreItem) => {
     if (!userInventory.purchasedItems.includes(item.id)) return;
 
+    // Convert plural category to singular key
+    const categoryToKey: Record<string, string> = {
+      themes: 'theme',
+      avatars: 'avatar',
+      backgrounds: 'background',
+      badges: 'badge',
+      effects: 'effect'
+    };
+    const key = categoryToKey[item.category] || item.category;
+
+    // Check if item is already equipped
+    if (userInventory.equippedItems[key as keyof typeof userInventory.equippedItems] === item.id) return;
+
     const updatedInventory = {
       ...userInventory,
-      equippedItems: { ...userInventory.equippedItems, [item.category]: item.id }
+      equippedItems: { ...userInventory.equippedItems, [key]: item.id }
     };
 
     saveUserInventory(updatedInventory);
@@ -555,7 +580,17 @@ export function Store({ isOpen, onClose }: StoreProps) {
                         <button
                           onClick={() => equipItem(item)}
                           className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
-                            userInventory.equippedItems[item.category as keyof typeof userInventory.equippedItems] === item.id
+                            (() => {
+                              const categoryToKey: Record<string, string> = {
+                                themes: 'theme',
+                                avatars: 'avatar',
+                                backgrounds: 'background',
+                                badges: 'badge',
+                                effects: 'effect'
+                              };
+                              const key = categoryToKey[item.category] || item.category;
+                              return userInventory.equippedItems[key as keyof typeof userInventory.equippedItems] === item.id;
+                            })()
                               ? theme === 'light'
                                 ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                                 : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
@@ -564,7 +599,17 @@ export function Store({ isOpen, onClose }: StoreProps) {
                                 : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-2xl hover:shadow-blue-500/40'
                           }`}
                         >
-                          {userInventory.equippedItems[item.category as keyof typeof userInventory.equippedItems] === item.id ? 'Equipped' : 'Equip'}
+                          {(() => {
+                            const categoryToKey: Record<string, string> = {
+                              themes: 'theme',
+                              avatars: 'avatar',
+                              backgrounds: 'background',
+                              badges: 'badge',
+                              effects: 'effect'
+                            };
+                            const key = categoryToKey[item.category] || item.category;
+                            return userInventory.equippedItems[key as keyof typeof userInventory.equippedItems] === item.id ? 'Equipped' : 'Equip';
+                          })()}
                         </button>
                       )}
                     </div>

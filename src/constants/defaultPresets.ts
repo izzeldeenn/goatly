@@ -233,9 +233,37 @@ export const applyPreset = (preset: UserPreset) => {
   localStorage.setItem('theme', settings.theme);
   window.dispatchEvent(new CustomEvent('themeChange', { detail: settings.theme }));
   
-  // Apply timer settings
-  localStorage.setItem('timer_settings', JSON.stringify(settings.timer));
-  window.dispatchEvent(new CustomEvent('timerSettingsChanged', { detail: settings.timer }));
+  // Apply timer settings color while preserving user's custom settings
+  const currentTimerSettings = localStorage.getItem('timer_settings');
+  let timerSettings;
+  if (currentTimerSettings) {
+    try {
+      const parsed = JSON.parse(currentTimerSettings);
+      timerSettings = {
+        ...parsed,
+        color: settings.timer?.color || parsed.color
+      };
+    } catch (error) {
+      console.error('Error parsing timer settings:', error);
+      timerSettings = settings.timer || {
+        color: '#ffffff',
+        font: 'font-mono',
+        design: 'minimal',
+        size: 'text-4xl',
+        completedIcon: 'star'
+      };
+    }
+  } else {
+    timerSettings = settings.timer || {
+      color: '#ffffff',
+      font: 'font-mono',
+      design: 'minimal',
+      size: 'text-4xl',
+      completedIcon: 'star'
+    };
+  }
+  localStorage.setItem('timer_settings', JSON.stringify(timerSettings));
+  window.dispatchEvent(new CustomEvent('timerSettingsChanged', { detail: timerSettings }));
   
   // Apply countdown settings
   localStorage.setItem('countdown_timer_settings', JSON.stringify(settings.countdown));

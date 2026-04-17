@@ -3,10 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useUser } from '@/contexts/UserContext';
-import { useStudySession } from '@/contexts/StudySessionContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
-import { dailyActivityDB, DailyActivityFrontend } from '@/lib/dailyActivity';
+import { useUserRankings } from '@/hooks/useUserRankings';
 
 interface UserAccount {
   accountId: string;
@@ -28,185 +26,35 @@ interface UserRankingsProps {
 export function UserRankings({ onUserClick }: UserRankingsProps) {
   const { theme } = useTheme();
   const { t } = useLanguage();
-  const { users, isTimerActive, getCurrentUser, getAllDeviceUsers, isVirtualUser } = useUser();
-  const { isSessionActive, getSessionDuration } = useStudySession();
   const customTheme = useCustomThemeClasses();
-  const [displayUsers, setDisplayUsers] = useState<UserAccount[]>([]);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [dailyRankings, setDailyRankings] = useState<DailyActivityFrontend[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [sessionLoading, setSessionLoading] = useState(false);
+  
+  const {
+    displayUsers,
+    loading,
+    isSessionActive,
+    getSessionDuration,
+    formatStudyTime,
+    formatSessionTime,
+    getTodayStudyTime,
+    getCoinsFromStudyTime,
+    isRecentlyActive,
+    isCurrentUserActive,
+    isCurrentUser
+  } = useUserRankings();
 
+  // Show loading message for 2 seconds when session ends
   useEffect(() => {
-    // Don't update rankings if there's an active session
-    if (isSessionActive) {
-      setLoading(false);
-      return;
-    }
-    
-    loadDailyRankings();
-  }, []); // Empty dependency array - only run on mount
-
-  useEffect(() => {
-    // Handle session state changes
-    if (isSessionActive) {
-      setLoading(false);
+    if (!isSessionActive) {
+      setSessionLoading(true);
+      const timer = setTimeout(() => {
+        setSessionLoading(false);
+      }, 2000);
+      return () => clearTimeout(timer);
     } else {
-      // Force update rankings immediately when session ends
-      loadDailyRankings(true, true);
+      setSessionLoading(false);
     }
   }, [isSessionActive]);
-
-  useEffect(() => {
-    // Don't update users if there's an active session
-    if (isSessionActive) {
-      return;
-    }
-    
-    // Get all users including virtual ones and merge with daily rankings
-    const allUsers = getAllDeviceUsers();
-    const currentUser = getCurrentUser();
-    
-    const usersWithDailyRank = allUsers.map(user => {
-      const dailyActivity = dailyRankings.find(dr => dr.accountId === user.accountId);
-      const result = {
-        ...user,
-        dailyRank: dailyActivity?.dailyRank || 999,
-        dailyStudyTime: dailyActivity?.studyMinutes || 0
-      };
-      
-      return result;
-    });
-    
-    // Sort by daily rank
-    const sortedUsers = usersWithDailyRank.sort((a, b) => a.dailyRank - b.dailyRank);
-    setDisplayUsers(sortedUsers);
-  }, [users, dailyRankings, isSessionActive]);
-
-  const loadDailyRankings = async (showLoading = true, forceUpdate = false) => {
-    try {
-      if (showLoading) {
-        setLoading(true);
-      }
-      
-      // Force update if requested, otherwise use the 2-minute cache
-      const lastRankUpdate = localStorage.getItem('lastRankUpdate');
-      const now = Date.now();
-      const shouldUpdateRankings = forceUpdate || !lastRankUpdate || (now - parseInt(lastRankUpdate)) > 120000; // 2 minutes
-      
-      if (shouldUpdateRankings) {
-        await dailyActivityDB.updateTodayRankings();
-        localStorage.setItem('lastRankUpdate', now.toString());
-      }
-      
-      const rankings = await dailyActivityDB.getTodayRankings();
-      
-      const formattedRankings = rankings.map(activity => ({
-        id: activity.id,
-        accountId: activity.account_id,
-        date: activity.date,
-        studyMinutes: activity.study_minutes,
-        studySeconds: activity.study_seconds || 0,
-        lastUpdated: activity.last_updated || activity.updated_at,
-        startTime: activity.start_time,
-        endTime: activity.end_time,
-        pointsEarned: activity.points_earned,
-        dailyRank: activity.daily_rank,
-        sessionsCount: activity.sessions_count,
-        focusScore: activity.focus_score,
-        createdAt: activity.created_at,
-        updatedAt: activity.updated_at
-      }));
-      
-      // Debug: Check if we have any rankings with valid ranks
-      const validRanks = formattedRankings.filter(r => r.dailyRank < 999);
-      
-      setDailyRankings(formattedRankings);
-    } catch (error) {
-    } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    // Don't update rankings if there's an active session
-    if (isSessionActive) {
-      return;
-    }
-    
-    // Update rankings every 2 minutes for live changes (without loading indicator)
-    const interval = setInterval(() => {
-      loadDailyRankings(false);
-      setCurrentTime(new Date());
-    }, 120000); // Changed from 30000 to 120000 (2 minutes)
-
-    return () => clearInterval(interval);
-  }, [isSessionActive]);
-
-  const formatStudyTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const formatSessionTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    if (hours > 0) {
-      return `${hours} ساعة ${minutes} دقيقة ${secs} ثانية`;
-    } else if (minutes > 0) {
-      return `${minutes} دقيقة ${secs} ثانية`;
-    } else {
-      return `${secs} ثانية`;
-    }
-  };
-
-  const getTodayStudyTime = (user: UserAccount) => {
-    // Convert daily study time from minutes to seconds for formatting
-    return (user.dailyStudyTime || 0) * 60;
-  };
-
-  const getCoinsFromStudyTime = (studySeconds: number) => {
-    // 1 coin every 10 minutes (600 seconds)
-    return Math.floor(studySeconds / 600);
-  };
-
-  const isRecentlyActive = (user: UserAccount) => {
-    // Check if user was active in the last 2 minutes
-    const lastActiveTime = new Date(user.lastActive);
-    const now = new Date();
-    const timeDiff = now.getTime() - lastActiveTime.getTime();
-    const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
-    
-    return timeDiff < twoMinutes;
-  };
-
-  const isCurrentUserActive = (user: UserAccount) => {
-    // Check if this is the current account and timer is active
-    const isActive = isTimerActive();
-    const currentUser = getCurrentUser();
-    const isCurrent = currentUser?.accountId === user.accountId;
-    
-    return isActive && isCurrent;
-  };
-
-  // Add effect to update current time every second for accurate activity detection
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000); // Update every second
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const isCurrentUser = (user: UserAccount) => {
-    const currentUser = getCurrentUser();
-    return currentUser?.accountId === user.accountId;
-  };
 
   return (
     <div className="flex-1">
@@ -216,48 +64,91 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
         }`}>{t.dailyRankings}</h2>
       </div>
       <div className="h-[calc(100vh-180px)] overflow-y-auto">
-        {isSessionActive ? (
-          <div className="flex flex-col items-center justify-center h-full py-12">
-            <div className="text-center max-w-md mx-auto px-6">
-              <div className="mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
+        {sessionLoading ? (
+          // Loading message after session ends
+          <div className="flex flex-col items-center justify-center h-full py-16">
+            <div className="text-center max-w-sm mx-auto px-8">
+              <div className="space-y-8">
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                 </div>
-                <h3 className={`text-xl font-bold mb-2 ${
-                  theme === 'light' ? 'text-black' : 'text-white'
-                }`}>
-                  جلسة دراسية نشطة
-                </h3>
-                <p className={`text-sm mb-4 ${
-                  theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-                }`}>
-                  مدة الجلسة الحالية: {formatSessionTime(getSessionDuration())}
-                </p>
+                <div>
+                  <h2 className={`text-2xl font-semibold mb-2 ${
+                    theme === 'light' ? 'text-gray-900' : 'text-white'
+                  }`}>
+                    جاري تجهيز ترتيبك
+                  </h2>
+                  <p className={`text-sm ${
+                    theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                  }`}>
+                    يرجى الانتظار...
+                  </p>
+                </div>
               </div>
-              
-              <div className={`p-4 rounded-lg mb-6 ${
-                theme === 'light' 
-                  ? 'bg-yellow-50 border border-yellow-200' 
-                  : 'bg-yellow-900/20 border border-yellow-700/50'
-              }`}>
-                <p className={`text-sm font-medium ${
-                  theme === 'light' ? 'text-yellow-800' : 'text-yellow-200'
+            </div>
+          </div>
+        ) : isSessionActive ? (
+          // Session active message
+          <div className="flex flex-col items-center justify-center h-full py-16">
+            <div className="text-center max-w-sm mx-auto px-8">
+              {/* Minimal timer display */}
+              <div className="mb-12">
+                <div className={`inline-block px-8 py-4 rounded-2xl ${
+                  theme === 'light' 
+                    ? 'bg-gray-50 border border-gray-200' 
+                    : 'bg-gray-800/50 border border-gray-700'
                 }`}>
-                  ⚠️ لا يمكنك عرض الترتيب الحالي لمنع التشتت
-                </p>
-                <p className={`text-xs mt-1 ${
-                  theme === 'light' ? 'text-yellow-700' : 'text-yellow-300'
-                }`}>
-                  بعد انهاء جلستك يمكنك رؤية الترتيب مباشرة
-                </p>
+                  <span className={`text-4xl font-light tracking-wider ${
+                    theme === 'light' ? 'text-gray-900' : 'text-white'
+                  }`}>
+                    {formatSessionTime(getSessionDuration())}
+                  </span>
+                </div>
               </div>
-              
-              <div className={`text-xs ${
-                theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-              }`}>
-                ركز على دراستك! الترتيب في انتظارك 🎯
+
+              {/* Clean typography section */}
+              <div className="space-y-8">
+                <div>
+                  <p className={`text-xs font-medium tracking-widest uppercase mb-2 ${
+                    theme === 'light' ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
+                    Focus Mode
+                  </p>
+                  <h2 className={`text-2xl font-semibold ${
+                    theme === 'light' ? 'text-gray-900' : 'text-white'
+                  }`}>
+                    جلسة دراسية قيد التشغيل
+                  </h2>
+                </div>
+
+                {/* Minimal info */}
+                <div className={`py-6 border-t border-b ${
+                  theme === 'light' ? 'border-gray-200' : 'border-gray-700'
+                }`}>
+                  <p className={`text-sm leading-relaxed ${
+                    theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                  }`}>
+                    الترتيب مخفي مؤقتاً لمساعدتك على التركيز
+                  </p>
+                  <p className={`text-xs mt-2 ${
+                    theme === 'light' ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
+                    ستظهر النتائج بعد انتهاء الجلسة
+                  </p>
+                </div>
+
+                {/* Subtle progress indicator */}
+                <div className="flex items-center justify-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full animate-pulse ${
+                    theme === 'light' ? 'bg-gray-400' : 'bg-gray-500'
+                  }`}></div>
+                  <div className={`w-2 h-2 rounded-full animate-pulse delay-75 ${
+                    theme === 'light' ? 'bg-gray-400' : 'bg-gray-500'
+                  }`}></div>
+                  <div className={`w-2 h-2 rounded-full animate-pulse delay-150 ${
+                    theme === 'light' ? 'bg-gray-400' : 'bg-gray-500'
+                  }`}></div>
+                </div>
               </div>
             </div>
           </div>

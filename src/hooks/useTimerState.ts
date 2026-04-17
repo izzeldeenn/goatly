@@ -50,22 +50,58 @@ export function useTimerState() {
   const realtimeUpdateRef = useRef<NodeJS.Timeout | null>(null);
   const currentTimeRef = useRef(0);
 
-  // Optimized single useEffect for initialization and listeners
+  // Load timer settings from localStorage and listen for changes
   useEffect(() => {
-    if (!hasHydrated) {
-      setHasHydrated(true);
-      
-      // Load timer settings and state from localStorage
+    if (typeof window !== 'undefined') {
       const savedSettings = localStorage.getItem('timer_settings');
-      const savedState = localStorage.getItem('timer_state');
-      
       if (savedSettings) {
         try {
-          setTimerSettings(JSON.parse(savedSettings));
+          const settings = JSON.parse(savedSettings);
+          setTimerSettings(settings);
         } catch (error) {
           console.error('Failed to load timer settings:', error);
         }
       }
+
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'timer_settings' && e.newValue) {
+          try {
+            const settings = JSON.parse(e.newValue);
+            setTimerSettings(settings);
+          } catch (error) {
+            console.error('Failed to parse timer settings:', error);
+          }
+        }
+      };
+
+      const handleCustomEvent = (e: CustomEvent) => {
+        setTimerSettings(e.detail);
+      };
+
+      window.addEventListener('storage', handleStorageChange);
+      window.addEventListener('timerSettingsChanged', handleCustomEvent as EventListener);
+
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('timerSettingsChanged', handleCustomEvent as EventListener);
+      };
+    }
+  }, []);
+
+  // Save timer settings to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('timer_settings', JSON.stringify(timerSettings));
+    }
+  }, [timerSettings]);
+
+  // Optimized single useEffect for initialization
+  useEffect(() => {
+    if (!hasHydrated) {
+      setHasHydrated(true);
+      
+      // Load timer state from localStorage
+      const savedState = localStorage.getItem('timer_state');
       
       if (savedState) {
         try {
@@ -76,50 +112,6 @@ export function useTimerState() {
         }
       }
     }
-
-    // Setup listeners for settings changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'timer_settings' && e.newValue) {
-        try {
-          setTimerSettings(JSON.parse(e.newValue));
-        } catch (error) {
-          console.error('Failed to parse timer settings:', error);
-        }
-      }
-    };
-
-    const handleCustomEvent = (e: CustomEvent) => {
-      setTimerSettings(e.detail);
-    };
-
-    // Check for direct localStorage changes (same tab)
-    const checkInterval = setInterval(() => {
-      const savedSettings = localStorage.getItem('timer_settings');
-      if (savedSettings) {
-        try {
-          const settings = JSON.parse(savedSettings);
-          setTimerSettings(prev => {
-            if (JSON.stringify(prev) !== JSON.stringify(settings)) {
-              return settings;
-            }
-            return prev;
-          });
-        } catch (error) {
-          console.error('Failed to parse timer settings:', error);
-        }
-      }
-    }, 500);
-
-    // Add listeners
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('timerSettingsChanged', handleCustomEvent as EventListener);
-
-    // Cleanup listeners
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('timerSettingsChanged', handleCustomEvent as EventListener);
-      clearInterval(checkInterval);
-    };
   }, [hasHydrated]);
 
   // Save state to localStorage whenever it changes (optimized)

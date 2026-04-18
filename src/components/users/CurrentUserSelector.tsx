@@ -42,22 +42,21 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
   const isActive = isTimerActive();
 
   // Format time to HH:MM:SS
-  const formatStudyTime = (minutes: number) => {
-    const totalSeconds = minutes * 60;
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutesLeft = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutesLeft.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  const formatStudyTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutesLeft = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutesLeft.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Calculate study streak (same function as ActivityGraph)
   const calculateCurrentStreak = (contributions: any[]): number => {
     if (contributions.length === 0) return 0;
     
-    // Create a Set of dates with study minutes > 0 for faster lookup
+    // Create a Set of dates with study seconds > 0 for faster lookup
     const studyDates = new Set(
       contributions
-        .filter(c => c.studyMinutes > 0)
+        .filter(c => c.studySeconds > 0)
         .map(c => c.date)
     );
 
@@ -93,7 +92,7 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
           
           const userActivity = rankings.find(r => r.account_id === currentUser.accountId);
           
-          const time = userActivity?.study_minutes || 0;
+          const time = userActivity?.study_seconds || 0;
           setTodayStudyTime(time);
           
           // Get user contributions for streak calculation

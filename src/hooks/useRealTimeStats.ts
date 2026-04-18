@@ -32,10 +32,10 @@ export function useRealTimeStats(): RealTimeStats {
         const allActivities = await dailyActivityDB.getAllDailyActivities();
         
         // Calculate real focus hours from daily activities
-        const totalStudyMinutes = allActivities.reduce((sum, activity) => {
-          return sum + (activity.study_minutes || 0);
+        const totalStudySeconds = allActivities.reduce((sum, activity) => {
+          return sum + (activity.study_seconds || 0);
         }, 0);
-        const totalFocusHours = Math.floor(totalStudyMinutes / 60);
+        const totalFocusHours = Math.floor(totalStudySeconds / 3600);
 
         // Calculate goals achieved based on points earned from daily activities
         const totalGoalsAchieved = allActivities.reduce((sum, activity) => {

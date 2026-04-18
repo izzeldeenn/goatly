@@ -6,7 +6,7 @@ export interface ActivitySession {
   date: string;
   start_time: string;
   end_time?: string;
-  duration_minutes: number;
+  duration_seconds: number;
   points_earned: number;
   created_at: string;
 }
@@ -17,7 +17,7 @@ export interface ActivitySessionFrontend {
   date: string;
   startTime: string;
   endTime?: string;
-  durationMinutes: number;
+  durationSeconds: number;
   pointsEarned: number;
   createdAt: string;
 }
@@ -33,7 +33,7 @@ export class ActivitySessionDB {
       date: session.date,
       startTime: session.start_time,
       endTime: session.end_time,
-      durationMinutes: session.duration_minutes,
+      durationSeconds: session.duration_seconds,
       pointsEarned: session.points_earned,
       createdAt: session.created_at
     };
@@ -48,7 +48,7 @@ export class ActivitySessionDB {
     if (session.date) dbSession.date = session.date;
     if (session.startTime) dbSession.start_time = session.startTime;
     if (session.endTime) dbSession.end_time = session.endTime;
-    if (session.durationMinutes !== undefined) dbSession.duration_minutes = session.durationMinutes;
+    if (session.durationSeconds !== undefined) dbSession.duration_seconds = session.durationSeconds;
     if (session.pointsEarned !== undefined) dbSession.points_earned = session.pointsEarned;
     if (session.createdAt) dbSession.created_at = session.createdAt;
     
@@ -64,7 +64,7 @@ export class ActivitySessionDB {
       account_id: accountId,
       date: date,
       start_time: now.toISOString(),
-      duration_minutes: 0,
+      duration_seconds: 0,
       points_earned: 0
     };
 
@@ -83,14 +83,14 @@ export class ActivitySessionDB {
   }
 
   // End a session
-  async endSession(sessionId: string, durationMinutes: number, pointsEarned: number): Promise<ActivitySessionFrontend> {
+  async endSession(sessionId: string, durationSeconds: number, pointsEarned: number): Promise<ActivitySessionFrontend> {
     const now = new Date();
     
     const { data, error } = await this.supabase
       .from('activity_sessions')
       .update({
         end_time: now.toISOString(),
-        duration_minutes: durationMinutes,
+        duration_seconds: durationSeconds,
         points_earned: pointsEarned
       })
       .eq('id', sessionId)
@@ -124,10 +124,10 @@ export class ActivitySessionDB {
     return data.map(session => this.convertToFrontend(session));
   }
 
-  // Get total study time for today (in minutes)
+  // Get total study time for today (in seconds)
   async getTodayStudyTime(accountId: string): Promise<number> {
     const sessions = await this.getTodaySessions(accountId);
-    return sessions.reduce((total, session) => total + session.durationMinutes, 0);
+    return sessions.reduce((total, session) => total + session.durationSeconds, 0);
   }
 
   // Get total points for today
@@ -176,8 +176,9 @@ export class ActivitySessionDB {
   }
 
   // Update daily activity when session ends
-  async updateDailyActivityFromSession(accountId: string, durationMinutes: number, pointsEarned: number): Promise<void> {
+  async updateDailyActivityFromSession(accountId: string, durationSeconds: number, pointsEarned: number): Promise<void> {
     const today = new Date().toISOString().split('T')[0];
+    const durationMinutes = Math.floor(durationSeconds / 60);
     
     // First check if daily activity exists for today
     const { data: existingActivity, error: fetchError } = await this.supabase
@@ -198,7 +199,7 @@ export class ActivitySessionDB {
         .from('daily_activities')
         .update({
           study_minutes: existingActivity.study_minutes + durationMinutes,
-          study_seconds: existingActivity.study_seconds + (durationMinutes * 60),
+          study_seconds: existingActivity.study_seconds + durationSeconds,
           points_earned: existingActivity.points_earned + pointsEarned,
           sessions_count: existingActivity.sessions_count + 1,
           last_updated: new Date().toISOString()
@@ -216,7 +217,7 @@ export class ActivitySessionDB {
           account_id: accountId,
           date: today,
           study_minutes: durationMinutes,
-          study_seconds: durationMinutes * 60,
+          study_seconds: durationSeconds,
           points_earned: pointsEarned,
           sessions_count: 1,
           last_updated: new Date().toISOString()

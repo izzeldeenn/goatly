@@ -4,7 +4,6 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/ui/Logo';
 import { UserRankings } from '@/components/users/UserRankings';
 import { CurrentUserSelector } from '@/components/users/CurrentUserSelector';
-import { SettingsMobileButton } from '@/components/settings/SettingsMobile';
 import { ServiceSelector } from '@/components/ui/ServiceSelector';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { FullscreenPrompt } from '@/components/ui/FullscreenPrompt';
@@ -292,7 +291,7 @@ function HomeContent() {
     const userWithDailyData = {
       ...user,
       dailyRank: dailyActivity?.daily_rank || 999,
-      dailyStudyTime: dailyActivity?.study_minutes || 0
+      dailyStudyTime: dailyActivity?.study_seconds || 0
     };
     
     setSelectedUser(userWithDailyData);

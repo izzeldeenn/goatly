@@ -101,30 +101,30 @@ export function UserActivityDashboard({ accountId }: UserActivityDashboardProps)
   const calculateStats = () => {
     if (contributions.length === 0) {
       return {
-        totalStudyMinutes: 0,
+        totalStudySeconds: 0,
         totalPoints: 0,
-        averageDailyMinutes: 0,
+        averageDailySeconds: 0,
         bestDay: null,
         currentStreak: 0,
         longestStreak: 0
       };
     }
 
-    const totalStudyMinutes = contributions.reduce((sum, c) => sum + c.studyMinutes, 0);
+    const totalStudySeconds = contributions.reduce((sum, c) => sum + c.studySeconds, 0);
     const totalPoints = contributions.reduce((sum, c) => sum + c.pointsEarned, 0);
-    const averageDailyMinutes = Math.round(totalStudyMinutes / contributions.length);
+    const averageDailySeconds = Math.round(totalStudySeconds / contributions.length);
     
     const bestDay = contributions.reduce((best, current) => 
-      current.studyMinutes > (best?.studyMinutes || 0) ? current : best, null as ActivityContribution | null
+      current.studySeconds > (best?.studySeconds || 0) ? current : best, null as ActivityContribution | null
     );
 
     const currentStreak = calculateCurrentStreak(contributions);
     const longestStreak = calculateLongestStreak(contributions);
 
     return {
-      totalStudyMinutes,
+      totalStudySeconds,
       totalPoints,
-      averageDailyMinutes,
+      averageDailySeconds,
       bestDay,
       currentStreak,
       longestStreak
@@ -134,10 +134,10 @@ export function UserActivityDashboard({ accountId }: UserActivityDashboardProps)
   const calculateCurrentStreak = (contributions: ActivityContribution[]) => {
     if (contributions.length === 0) return 0;
     
-    // Create a Set of dates with study minutes > 0 for faster lookup
+    // Create a Set of dates with study seconds > 0 for faster lookup
     const studyDates = new Set(
       contributions
-        .filter(c => c.studyMinutes > 0)
+        .filter(c => c.studySeconds > 0)
         .map(c => c.date)
     );
 
@@ -166,7 +166,7 @@ export function UserActivityDashboard({ accountId }: UserActivityDashboardProps)
   };
 
   const calculateLongestStreak = (contributions: ActivityContribution[]) => {
-    const activeContributions = contributions.filter(c => c.studyMinutes > 0);
+    const activeContributions = contributions.filter(c => c.studySeconds > 0);
     if (activeContributions.length === 0) return 0;
     
     const sorted = activeContributions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -197,14 +197,16 @@ export function UserActivityDashboard({ accountId }: UserActivityDashboardProps)
   };
 
   // Format study time
-  const formatStudyTime = (minutes: number) => {
-    if (minutes < 60) {
-      return `${minutes}${t.timeToday.includes('وقت') ? 'د' : 'm'}`;
-    } else if (minutes < 120) {
-      return `1${t.timeToday.includes('وقت') ? 'س' : 'h'} ${minutes - 60}${t.timeToday.includes('وقت') ? 'د' : 'm'}`;
+  const formatStudyTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (seconds < 60) {
+      return `${secs}${t.timeToday.includes('وقت') ? 'ث' : 's'}`;
+    } else if (seconds < 3600) {
+      return `${minutes}${t.timeToday.includes('وقت') ? 'د' : 'm'} ${secs}${t.timeToday.includes('وقت') ? 'ث' : 's'}`;
     } else {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
+      const hours = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
       return `${hours}${t.timeToday.includes('وقت') ? 'س' : 'h'} ${mins}${t.timeToday.includes('وقت') ? 'د' : 'm'}`;
     }
   };
@@ -288,7 +290,7 @@ export function UserActivityDashboard({ accountId }: UserActivityDashboardProps)
           <div className={`text-2xl font-bold ${
             theme === 'light' ? 'text-gray-900' : 'text-gray-100'
           }`}>
-            {formatStudyTime(stats.totalStudyMinutes)}
+            {formatStudyTime(stats.totalStudySeconds)}
           </div>
         </div>
 
@@ -333,7 +335,7 @@ export function UserActivityDashboard({ accountId }: UserActivityDashboardProps)
           <div className={`text-2xl font-bold ${
             theme === 'light' ? 'text-gray-900' : 'text-gray-100'
           }`}>
-            {formatStudyTime(stats.averageDailyMinutes)}
+            {formatStudyTime(stats.averageDailySeconds)}
           </div>
         </div>
       </div>
@@ -386,7 +388,7 @@ export function UserActivityDashboard({ accountId }: UserActivityDashboardProps)
                   <div className={`font-semibold ${
                     theme === 'light' ? 'text-gray-900' : 'text-gray-100'
                   }`}>
-                    {formatStudyTime(activity.studyMinutes)}
+                    {formatStudyTime(activity.studySeconds)}
                   </div>
                   <div className={`text-sm ${
                     theme === 'light' ? 'text-gray-500' : 'text-gray-400'

@@ -113,23 +113,23 @@ export function StudySessionProvider({ children }: { children: ReactNode }) {
       setCurrentSession(endedSession);
       setIsSessionActive(false);
       
-      // Calculate duration in minutes and points earned
-      const durationMinutes = Math.floor(currentSession.studyTime / 60);
-      const pointsEarned = Math.floor(currentSession.studyTime / 600); // 1 point per 10 minutes
+      // Calculate duration in seconds and points earned
+      const durationSeconds = currentSession.studyTime;
+      const pointsEarned = Math.floor(durationSeconds / 600); // 1 point per 10 minutes (600 seconds)
       
       // End session in database if we have a DB session ID
       if (currentSession.dbSessionId) {
         try {
           await activitySessionDB.endSession(
             currentSession.dbSessionId,
-            durationMinutes,
+            durationSeconds,
             pointsEarned
           );
           
           // Update daily activity
           await activitySessionDB.updateDailyActivityFromSession(
             accountId,
-            durationMinutes,
+            durationSeconds,
             pointsEarned
           );
         } catch (error) {

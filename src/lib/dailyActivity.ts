@@ -40,7 +40,7 @@ export interface ActivitySession {
   date: string;
   start_time: string;
   end_time?: string;
-  duration_minutes: number;
+  duration_seconds: number;
   points_earned: number;
   created_at: string;
 }
@@ -51,7 +51,7 @@ export interface ActivitySessionFrontend {
   date: string;
   startTime: string;
   endTime?: string;
-  durationMinutes: number;
+  durationSeconds: number;
   pointsEarned: number;
   createdAt: string;
 }
@@ -59,7 +59,7 @@ export interface ActivitySessionFrontend {
 export interface ActivityContribution {
   date: string;
   level: number; // 0-5 activity level (like GitHub contributions)
-  studyMinutes: number;
+  studySeconds: number;
   pointsEarned: number;
   rank?: number;
 }
@@ -202,7 +202,7 @@ export class DailyActivityDB {
       const { data, error } = await supabase
         .from('daily_activities')
         .update({
-          study_minutes: (existing.study_minutes || 0) + (activityData.study_minutes || 0),
+          study_seconds: (existing.study_seconds || 0) + (activityData.study_seconds || 0),
           points_earned: (existing.points_earned || 0) + (activityData.points_earned || 0),
           sessions_count: (existing.sessions_count || 0) + (activityData.sessions_count || 0),
           focus_score: Math.max(existing.focus_score || 0, activityData.focus_score || 0),
@@ -251,14 +251,12 @@ export class DailyActivityDB {
       if (existing) {
         // Update existing activity
         const newStudySeconds = (existing.study_seconds || 0) + additionalSeconds;
-        const newStudyMinutes = Math.floor(newStudySeconds / 60);
         // Don't add points here - points are added by updateUserStudyTime to avoid double counting
         
         const { data, error } = await supabase
           .from('daily_activities')
           .update({
             study_seconds: newStudySeconds,
-            study_minutes: newStudyMinutes,
             last_updated: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -290,7 +288,6 @@ export class DailyActivityDB {
         return data;
       } else {
         // Create new activity record
-        const studyMinutes = Math.floor(additionalSeconds / 60);
         // Don't add points here - points are added by updateUserStudyTime to avoid double counting
         
         const { data, error } = await supabase
@@ -299,7 +296,6 @@ export class DailyActivityDB {
             account_id: accountId,
             date: today,
             study_seconds: additionalSeconds,
-            study_minutes: studyMinutes,
             sessions_count: 1,
             focus_score: 50, // Initial focus score
             daily_rank: 999, // Will be updated by updateTodayRankings
@@ -488,13 +484,13 @@ export class DailyActivityDB {
   }
 
   // Update study session end time
-  async updateStudySession(sessionId: string, endTime: string, durationMinutes: number): Promise<ActivitySession | null> {
+  async updateStudySession(sessionId: string, endTime: string, durationSeconds: number): Promise<ActivitySession | null> {
     try {
       const { data, error } = await supabase
         .from('activity_sessions')
         .update({
           end_time: endTime,
-          duration_minutes: durationMinutes
+          duration_seconds: durationSeconds
         })
         .eq('id', sessionId)
         .select()
@@ -526,21 +522,21 @@ export class DailyActivityDB {
       const activities = await this.getUserDailyActivities(accountId, 365);
       
       return activities.map(activity => {
-        // Calculate activity level (0-5) based on study minutes
+        // Calculate activity level (0-5) based on study seconds
         let level = 0;
-        if (activity.study_minutes > 0) {
-          if (activity.study_minutes >= 240) level = 5; // 4+ hours
-          else if (activity.study_minutes >= 180) level = 4; // 3+ hours
-          else if (activity.study_minutes >= 120) level = 3; // 2+ hours
-          else if (activity.study_minutes >= 60) level = 2; // 1+ hour
-          else if (activity.study_minutes >= 15) level = 1; // 15+ minutes
+        if (activity.study_seconds > 0) {
+          if (activity.study_seconds >= 14400) level = 5; // 4+ hours (14400 seconds)
+          else if (activity.study_seconds >= 10800) level = 4; // 3+ hours (10800 seconds)
+          else if (activity.study_seconds >= 7200) level = 3; // 2+ hours (7200 seconds)
+          else if (activity.study_seconds >= 3600) level = 2; // 1+ hour (3600 seconds)
+          else if (activity.study_seconds >= 900) level = 1; // 15+ minutes (900 seconds)
           else level = 1; // Any activity less than 15 minutes still shows as level 1
         }
 
         return {
           date: activity.date,
           level,
-          studyMinutes: activity.study_minutes,
+          studySeconds: activity.study_seconds,
           pointsEarned: activity.points_earned,
           rank: activity.daily_rank
         };
@@ -560,7 +556,7 @@ export class DailyActivityDB {
         .from('daily_activities')
         .select('*')
         .eq('date', today)
-        .order('study_minutes', { ascending: false });
+        .order('study_seconds', { ascending: false });
 
       if (error) {
         throw error;
@@ -667,13 +663,13 @@ export const createTestActivity = async (accountId: string) => {
 
     if (existing) {
       // Update existing activity with random additional time
-      const additionalMinutes = Math.floor(Math.random() * 30) + 10; // 10-40 additional minutes
-      const additionalPoints = Math.floor(additionalMinutes / 10); // 1 point per 10 minutes
+      const additionalSeconds = Math.floor(Math.random() * 2400) + 600; // 10-40 additional minutes in seconds
+      const additionalPoints = Math.floor(additionalSeconds / 600); // 1 point per 10 minutes (600 seconds)
       
       const { data, error } = await supabase
         .from('daily_activities')
         .update({
-          study_minutes: existing.study_minutes + additionalMinutes,
+          study_seconds: existing.study_seconds + additionalSeconds,
           points_earned: existing.points_earned + additionalPoints,
           sessions_count: existing.sessions_count + 1,
           focus_score: Math.min(100, existing.focus_score + 5),
@@ -690,10 +686,11 @@ export const createTestActivity = async (accountId: string) => {
       return data;
     } else {
       // Create new test activity
+      const studySeconds = (Math.floor(Math.random() * 120) + 30) * 60; // 30-150 minutes in seconds
       const activity = await dailyActivityDB.upsertDailyActivity({
         account_id: accountId,
         date: today,
-        study_minutes: Math.floor(Math.random() * 120) + 30, // 30-150 minutes
+        study_seconds: studySeconds,
         points_earned: Math.floor(Math.random() * 50) + 10, // 10-60 points
         sessions_count: Math.floor(Math.random() * 3) + 1, // 1-3 sessions
         focus_score: Math.floor(Math.random() * 40) + 60 // 60-100 focus score

@@ -64,7 +64,7 @@ export function useUserRankings() {
       const result = {
         ...user,
         dailyRank: dailyActivity?.dailyRank || 999,
-        dailyStudyTime: dailyActivity?.studyMinutes || 0
+        dailyStudyTime: dailyActivity?.studySeconds || 0
       };
       
       return result;
@@ -166,8 +166,8 @@ export function useUserRankings() {
   };
 
   const getTodayStudyTime = (user: UserAccount) => {
-    // Convert daily study time from minutes to seconds for formatting
-    return (user.dailyStudyTime || 0) * 60;
+    // Return daily study time in seconds
+    return user.dailyStudyTime || 0;
   };
 
   const getCoinsFromStudyTime = (studySeconds: number) => {

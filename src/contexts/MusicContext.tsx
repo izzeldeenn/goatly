@@ -1,259 +1,158 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import { MusicTrack, MUSIC_TRACKS, DEFAULT_MUSIC_SETTINGS } from '@/constants/musicTracks';
+
+interface YouTubeTrack {
+  id: string;
+  name: string;
+  artist: string;
+  thumbnail: string;
+  embedUrl: string;
+}
 
 interface MusicContextType {
-  // Current playing state
   isPlaying: boolean;
-  currentTrack: MusicTrack | null;
+  currentTrack: YouTubeTrack | null;
   volume: number;
-  
-  // Settings
   autoPlay: boolean;
   loop: boolean;
-  fadeIn: boolean;
-  fadeOut: boolean;
-  
-  // Player controls
-  playTrack: (track: MusicTrack) => void;
+  playTrack: (track: YouTubeTrack) => void;
   pauseTrack: () => void;
   stopTrack: () => void;
   setVolume: (volume: number) => void;
   nextTrack: () => void;
   previousTrack: () => void;
-  
-  // Settings controls
   setAutoPlay: (autoPlay: boolean) => void;
   setLoop: (loop: boolean) => void;
-  setFadeIn: (fadeIn: boolean) => void;
-  setFadeOut: (fadeOut: boolean) => void;
-  
-  // Data
-  tracks: MusicTrack[];
-  filteredTracks: MusicTrack[];
-  selectedCategory: string;
-  selectedMood: string;
-  
-  // Filters
-  setSelectedCategory: (category: string) => void;
-  setSelectedMood: (mood: string) => void;
-  searchTracks: (query: string) => void;
-  
-  // Timer integration
-  startTimerMusic: (duration: number) => void;
-  stopTimerMusic: () => void;
+  setIsPlaying: (playing: boolean) => void;
+  setYoutubePlayer: (player: any) => void;
+  controlYoutubePlayer: (action: 'play' | 'pause') => void;
+  tracks: YouTubeTrack[];
+  filteredTracks: YouTubeTrack[];
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  searchYouTube: (query: string) => Promise<void>;
+  addTrack: (videoId: string) => void;
+  removeTrack: (id: string) => void;
+  isLoading: boolean;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 export function MusicProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState<MusicTrack | null>(null);
-  const [volume, setVolume] = useState(DEFAULT_MUSIC_SETTINGS.volume);
-  const [autoPlay, setAutoPlay] = useState(DEFAULT_MUSIC_SETTINGS.autoPlay);
-  const [loop, setLoop] = useState(DEFAULT_MUSIC_SETTINGS.loop);
-  const [fadeIn, setFadeIn] = useState(DEFAULT_MUSIC_SETTINGS.fadeIn);
-  const [fadeOut, setFadeOut] = useState(DEFAULT_MUSIC_SETTINGS.fadeOut);
-  
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedMood, setSelectedMood] = useState('all');
+  const [currentTrack, setCurrentTrack] = useState<YouTubeTrack | null>(null);
+  const [volume, setVolume] = useState(0.5);
+  const [autoPlay, setAutoPlay] = useState(false);
+  const [loop, setLoop] = useState(false);
+  const [tracks, setTracks] = useState<YouTubeTrack[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const fadeIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timerMusicRef = useRef<NodeJS.Timeout | null>(null);
+  const [filteredTracks, setFilteredTracks] = useState<YouTubeTrack[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const youtubePlayerRef = useRef<any>(null);
 
-  // Load settings from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedVolume = localStorage.getItem('musicVolume');
       const savedAutoPlay = localStorage.getItem('musicAutoPlay');
       const savedLoop = localStorage.getItem('musicLoop');
-      const savedFadeIn = localStorage.getItem('musicFadeIn');
-      const savedFadeOut = localStorage.getItem('musicFadeOut');
       
       if (savedVolume) setVolume(parseFloat(savedVolume));
       if (savedAutoPlay) setAutoPlay(savedAutoPlay === 'true');
       if (savedLoop) setLoop(savedLoop === 'true');
-      if (savedFadeIn) setFadeIn(savedFadeIn === 'true');
-      if (savedFadeOut) setFadeOut(savedFadeOut === 'true');
     }
   }, []);
 
-  // Save settings to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('musicVolume', volume.toString());
       localStorage.setItem('musicAutoPlay', autoPlay.toString());
       localStorage.setItem('musicLoop', loop.toString());
-      localStorage.setItem('musicFadeIn', fadeIn.toString());
-      localStorage.setItem('musicFadeOut', fadeOut.toString());
     }
-  }, [volume, autoPlay, loop, fadeIn, fadeOut]);
+  }, [volume, autoPlay, loop]);
 
-  // Filter tracks based on category, mood, and search
-  const filteredTracks = MUSIC_TRACKS.filter(track => {
-    const categoryMatch = selectedCategory === 'all' || track.category === selectedCategory;
-    const moodMatch = selectedMood === 'all' || track.mood === selectedMood;
-    const searchMatch = searchQuery === '' || 
-      track.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      track.artist.toLowerCase().includes(searchQuery.toLowerCase());
+  useEffect(() => {
+    // Always show all tracks when not searching
+    setFilteredTracks(tracks);
+  }, [tracks]);
+
+  const searchYouTube = async (query: string) => {
+    if (!query.trim()) return;
     
-    return categoryMatch && moodMatch && searchMatch;
-  });
-
-  // Audio controls
-  const playTrack = (track: MusicTrack) => {
-    if (audioRef.current) {
-      // Reset any existing audio
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
       
-      // Set new source with error handling
-      audioRef.current.src = track.url;
-      audioRef.current.volume = fadeIn ? 0 : volume;
-      
-      // Add comprehensive error handling
-      audioRef.current.addEventListener('error', (e) => {
-        const audioError = audioRef.current?.error;
-        console.error('Audio error details:', {
-          error: e,
-          audioError: audioError,
-          src: track.url,
-          trackId: track.id
-        });
+      if (data.videos && data.videos.length > 0) {
+        const newTracks: YouTubeTrack[] = data.videos.map((video: any) => ({
+          id: video.id,
+          name: video.title,
+          artist: video.channelTitle,
+          thumbnail: video.thumbnail,
+          embedUrl: `https://www.youtube.com/embed/${video.id}`
+        }));
         
-        // Try fallback track (different from current)
-        const fallbackTrack = MUSIC_TRACKS.find(t => t.id !== track.id && t.url !== track.url);
-        if (fallbackTrack) {
-          setTimeout(() => playTrack(fallbackTrack), 1000); // Delay to prevent infinite loops
-        } else {
-          console.error('No fallback tracks available');
-          setIsPlaying(false);
-          setCurrentTrack(null);
-        }
-      }, { once: true });
-      
-      // Add load success handler
-      audioRef.current.addEventListener('canplay', () => {
-      }, { once: true });
-      
-      // Attempt to play
-      const playPromise = audioRef.current.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlaying(true);
-            setCurrentTrack(track);
-            
-            if (fadeIn) {
-              fadeAudioIn();
-            }
-          })
-          .catch(error => {
-            console.error('Error playing track:', error);
-            // Handle autoplay policy restrictions
-            if (error.name === 'NotAllowedError') {
-              setIsPlaying(false);
-              setCurrentTrack(null);
-            } else if (error.name === 'NotSupportedError') {
-              // Try next track
-              const nextTrack = MUSIC_TRACKS.find(t => t.id !== track.id);
-              if (nextTrack) {
-                setTimeout(() => playTrack(nextTrack), 500);
-              }
-            }
-          });
+        setTracks(newTracks);
+        setFilteredTracks(newTracks);
       }
+    } catch (error) {
+      console.error('Error searching YouTube:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const pauseTrack = () => {
-    if (audioRef.current && isPlaying) {
-      if (fadeOut) {
-        fadeAudioOut(() => {
-          audioRef.current?.pause();
-          setIsPlaying(false);
-        });
-      } else {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      }
+  const addTrack = (videoId: string) => {
+    // Check if track already exists
+    if (tracks.some(track => track.id === videoId)) {
+      return;
     }
+
+    const newTrack: YouTubeTrack = {
+      id: videoId,
+      name: `Track ${videoId}`,
+      artist: 'Custom',
+      thumbnail: '',
+      embedUrl: `https://www.youtube.com/embed/${videoId}`
+    };
+
+    setTracks([...tracks, newTrack]);
+  };
+
+  const removeTrack = (id: string) => {
+    const newTracks = tracks.filter(track => track.id !== id);
+    setTracks(newTracks);
+    if (currentTrack?.id === id) {
+      setCurrentTrack(null);
+      setIsPlaying(false);
+    }
+  };
+
+  const playTrack = (track: YouTubeTrack) => {
+    setCurrentTrack(track);
+    setIsPlaying(true);
+  };
+
+  // Auto-play when track changes
+  useEffect(() => {
+    if (currentTrack) {
+      setIsPlaying(true);
+    }
+  }, [currentTrack]);
+
+  const pauseTrack = () => {
+    setIsPlaying(false);
   };
 
   const stopTrack = () => {
-    if (audioRef.current) {
-      if (fadeOut) {
-        fadeAudioOut(() => {
-          audioRef.current?.pause();
-          audioRef.current!.currentTime = 0;
-          setIsPlaying(false);
-          setCurrentTrack(null);
-        });
-      } else {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        setIsPlaying(false);
-        setCurrentTrack(null);
-      }
-    }
+    setIsPlaying(false);
+    setCurrentTrack(null);
   };
 
   const updateVolume = (newVolume: number) => {
     const clampedVolume = Math.max(0, Math.min(1, newVolume));
-    if (audioRef.current) {
-      audioRef.current.volume = clampedVolume;
-    }
     setVolume(clampedVolume);
-  };
-
-  const fadeAudioIn = () => {
-    if (audioRef.current && fadeIntervalRef.current) {
-      clearInterval(fadeIntervalRef.current);
-    }
-    
-    let currentVolume = 0;
-    const targetVolume = volume;
-    const step = targetVolume / 20; // 20 steps for smooth fade
-    
-    fadeIntervalRef.current = setInterval(() => {
-      currentVolume += step;
-      if (currentVolume >= targetVolume) {
-        currentVolume = targetVolume;
-        if (fadeIntervalRef.current) {
-          clearInterval(fadeIntervalRef.current);
-        }
-      }
-      if (audioRef.current) {
-        audioRef.current.volume = currentVolume;
-      }
-    }, 100);
-  };
-
-  const fadeAudioOut = (callback?: () => void) => {
-    if (audioRef.current && fadeIntervalRef.current) {
-      clearInterval(fadeIntervalRef.current);
-    }
-    
-    let currentVolume = volume;
-    const step = volume / 20; // 20 steps for smooth fade
-    
-    fadeIntervalRef.current = setInterval(() => {
-      currentVolume -= step;
-      if (currentVolume <= 0) {
-        currentVolume = 0;
-        if (fadeIntervalRef.current) {
-          clearInterval(fadeIntervalRef.current);
-        }
-        if (callback) callback();
-      }
-      if (audioRef.current) {
-        audioRef.current.volume = currentVolume;
-      }
-    }, 100);
   };
 
   const nextTrack = () => {
@@ -268,75 +167,21 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   const previousTrack = () => {
     const currentIndex = filteredTracks.findIndex(track => track.id === currentTrack?.id);
     const prevIndex = currentIndex === 0 ? filteredTracks.length - 1 : currentIndex - 1;
-    
+
     if (filteredTracks.length > 0) {
       playTrack(filteredTracks[prevIndex]);
     }
   };
 
-  const searchTracks = (query: string) => {
-    setSearchQuery(query);
+  const setYoutubePlayer = (player: any) => {
+    youtubePlayerRef.current = player;
   };
 
-  // Timer integration
-  const startTimerMusic = (duration: number) => {
-    if (autoPlay && filteredTracks.length > 0) {
-      const randomTrack = filteredTracks[Math.floor(Math.random() * filteredTracks.length)];
-      playTrack(randomTrack);
+  const controlYoutubePlayer = (action: 'play' | 'pause') => {
+    if (youtubePlayerRef.current && typeof youtubePlayerRef.current[action + 'Video'] === 'function') {
+      youtubePlayerRef.current[action + 'Video']();
     }
-    
-    // Auto-stop when timer ends
-    if (timerMusicRef.current) {
-      clearTimeout(timerMusicRef.current);
-    }
-    
-    timerMusicRef.current = setTimeout(() => {
-      stopTrack();
-    }, duration * 1000);
   };
-
-  const stopTimerMusic = () => {
-    if (timerMusicRef.current) {
-      clearTimeout(timerMusicRef.current);
-    }
-    stopTrack();
-  };
-
-  // Handle track end
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleEnded = () => {
-      if (loop) {
-        // Replay current track
-        if (currentTrack) {
-          playTrack(currentTrack);
-        }
-      } else {
-        // Play next track
-        nextTrack();
-      }
-    };
-
-    audio.addEventListener('ended', handleEnded);
-    
-    return () => {
-      audio.removeEventListener('ended', handleEnded);
-    };
-  }, [currentTrack, loop, filteredTracks]);
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (fadeIntervalRef.current) {
-        clearInterval(fadeIntervalRef.current);
-      }
-      if (timerMusicRef.current) {
-        clearTimeout(timerMusicRef.current);
-      }
-    };
-  }, []);
 
   return (
     <MusicContext.Provider value={{
@@ -345,8 +190,6 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       volume,
       autoPlay,
       loop,
-      fadeIn,
-      fadeOut,
       playTrack,
       pauseTrack,
       stopTrack,
@@ -355,20 +198,19 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       previousTrack,
       setAutoPlay,
       setLoop,
-      setFadeIn,
-      setFadeOut,
-      tracks: MUSIC_TRACKS,
+      setIsPlaying,
+      setYoutubePlayer,
+      controlYoutubePlayer,
+      tracks,
       filteredTracks,
-      selectedCategory,
-      selectedMood,
-      setSelectedCategory,
-      setSelectedMood,
-      searchTracks,
-      startTimerMusic,
-      stopTimerMusic
+      searchQuery,
+      setSearchQuery,
+      searchYouTube,
+      addTrack,
+      removeTrack,
+      isLoading
     }}>
       {children}
-      <audio ref={audioRef} />
     </MusicContext.Provider>
   );
 }

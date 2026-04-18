@@ -4,13 +4,15 @@ import React from 'react';
 import { useMusic } from '@/contexts/MusicContext';
 
 export function MusicToggleButton() {
-  const { isPlaying, currentTrack, playTrack, pauseTrack, filteredTracks } = useMusic();
+  const { isPlaying, currentTrack, playTrack, pauseTrack, filteredTracks, controlYoutubePlayer } = useMusic();
 
   const toggleMusic = () => {
     if (isPlaying) {
       pauseTrack();
+      controlYoutubePlayer('pause');
     } else if (currentTrack) {
       playTrack(currentTrack);
+      controlYoutubePlayer('play');
     } else if (filteredTracks.length > 0) {
       // Play first available track if no current track
       playTrack(filteredTracks[0]);

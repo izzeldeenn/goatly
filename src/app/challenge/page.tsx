@@ -80,7 +80,7 @@ const convertUserToOpponent = (user: UserAccount): Opponent => {
 
 export default function ChallengePage() {
   const { theme } = useTheme();
-  const { getCurrentUser, updateUserStudyTime, updateUserScore, setTimerActive, isTimerActive } = useUser();
+  const { getCurrentUser, updateUserScore, setTimerActive, isTimerActive } = useUser();
   const router = useRouter();
   
   const [challengeState, setChallengeState] = useState<ChallengeState>({
@@ -331,7 +331,7 @@ export default function ChallengePage() {
         };
       });
 
-      updateUserStudyTime(1);
+      // Points are calculated by endSession, not here
     }, 1000);
     
     setTimerActive(true);

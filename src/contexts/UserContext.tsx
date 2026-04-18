@@ -437,7 +437,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const updateUserStudyTime = async (additionalTime: number) => {
     if (!currentAccountId) return;
 
-    const pointsEarned = Math.floor(additionalTime / 10); // 1 point per 10 seconds
+    const pointsEarned = Math.floor(additionalTime / 600); // 1 point per 10 minutes (600 seconds)
 
     // Only update local state, not database (to avoid double counting)
     // Database will be updated by endStudySession
@@ -527,7 +527,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         id: activity.id,
         accountId: activity.account_id,
         date: activity.date,
-        studyMinutes: activity.study_minutes,
+        studyMinutes: Math.floor((activity.study_seconds || 0) / 60),
         studySeconds: activity.study_seconds || 0,
         lastUpdated: activity.last_updated || activity.updated_at,
         startTime: activity.start_time,

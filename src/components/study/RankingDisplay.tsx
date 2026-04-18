@@ -62,7 +62,7 @@ export function RankingDisplay({ studyStreak, onUserClick }: RankingDisplayProps
         id: activity.id,
         accountId: activity.account_id,
         date: activity.date,
-        studyMinutes: activity.study_minutes,
+        studyMinutes: Math.floor((activity.study_seconds || 0) / 60),
         studySeconds: activity.study_seconds || 0,
         lastUpdated: activity.last_updated || activity.updated_at,
         startTime: activity.start_time,

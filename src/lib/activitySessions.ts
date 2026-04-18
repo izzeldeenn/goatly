@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { dailyActivityDB } from './dailyActivity';
 
 export interface ActivitySession {
   id: string;
@@ -178,7 +179,6 @@ export class ActivitySessionDB {
   // Update daily activity when session ends
   async updateDailyActivityFromSession(accountId: string, durationSeconds: number, pointsEarned: number): Promise<void> {
     const today = new Date().toISOString().split('T')[0];
-    const durationMinutes = Math.floor(durationSeconds / 60);
     
     // First check if daily activity exists for today
     const { data: existingActivity, error: fetchError } = await this.supabase
@@ -189,18 +189,16 @@ export class ActivitySessionDB {
       .single();
 
     if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Error checking daily activity:', fetchError);
+      console.error('Error fetching existing activity:', fetchError);
       return;
     }
 
     if (existingActivity) {
-      // Update existing daily activity
+      // Update existing activity
       const { error: updateError } = await this.supabase
         .from('daily_activities')
         .update({
-          study_minutes: existingActivity.study_minutes + durationMinutes,
           study_seconds: existingActivity.study_seconds + durationSeconds,
-          points_earned: existingActivity.points_earned + pointsEarned,
           sessions_count: existingActivity.sessions_count + 1,
           last_updated: new Date().toISOString()
         })
@@ -210,15 +208,13 @@ export class ActivitySessionDB {
         console.error('Error updating daily activity:', updateError);
       }
     } else {
-      // Create new daily activity record
+      // Create new activity
       const { error: insertError } = await this.supabase
         .from('daily_activities')
         .insert({
           account_id: accountId,
           date: today,
-          study_minutes: durationMinutes,
           study_seconds: durationSeconds,
-          points_earned: pointsEarned,
           sessions_count: 1,
           last_updated: new Date().toISOString()
         });
@@ -227,7 +223,10 @@ export class ActivitySessionDB {
         console.error('Error creating daily activity:', insertError);
       }
     }
-  }
+
+    // Add points using centralized function (updates both daily_activities and users table)
+    await dailyActivityDB.addPointsToUser(accountId, pointsEarned, today);
+  };
 }
 
 export const activitySessionDB = new ActivitySessionDB();

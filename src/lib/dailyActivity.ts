@@ -4,7 +4,6 @@ export interface DailyActivity {
   id: string;
   account_id: string;
   date: string; // YYYY-MM-DD
-  study_minutes: number;
   study_seconds: number; // Realtime tracking in seconds
   last_updated: string; // Last time the study_seconds was updated
   start_time?: string; // ISO timestamp when study started
@@ -183,6 +182,62 @@ export class DailyActivityDB {
     }
   }
 
+  // Centralized function to add points to user (updates both daily_activities and users table)
+  async addPointsToUser(accountId: string, points: number, date?: string): Promise<void> {
+    if (!accountId || points <= 0) return;
+
+    const targetDate = date || new Date().toISOString().split('T')[0];
+
+    try {
+      // Update daily_activities.points_earned
+      const existing = await this.getDailyActivity(accountId, targetDate);
+      
+      if (existing) {
+        await supabase
+          .from('daily_activities')
+          .update({
+            points_earned: existing.points_earned + points,
+            updated_at: new Date().toISOString()
+          })
+          .eq('account_id', accountId)
+          .eq('date', targetDate);
+      } else {
+        await supabase
+          .from('daily_activities')
+          .insert({
+            account_id: accountId,
+            date: targetDate,
+            study_seconds: 0,
+            points_earned: points,
+            sessions_count: 0,
+            focus_score: 50,
+            daily_rank: 999,
+            last_updated: new Date().toISOString()
+          });
+      }
+
+      // Update users.score
+      const { data: userData } = await supabase
+        .from('users')
+        .select('score')
+        .eq('account_id', accountId)
+        .single();
+
+      if (userData) {
+        const newScore = (userData.score || 0) + points;
+        await supabase
+          .from('users')
+          .update({
+            score: newScore,
+            last_active: new Date().toISOString()
+          })
+          .eq('account_id', accountId);
+      }
+    } catch (error) {
+      console.error('Error adding points to user:', error);
+    }
+  }
+
   // Helper method to update existing activity
   private async updateExistingActivity(activityData: Partial<DailyActivity>): Promise<DailyActivity | null> {
     try {
@@ -198,12 +253,14 @@ export class DailyActivityDB {
         throw fetchError;
       }
 
-      // Update with accumulated values
+      // Calculate additional points
+      const additionalPoints = activityData.points_earned || 0;
+      
+      // Update with accumulated values (excluding points_earned - handled by addPointsToUser)
       const { data, error } = await supabase
         .from('daily_activities')
         .update({
           study_seconds: (existing.study_seconds || 0) + (activityData.study_seconds || 0),
-          points_earned: (existing.points_earned || 0) + (activityData.points_earned || 0),
           sessions_count: (existing.sessions_count || 0) + (activityData.sessions_count || 0),
           focus_score: Math.max(existing.focus_score || 0, activityData.focus_score || 0),
           updated_at: new Date().toISOString()
@@ -215,6 +272,11 @@ export class DailyActivityDB {
 
       if (error) {
         throw error;
+      }
+
+      // Add points using centralized function
+      if (additionalPoints > 0) {
+        await this.addPointsToUser(activityData.account_id!, additionalPoints, activityData.date!);
       }
       
       // Update rankings after updating activity (only if it's been more than 2 minutes)
@@ -251,7 +313,7 @@ export class DailyActivityDB {
       if (existing) {
         // Update existing activity
         const newStudySeconds = (existing.study_seconds || 0) + additionalSeconds;
-        // Don't add points here - points are added by updateUserStudyTime to avoid double counting
+        // Don't add points here - points are calculated by endSession when session ends
         
         const { data, error } = await supabase
           .from('daily_activities')
@@ -288,7 +350,7 @@ export class DailyActivityDB {
         return data;
       } else {
         // Create new activity record
-        // Don't add points here - points are added by updateUserStudyTime to avoid double counting
+        // Don't add points here - points are calculated by endSession when session ends
         
         const { data, error } = await supabase
           .from('daily_activities')
@@ -369,7 +431,6 @@ export class DailyActivityDB {
           .insert({
             account_id: accountId,
             date: today,
-            study_minutes: 0,
             study_seconds: 0,
             points_earned: 0,
             sessions_count: 0,
@@ -670,7 +731,6 @@ export const createTestActivity = async (accountId: string) => {
         .from('daily_activities')
         .update({
           study_seconds: existing.study_seconds + additionalSeconds,
-          points_earned: existing.points_earned + additionalPoints,
           sessions_count: existing.sessions_count + 1,
           focus_score: Math.min(100, existing.focus_score + 5),
           updated_at: new Date().toISOString()
@@ -682,19 +742,25 @@ export const createTestActivity = async (accountId: string) => {
       if (error) {
         return null;
       }
+
+      // Add points using centralized function
+      await dailyActivityDB.addPointsToUser(accountId, additionalPoints, today);
       
       return data;
     } else {
       // Create new test activity
       const studySeconds = (Math.floor(Math.random() * 120) + 30) * 60; // 30-150 minutes in seconds
+      const pointsEarned = Math.floor(Math.random() * 50) + 10; // 10-60 points
       const activity = await dailyActivityDB.upsertDailyActivity({
         account_id: accountId,
         date: today,
         study_seconds: studySeconds,
-        points_earned: Math.floor(Math.random() * 50) + 10, // 10-60 points
         sessions_count: Math.floor(Math.random() * 3) + 1, // 1-3 sessions
         focus_score: Math.floor(Math.random() * 40) + 60 // 60-100 focus score
       });
+      
+      // Add points using centralized function
+      await dailyActivityDB.addPointsToUser(accountId, pointsEarned, today);
       
       return activity;
     }

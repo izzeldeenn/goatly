@@ -9,8 +9,6 @@ import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { SettingsButton } from '@/components/settings/Settings';
 import { MusicPlayer } from '@/components/music/MusicPlayer';
-import { NotesComponent } from '@/components/chat/NotesComponent';
-import { StickyNotes } from '@/components/chat/StickyNotes';
 import { Timer } from '../timers/Timer';
 import { PomodoroTimer } from '../timers/PomodoroTimer';
 import { CountdownTimer } from '../timers/CountdownTimer';
@@ -26,9 +24,30 @@ export function ServiceSelector() {
   const customTheme = useCustomThemeClasses();
   const { getCurrentUser } = useUser();
   const [activeTimer, setActiveTimer] = useState<TimerType>('stopwatch');
-  const [isNotesOpen, setIsNotesOpen] = useState(false);
-  const [notes, setNotes] = useState<string>('');
   const [isMusicPlayerOpen, setIsMusicPlayerOpen] = useState(false);
+
+  // Load enabled services from localStorage
+  const [enabledServices, setEnabledServices] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('enabled_services');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (error) {
+          console.error('Failed to load enabled services:', error);
+        }
+      }
+    }
+    // Default: all services enabled
+    return {
+      stopwatch: true,
+      pomodoro: true,
+      countdown: true,
+      youtube: true,
+      dashboard: true,
+      pdf: true
+    };
+  });
   
   // Refs for scroll containers
   const mobileScrollRef = useRef<HTMLDivElement>(null);
@@ -59,7 +78,7 @@ export function ServiceSelector() {
   };
 
   // Timer buttons array - focus timers only
-  const timerButtons = [
+  const allTimerButtons = [
     { id: 'stopwatch', type: 'stopwatch' as TimerType, label: t.stopwatch, icon: '⏱️' },
     { id: 'pomodoro', type: 'pomodoro' as TimerType, label: t.pomodoro, icon: '🍅' },
     { id: 'countdown', type: 'countdown' as TimerType, label: t.countdown, icon: '⏳' },
@@ -67,6 +86,9 @@ export function ServiceSelector() {
     { id: 'dashboard', type: 'dashboard' as TimerType, label: t.rank === 'ترتيب' ? 'لوحة التحكم' : 'Dashboard', icon: '📈' },
     { id: 'pdf', type: 'pdf' as TimerType, label: t.rank === 'ترتيب' ? 'دراسة PDF' : 'PDF Study', icon: '📚' }
   ];
+
+  // Filter timer buttons to only show enabled services
+  const timerButtons = allTimerButtons.filter(button => enabledServices[button.id]);
 
   // Check scroll position for mobile
   const checkMobileScroll = () => {
@@ -120,23 +142,23 @@ export function ServiceSelector() {
   useEffect(() => {
     const mobileRef = mobileScrollRef.current;
     const desktopRef = desktopScrollRef.current;
-    
+
     if (mobileRef) {
       mobileRef.addEventListener('scroll', checkMobileScroll);
       checkMobileScroll(); // Initial check
     }
-    
+
     if (desktopRef) {
       desktopRef.addEventListener('scroll', checkDesktopScroll);
       checkDesktopScroll(); // Initial check
     }
-    
+
     // Check if scrolling is needed
     setTimeout(() => {
       checkMobileScroll();
       checkDesktopScroll();
     }, 100);
-    
+
     return () => {
       if (mobileRef) {
         mobileRef.removeEventListener('scroll', checkMobileScroll);
@@ -147,33 +169,41 @@ export function ServiceSelector() {
     };
   }, []);
 
-  // Load slides from localStorage for indicator
+  // Listen for enabled services changes from localStorage
   useEffect(() => {
-    const loadSlides = () => {
+    const handleServicesChange = () => {
       if (typeof window !== 'undefined') {
-        const savedSlides = localStorage.getItem('userSlides');
-        if (savedSlides) {
+        const saved = localStorage.getItem('enabled_services');
+        if (saved) {
           try {
-            const parsedSlides = JSON.parse(savedSlides);
-            setNotes(parsedSlides.length > 0 ? 'hasSlides' : '');
+            const parsed = JSON.parse(saved);
+            setEnabledServices(parsed);
           } catch (error) {
-            console.error('Failed to load slides:', error);
+            console.error('Failed to load enabled services:', error);
           }
         }
       }
     };
 
-    loadSlides();
-    
-    // Listen for custom events when new notes are published
-    const handleStickyNotePublished = (e: CustomEvent) => {
-      loadSlides(); // Reload to update indicator
+    // Listen for custom event from settings
+    const handleServicesUpdated = (e: CustomEvent) => {
+      handleServicesChange();
     };
 
-    window.addEventListener('stickyNotePublished', handleStickyNotePublished as EventListener);
-    
+    window.addEventListener('servicesUpdated', handleServicesUpdated as EventListener);
+
+    // Also listen to storage events (for changes in other tabs)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'enabled_services') {
+        handleServicesChange();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
     return () => {
-      window.removeEventListener('stickyNotePublished', handleStickyNotePublished as EventListener);
+      window.removeEventListener('servicesUpdated', handleServicesUpdated as EventListener);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
@@ -231,34 +261,6 @@ export function ServiceSelector() {
             ref={mobileScrollRef}
             className="flex items-center gap-4 p-4 overflow-x-auto flex-1 min-w-0 snap-x snap-mandatory md:justify-center"
           >
-            {/* Notes Button */}
-            <button
-              className="group relative w-9 h-9 rounded-xl flex items-center justify-center text-base transition-all duration-200 flex-shrink-0 border-2"
-              style={{
-                backgroundColor: theme === 'light' ? '#10b981' : '#059669',
-                color: '#ffffff',
-                borderColor: theme === 'light' ? '#059669' : '#047857'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = theme === 'light' ? '#059669' : '#047857';
-                e.currentTarget.style.borderColor = theme === 'light' ? '#047857' : '#059669';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = theme === 'light' ? '#10b981' : '#059669';
-                e.currentTarget.style.borderColor = theme === 'light' ? '#059669' : '#047857';
-              }}
-              onClick={() => setIsNotesOpen(!isNotesOpen)}
-              title={t.rank === 'ترتيب' ? 'الملاحظات' : 'Notes'}
-            >
-              <span className="transition-transform duration-200 group-hover:scale-110">
-                📝
-              </span>
-              {/* Notes Indicator */}
-              {notes.trim() && (
-                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-yellow-400 border-2 border-white shadow-sm"></div>
-              )}
-            </button>
-            
             {timerButtons.map((button) => (
               <button
                 key={button.id}
@@ -298,12 +300,6 @@ export function ServiceSelector() {
         </div>
       </div>
 
-      {/* Notes Component */}
-      <NotesComponent isOpen={isNotesOpen} onClose={() => setIsNotesOpen(false)} />
-      
-      {/* Sticky Notes */}
-      <StickyNotes />
-      
       {/* Music Player */}
       <MusicPlayer isVisible={isMusicPlayerOpen} setIsVisible={setIsMusicPlayerOpen} />
     </div>

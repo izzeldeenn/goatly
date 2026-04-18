@@ -5,7 +5,7 @@ export interface StoreItem {
   description: string;
   descriptionAr: string;
   price: number;
-  category: 'themes' | 'avatars' | 'backgrounds' | 'badges' | 'effects';
+  category: 'themes' | 'avatars' | 'backgrounds' | 'badges' | 'effects' | 'services';
   icon: string;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   purchased: boolean;
@@ -313,7 +313,60 @@ export const defaultStoreItems: StoreItem[] = [
       duration: 4000,
       intensity: 0.8
     }
+  },
+  // Services
+  {
+    id: 'service-ai-tutor',
+    name: 'AI Tutor',
+    nameAr: 'المعلم الذكي',
+    description: 'Get AI-powered study assistance',
+    descriptionAr: 'احصل على مساعدة دراسية مدعومة بالذكاء الاصطناعي',
+    price: 500,
+    category: 'services',
+    icon: 'ð¤',
+    rarity: 'legendary',
+    purchased: false,
+    data: { serviceId: 'ai-tutor' }
+  },
+  {
+    id: 'service-voice-notes',
+    name: 'Voice Notes',
+    nameAr: 'ملاحظات صوتية',
+    description: 'Record and transcribe voice notes',
+    descriptionAr: 'سجل وانسخ الملاحظات الصوتية',
+    price: 300,
+    category: 'services',
+    icon: 'ð',
+    rarity: 'epic',
+    purchased: false,
+    data: { serviceId: 'voice-notes' }
+  },
+  {
+    id: 'service-calendar',
+    name: 'Study Calendar',
+    nameAr: 'تقويم الدراسة',
+    description: 'Plan your study schedule',
+    descriptionAr: 'خطط لجدول دراستك',
+    price: 200,
+    category: 'services',
+    icon: 'ð',
+    rarity: 'rare',
+    purchased: false,
+    data: { serviceId: 'calendar' }
+  },
+  {
+    id: 'service-reminders',
+    name: 'Smart Reminders',
+    nameAr: 'تذكيرات ذكية',
+    description: 'Get smart study reminders',
+    descriptionAr: 'احصل على تذكيرات دراسية ذكية',
+    price: 150,
+    category: 'services',
+    icon: 'ð',
+    rarity: 'common',
+    purchased: false,
+    data: { serviceId: 'reminders' }
   }
 ];
 
-export const specialOfferItems = ['badge-legend', 'theme-galaxy', 'effect-rainbow'];
+export const specialOfferItems = ['badge-legend', 'theme-galaxy', 'effect-rainbow', 'service-ai-tutor'];

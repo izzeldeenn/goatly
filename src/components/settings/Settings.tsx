@@ -13,7 +13,7 @@ const customScrollbarStyles = `
   }
 `;
 import { useTheme } from '@/contexts/ThemeContext';
-import { useGamification } from '@/contexts/GamificationContext';
+import { usePoints } from '@/contexts/PointsContext';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCustomTheme, getThemeClasses } from '@/contexts/CustomThemeContext';
@@ -45,7 +45,7 @@ interface ThemeColors {
 
 export function SettingsButton() {
   const { theme } = useTheme();
-  const { coins, level, experience } = useGamification();
+  const { coins, level, experience } = usePoints();
   const { getCurrentUser, updateUserName, updateUserAvatar, isLoggedIn } = useUser();
   const { language, setLanguage, t } = useLanguage();
   const { currentTheme, setTheme, availableThemes, createCustomTheme, updateThemeColors } = useCustomTheme();
@@ -59,6 +59,8 @@ export function SettingsButton() {
     { id: 'themes', name: t.themes || 'الثيمات', icon: '🎭' },
     { id: 'backgrounds', name: t.backgrounds || 'الخلفيات', icon: '🖼️' },
     { id: 'rankings', name: t.rankings || 'عرض الترتيب', icon: '🏆' },
+    { id: 'services', name: t.services || 'الخدمات', icon: '⚡' },
+    { id: 'unifiedTimer', name: t.unifiedTimer || 'تنسيق موحد', icon: '⚙️' },
     { id: 'timer', name: t.timer || 'التايمر', icon: '⏱️' },
     { id: 'countdown', name: t.countdown || 'العد التنازلي', icon: '⏳' },
     { id: 'pomodoro', name: t.pomodoro || 'بومودورو', icon: '🍅' },
@@ -96,6 +98,50 @@ export function SettingsButton() {
   const [avatarPage, setAvatarPage] = useState(1);
   const [avatarSearch, setAvatarSearch] = useState('');
   const avatarsPerPage = 20;
+
+  // Services settings
+  const [enabledServices, setEnabledServices] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('enabled_services');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (error) {
+          console.error('Failed to load enabled services:', error);
+        }
+      }
+    }
+    // Default: all services enabled
+    return {
+      stopwatch: true,
+      pomodoro: true,
+      countdown: true,
+      youtube: true,
+      dashboard: true,
+      pdf: true
+    };
+  });
+
+  const servicesList = [
+    { id: 'stopwatch', name: t.stopwatchService || 'ساعة إيقاف', icon: '⏱️' },
+    { id: 'pomodoro', name: t.pomodoroService || 'مؤقت بومودورو', icon: '🍅' },
+    { id: 'countdown', name: t.countdownService || 'مؤقت العد التنازلي', icon: '⏳' },
+    { id: 'youtube', name: t.youtubeService || 'مؤقت يوتيوب', icon: '🎬' },
+    { id: 'dashboard', name: t.dashboardService || 'لوحة التحكم', icon: '📈' },
+    { id: 'pdf', name: t.pdfService || 'دراسة PDF', icon: '📚' }
+  ];
+
+  const toggleService = (serviceId: string) => {
+    setEnabledServices(prev => {
+      const updated = { ...prev, [serviceId]: !prev[serviceId] };
+      localStorage.setItem('enabled_services', JSON.stringify(updated));
+      // Dispatch custom event asynchronously to avoid setState during render
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('servicesUpdated', { detail: updated }));
+      }, 0);
+      return updated;
+    });
+  };
 
   // Timer settings
   const [timerColor, setTimerColor] = useState(() => {
@@ -167,6 +213,31 @@ export function SettingsButton() {
   const [pomodoroDesign, setPomodoroDesign] = useState('minimal');
   const [pomodoroSize, setPomodoroSize] = useState('text-4xl');
   const [pomodoroCompletedIcon, setPomodoroCompletedIcon] = useState('star');
+
+  // Unified timer settings
+  const [unifiedColor, setUnifiedColor] = useState('#ffffff');
+  const [unifiedFont, setUnifiedFont] = useState('font-mono');
+  const [unifiedDesign, setUnifiedDesign] = useState('minimal');
+  const [unifiedSize, setUnifiedSize] = useState('text-4xl');
+  const [applyToAll, setApplyToAll] = useState(false);
+
+  // Apply unified settings to all timers
+  const applyToAllTimers = () => {
+    setTimerColor(unifiedColor);
+    setTimerFont(unifiedFont);
+    setTimerDesign(unifiedDesign);
+    setTimerSize(unifiedSize);
+    
+    setCountdownColor(unifiedColor);
+    setCountdownFont(unifiedFont);
+    setCountdownDesign(unifiedDesign);
+    setCountdownSize(unifiedSize);
+    
+    setPomodoroColor(unifiedColor);
+    setPomodoroFont(unifiedFont);
+    setPomodoroDesign(unifiedDesign);
+    setPomodoroSize(unifiedSize);
+  };
 
   // Ranking display mode
   const [rankingDisplayMode, setRankingDisplayMode] = useState(() => {
@@ -628,9 +699,11 @@ export function SettingsButton() {
                         {activeSection === 'themes' && 'اختيار وتخصيص الثيمات'}
                         {activeSection === 'backgrounds' && 'اختيار خلفيات'}
                         {activeSection === 'rankings' && 'اختر طريقة عرض الترتيب التي تناسبك'}
+                        {activeSection === 'services' && 'اختر الخدمات التي تريد استخدامها'}
                         {activeSection === 'timer' && 'تخصيص شكل وألوان المؤقت'}
                         {activeSection === 'countdown' && 'إعداد العد التنازلي'}
                         {activeSection === 'pomodoro' && 'تخصيص مؤقت بومودورو'}
+                        {activeSection === 'unifiedTimer' && 'تنسيق موحد لكل المؤقتات'}
                         {activeSection === 'account' && 'إعدادات الحساب والأمان'}
                       </div>
                     </div>
@@ -2024,6 +2097,274 @@ export function SettingsButton() {
                                 </p>
                               </div>
                             </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeSection === 'unifiedTimer' && (
+                    <div className="space-y-6">
+                      <div 
+                        className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
+                        style={{
+                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
+                          border: `1px solid ${customTheme.colors.border}20`,
+                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                        }}
+                      >
+                        <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20"
+                          style={{
+                            background: `radial-gradient(circle, ${customTheme.colors.primary}, transparent)`
+                          }}
+                        />
+                        
+                        <div className="relative">
+                          <div className="flex items-center space-x-reverse space-x-3 mb-6">
+                            <div 
+                              className="w-8 h-8 rounded-xl flex items-center justify-center"
+                              style={{
+                                background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
+                                boxShadow: `0 4px 16px ${customTheme.colors.primary}40`
+                              }}
+                            >
+                              <span className="text-white text-sm">⚙️</span>
+                            </div>
+                            <label className={`text-sm font-black uppercase tracking-wider ${
+                              theme === 'light' ? 'text-gray-900' : 'text-white'
+                            }`}>
+                              {language === 'ar' ? 'تنسيق موحد' : 'Unified Settings'}
+                            </label>
+                          </div>
+
+                          <div className="space-y-4">
+                            {/* Color */}
+                            <div>
+                              <label className={`text-xs font-bold uppercase tracking-wider mb-2 block ${
+                                theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                              }`}>
+                                {language === 'ar' ? 'اللون' : 'Color'}
+                              </label>
+                              <div className="flex items-center space-x-3">
+                                <input
+                                  type="color"
+                                  value={unifiedColor}
+                                  onChange={(e) => setUnifiedColor(e.target.value)}
+                                  className="w-12 h-12 rounded-xl cursor-pointer border-2"
+                                  style={{ borderColor: customTheme.colors.border }}
+                                />
+                                <input
+                                  type="text"
+                                  value={unifiedColor}
+                                  onChange={(e) => setUnifiedColor(e.target.value)}
+                                  className={`flex-1 px-4 py-2 rounded-xl border-2 text-sm ${
+                                    theme === 'light' 
+                                      ? 'bg-white text-gray-900 border-gray-300' 
+                                      : 'bg-gray-800 text-white border-gray-600'
+                                  }`}
+                                  style={{ borderColor: customTheme.colors.border }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Font */}
+                            <div>
+                              <label className={`text-xs font-bold uppercase tracking-wider mb-2 block ${
+                                theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                              }`}>
+                                {language === 'ar' ? 'الخط' : 'Font'}
+                              </label>
+                              <select
+                                value={unifiedFont}
+                                onChange={(e) => setUnifiedFont(e.target.value)}
+                                className={`w-full px-4 py-3 rounded-xl border-2 ${
+                                  theme === 'light' 
+                                    ? 'bg-white text-gray-900 border-gray-300' 
+                                    : 'bg-gray-800 text-white border-gray-600'
+                                }`}
+                                style={{ borderColor: customTheme.colors.border }}
+                              >
+                                <option value="font-mono">Mono</option>
+                                <option value="font-sans">Sans</option>
+                                <option value="font-serif">Serif</option>
+                              </select>
+                            </div>
+
+                            {/* Design */}
+                            <div>
+                              <label className={`text-xs font-bold uppercase tracking-wider mb-2 block ${
+                                theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                              }`}>
+                                {language === 'ar' ? 'التصميم' : 'Design'}
+                              </label>
+                              <div className="grid grid-cols-3 gap-3">
+                                {['minimal', 'modern', 'classic'].map((design) => (
+                                  <button
+                                    key={design}
+                                    onClick={() => setUnifiedDesign(design)}
+                                    className={`px-4 py-3 rounded-xl border-2 transition-all ${
+                                      unifiedDesign === design
+                                        ? 'border-opacity-100'
+                                        : 'border-opacity-30'
+                                    }`}
+                                    style={{
+                                      background: unifiedDesign === design 
+                                        ? `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`
+                                        : 'transparent',
+                                      borderColor: customTheme.colors.border
+                                    }}
+                                  >
+                                    <span className="text-white text-sm capitalize">{design}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Size */}
+                            <div>
+                              <label className={`text-xs font-bold uppercase tracking-wider mb-2 block ${
+                                theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                              }`}>
+                                {language === 'ar' ? 'الحجم' : 'Size'}
+                              </label>
+                              <div className="grid grid-cols-4 gap-3">
+                                {['text-2xl', 'text-4xl', 'text-6xl', 'text-8xl'].map((size) => (
+                                  <button
+                                    key={size}
+                                    onClick={() => setUnifiedSize(size)}
+                                    className={`px-4 py-3 rounded-xl border-2 transition-all ${
+                                      unifiedSize === size
+                                        ? 'border-opacity-100'
+                                        : 'border-opacity-30'
+                                    }`}
+                                    style={{
+                                      background: unifiedSize === size 
+                                        ? `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`
+                                        : 'transparent',
+                                      borderColor: customTheme.colors.border
+                                    }}
+                                  >
+                                    <span className={`text-white ${size}`}>A</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Apply to All Button */}
+                            <div className="pt-4">
+                              <button
+                                onClick={applyToAllTimers}
+                                className="w-full py-3 px-6 rounded-xl font-bold text-white transition-all transform hover:scale-105 active:scale-95"
+                                style={{
+                                  background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
+                                  boxShadow: `0 4px 16px ${customTheme.colors.primary}40`
+                                }}
+                              >
+                                {language === 'ar' ? 'تطبيق على جميع المؤقتات' : 'Apply to All Timers'}
+                              </button>
+                            </div>
+
+                            {/* Preview */}
+                            <div className="mt-6 p-6 rounded-2xl"
+                              style={{
+                                background: `linear-gradient(135deg, ${customTheme.colors.background}40, ${customTheme.colors.surface}20)`,
+                                border: `1px solid ${customTheme.colors.border}`
+                              }}
+                            >
+                              <div className="text-center">
+                                <div className={`text-center ${unifiedFont} ${unifiedSize}`}
+                                  style={{ color: unifiedColor }}
+                                >
+                                  25:00
+                                </div>
+                                <p className={`text-xs mt-2 ${
+                                  theme === 'light' ? 'text-gray-500' : 'text-gray-400'
+                                }`}>
+                                  {language === 'ar' ? 'معاينة التنسيق الموحد' : 'Unified Preview'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeSection === 'services' && (
+                    <div className="space-y-6">
+                      <div
+                        className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
+                        style={{
+                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
+                          border: `1px solid ${customTheme.colors.border}20`,
+                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                        }}
+                      >
+                        <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20"
+                          style={{
+                            background: `radial-gradient(circle, ${customTheme.colors.primary}, transparent)`
+                          }}
+                        />
+
+                        <div className="relative">
+                          <div className="flex items-center space-x-reverse space-x-3 mb-6">
+                            <div
+                              className="w-8 h-8 rounded-xl flex items-center justify-center"
+                              style={{
+                                background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
+                                boxShadow: `0 4px 16px ${customTheme.colors.primary}40`
+                              }}
+                            >
+                              <span className="text-white text-sm">⚡</span>
+                            </div>
+                            <label className={`text-sm font-black uppercase tracking-wider ${
+                              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                            }`}>
+                              {t.serviceDescription || 'اختر الخدمات التي تريد إظهارها'}
+                            </label>
+                          </div>
+
+                          <div className="space-y-3">
+                            {servicesList.map((service) => (
+                              <div
+                                key={service.id}
+                                className="flex items-center justify-between p-4 rounded-2xl backdrop-blur-sm transition-all duration-200 hover:scale-[1.02]"
+                                style={{
+                                  background: `linear-gradient(135deg, ${customTheme.colors.surface}40, ${customTheme.colors.background}10)`,
+                                  border: `1px solid ${customTheme.colors.border}30`
+                                }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-2xl">{service.icon}</span>
+                                  <span className={`font-semibold ${theme === 'light' ? 'text-gray-800' : 'text-gray-200'}`}>
+                                    {service.name}
+                                  </span>
+                                </div>
+                                <button
+                                  onClick={() => toggleService(service.id)}
+                                  className={`relative w-14 h-8 rounded-full transition-all duration-300 ${
+                                    enabledServices[service.id]
+                                      ? 'bg-green-500'
+                                      : 'bg-gray-400'
+                                  }`}
+                                  style={{
+                                    boxShadow: enabledServices[service.id]
+                                      ? `0 4px 16px ${customTheme.colors.primary}40`
+                                      : 'none'
+                                  }}
+                                >
+                                  <div
+                                    className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 ${
+                                      enabledServices[service.id] ? 'left-1' : 'right-1'
+                                    }`}
+                                    style={{
+                                      [language === 'ar' ? 'right' : 'left']: enabledServices[service.id] ? '4px' : 'auto',
+                                      [language === 'ar' ? 'left' : 'right']: enabledServices[service.id] ? 'auto' : '4px'
+                                    }}
+                                  />
+                                </button>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>

@@ -16,7 +16,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { TimerIndicatorProvider } from '@/contexts/TimerIndicatorContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RankingDisplay } from '@/components/study/RankingDisplay';
-import { ChallengesButton } from '@/components/study/ChallengesButton';
+import { ActionButtons } from '@/components/study/ActionButtons';
 import { BACKGROUNDS } from '@/constants/backgrounds';
 import { useFirstTimeSetup } from '@/hooks/useFirstTimeSetup';
 import { OnboardingWizard } from '@/components/auth/OnboardingWizard';
@@ -457,7 +457,7 @@ function HomeContent() {
             </div>
             <ServiceSelector />
             <div className="flex flex-col gap-3">
-              <ChallengesButton />
+              <ActionButtons />
               <RankingDisplay studyStreak={studyStreak} onUserClick={openUserProfile} />
             </div>
           </div>
@@ -494,7 +494,7 @@ function HomeContent() {
             
             {/* Fixed Buttons Container */}
             <div className="absolute top-4 right-4 flex flex-col gap-3">
-              <ChallengesButton />
+              <ActionButtons />
               <RankingDisplay studyStreak={studyStreak} onUserClick={openUserProfile} />
             </div>
           </div>

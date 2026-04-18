@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useGamification } from '@/contexts/GamificationContext';
+import { usePoints } from '@/contexts/PointsContext';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -28,7 +28,7 @@ const AVATARS = [
 
 export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
   const { theme } = useTheme();
-  const { coins, level, experience } = useGamification();
+  const { coins, level, experience } = usePoints();
   const { getCurrentUser, updateUserName, updateUserAvatar, isTimerActive } = useUser();
   const { language, setLanguage, t } = useLanguage();
   const [showSettings, setShowSettings] = useState(false);

@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { getAccountId, getAccountInfo } from '@/utils/deviceId';
-import { useGamification } from '@/contexts/GamificationContext';
 import { formatStudyTime } from '@/utils/timeFormat';
 import { userDB, resetTokenDB, isSupabaseAvailable, UserAccount, UserAccountFrontend } from '@/lib/supabase';
 import { dailyActivityDB, DailyActivityFrontend } from '@/lib/dailyActivity';

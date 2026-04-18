@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
-import { useGamification } from '@/contexts/GamificationContext';
+import { usePoints } from '@/contexts/PointsContext';
 
 interface StoreRewards {
   dailyLogin: number;
@@ -23,7 +23,7 @@ interface UserStoreData {
 
 export const useStoreSystem = () => {
   const { getCurrentUser } = useUser();
-  const { coins, addCoins, removeCoins, level } = useGamification();
+  const { coins, addCoins, removeCoins, level } = usePoints();
   const [userStoreData, setUserStoreData] = useState<UserStoreData>({
     totalEarned: 0,
     totalSpent: 0,

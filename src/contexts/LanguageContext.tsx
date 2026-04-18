@@ -12,6 +12,7 @@ const translations = {
     pomodoro: 'Pomodoro',
     countdown: 'Countdown',
     youtube: 'YouTube Timer',
+    unifiedTimer: 'Unified Timer',
     // Rankings
     rankings: 'Rankings',
     dailyRankings: 'Daily Rankings',
@@ -118,7 +119,20 @@ const translations = {
     storeCancel: 'Cancel',
     close: 'Close',
     itemPreview: 'Item Preview',
-    specialOffer: 'Special offer! Save'
+    specialOffer: 'Special offer! Save',
+    // Services
+    services: 'Services',
+    stopwatchService: 'Stopwatch',
+    pomodoroService: 'Pomodoro Timer',
+    countdownService: 'Countdown Timer',
+    youtubeService: 'YouTube Timer',
+    dashboardService: 'Dashboard',
+    pdfService: 'PDF Study',
+    enableService: 'Enable',
+    disableService: 'Disable',
+    serviceDescription: 'Choose which services to show in your timer selector',
+    newServices: 'New Services',
+    comingSoon: 'Coming Soon'
   },
   ar: {
     // Timer
@@ -127,6 +141,7 @@ const translations = {
     pomodoro: 'بومودورو',
     countdown: 'عد تنازلي',
     youtube: 'مؤقت يوتيوب',
+    unifiedTimer: 'تنسيق موحد',
     // Rankings
     rankings: 'الترتيب',
     dailyRankings: 'الترتيب اليومي',
@@ -233,7 +248,20 @@ const translations = {
     storeCancel: 'إلغاء',
     close: 'إغلاق',
     itemPreview: 'معاينة العنصر',
-    specialOffer: 'عرض خاص! وفر'
+    specialOffer: 'عرض خاص! وفر',
+    // Services
+    services: 'الخدمات',
+    stopwatchService: 'ساعة إيقاف',
+    pomodoroService: 'مؤقت بومودورو',
+    countdownService: 'مؤقت العد التنازلي',
+    youtubeService: 'مؤقت يوتيوب',
+    dashboardService: 'لوحة التحكم',
+    pdfService: 'دراسة PDF',
+    enableService: 'تفعيل',
+    disableService: 'تعطيل',
+    serviceDescription: 'اختر الخدمات التي تريد إظهارها في منتقي المؤقت',
+    newServices: 'خدمات جديدة',
+    comingSoon: 'قريباً'
   }
 };
 

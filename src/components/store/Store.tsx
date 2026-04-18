@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
-import { useGamification } from '@/contexts/GamificationContext';
+import { usePoints } from '@/contexts/PointsContext';
 import { StoreItem, defaultStoreItems, specialOfferItems } from './storeProducts';
 
 interface UserInventory {
@@ -29,7 +29,7 @@ export function Store({ isOpen, onClose }: StoreProps) {
   const { theme } = useTheme();
   const { language, t } = useLanguage();
   const { getCurrentUser } = useUser();
-  const { coins, level, addCoins, removeCoins } = useGamification();
+  const { coins, level, addCoins, removeCoins } = usePoints();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [storeItems, setStoreItems] = useState<StoreItem[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -261,7 +261,8 @@ export function Store({ isOpen, onClose }: StoreProps) {
     { id: 'avatars', name: t.storeAvatars, icon: '👤' },
     { id: 'backgrounds', name: t.storeBackgrounds, icon: '🖼️' },
     { id: 'badges', name: t.storeBadges, icon: '🏆' },
-    { id: 'effects', name: t.storeEffects, icon: '✨' }
+    { id: 'effects', name: t.storeEffects, icon: '✨' },
+    { id: 'services', name: t.newServices, icon: '⚡' }
   ];
 
   if (!mounted) {
@@ -464,9 +465,9 @@ export function Store({ isOpen, onClose }: StoreProps) {
 
                     {item.category === 'effects' && (
                       <div className="h-full flex items-center justify-center p-4">
-                        <div 
+                        <div
                           className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg animate-pulse"
-                          style={{ 
+                          style={{
                             background: `linear-gradient(135deg, ${getRarityColor(item.rarity)}40, ${getRarityColor(item.rarity)}20)`,
                             border: `2px solid ${getRarityColor(item.rarity)}60`
                           }}
@@ -475,6 +476,24 @@ export function Store({ isOpen, onClose }: StoreProps) {
                             <span className="text-4xl block">{item.icon}</span>
                             <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
                             <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-yellow-400" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {item.category === 'services' && (
+                      <div className="h-full flex items-center justify-center p-4">
+                        <div
+                          className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg"
+                          style={{
+                            background: `linear-gradient(135deg, ${getRarityColor(item.rarity)}40, ${getRarityColor(item.rarity)}20)`,
+                            border: `2px solid ${getRarityColor(item.rarity)}60`
+                          }}
+                        >
+                          <div className="relative">
+                            <span className="text-4xl block">{item.icon}</span>
+                            <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                            <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-blue-400" />
                           </div>
                         </div>
                       </div>
@@ -707,9 +726,9 @@ export function Store({ isOpen, onClose }: StoreProps) {
 
                 {itemForPreview.category === 'effects' && (
                   <div className="h-full w-full flex items-center justify-center p-6">
-                    <div 
+                    <div
                       className="w-28 h-28 rounded-2xl flex items-center justify-center shadow-xl animate-pulse"
-                      style={{ 
+                      style={{
                         background: `linear-gradient(135deg, ${getRarityColor(itemForPreview.rarity)}40, ${getRarityColor(itemForPreview.rarity)}20)`,
                         border: `3px solid ${getRarityColor(itemForPreview.rarity)}60`
                       }}
@@ -718,6 +737,24 @@ export function Store({ isOpen, onClose }: StoreProps) {
                         <span className="text-6xl block">{itemForPreview.icon}</span>
                         <div className="absolute -top-2 -right-2 w-3 h-3 rounded-full bg-yellow-400 animate-ping" />
                         <div className="absolute -top-2 -right-2 w-3 h-3 rounded-full bg-yellow-400" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {itemForPreview.category === 'services' && (
+                  <div className="h-full w-full flex items-center justify-center p-6">
+                    <div
+                      className="w-28 h-28 rounded-2xl flex items-center justify-center shadow-xl"
+                      style={{
+                        background: `linear-gradient(135deg, ${getRarityColor(itemForPreview.rarity)}40, ${getRarityColor(itemForPreview.rarity)}20)`,
+                        border: `3px solid ${getRarityColor(itemForPreview.rarity)}60`
+                      }}
+                    >
+                      <div className="relative">
+                        <span className="text-6xl block">{itemForPreview.icon}</span>
+                        <div className="absolute -top-2 -right-2 w-3 h-3 rounded-full bg-blue-400 animate-pulse" />
+                        <div className="absolute -top-2 -right-2 w-3 h-3 rounded-full bg-blue-400" />
                       </div>
                     </div>
                   </div>

@@ -4,7 +4,7 @@ import "./globals.css";
 import "../styles/effects.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { UserProvider } from "@/contexts/UserContext";
-import { GamificationProvider } from "@/contexts/GamificationContext";
+import { PointsProvider } from "@/contexts/PointsContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { StudySessionProvider } from "@/contexts/StudySessionContext";
 import { Analytics } from "@vercel/analytics/next";
@@ -46,14 +46,14 @@ export default function RootLayout({
           <ThemeProvider>
             <CustomThemeProvider>
               <UserProvider>
-                <GamificationProvider>
+                <PointsProvider>
                   <StudySessionProvider>
                     <MusicProvider>
                       <FirstTimeSetup />
                       {children}
                     </MusicProvider>
                   </StudySessionProvider>
-                </GamificationProvider>
+                </PointsProvider>
               </UserProvider>
             </CustomThemeProvider>
           </ThemeProvider>

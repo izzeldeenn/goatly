@@ -86,22 +86,22 @@ function LandingPageContent() {
               <div className="flex items-center">
                 <div className="flex items-center space-x-3">
                   <img 
-                    src="/mrfrogo.png" 
-                    alt="Mr Frogo" 
+                    src="/goat.png" 
+                    alt="Mr Goatly" 
                     className="w-10 h-10 object-contain"
                   />
                   <div className="flex flex-col">
                     <div className="text-xl font-bold tracking-tight">
                       <span className={`inline-block font-black ${
                         theme === 'light' ? 'text-lime-900' : 'text-purple-100'
-                      }`}>
-                        Frogo
+                      }`} style={{ fontFamily: "'ADLaM Display', sans-serif" }}>
+                        Goatly
                       </span>
                     </div>
                     <div className={`text-xs font-medium tracking-wide ${
                       theme === 'light' ? 'text-lime-700' : 'text-purple-200'
                     }`}>
-                      Focus. Rise. Organize.
+                      great of all time
                     </div>
                   </div>
                 </div>
@@ -134,7 +134,7 @@ function LandingPageContent() {
               {/* Desktop Actions */}
               <div className="hidden md:flex items-center gap-3">
                 <a 
-                  href="https://github.com/izzeldeenn/FROGO"
+                  href="https://github.com/izzeldeenn/GOATLY"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`px-3 py-1 rounded-lg text-sm font-semibold transition-all transform hover:scale-105 flex items-center gap-1 ${
@@ -232,7 +232,7 @@ function LandingPageContent() {
               {/* Mobile Actions */}
               <div className="flex flex-col gap-3">
                 <a 
-                  href="https://github.com/izzeldeenn/FROGO"
+                  href="https://github.com/izzeldeenn/GOATLY"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all transform hover:scale-105 flex items-center justify-center gap-2 ${
@@ -629,7 +629,7 @@ function LandingPageContent() {
                 </p>
                 <div className="flex gap-4">
                   <a 
-                    href="https://github.com/izzeldeenn/FROGO"
+                    href="https://github.com/izzeldeenn/GOATLY"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 bg-gradient-to-r from-gray-700 to-black text-white text-center"
@@ -701,7 +701,7 @@ function LandingPageContent() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a 
-                  href="https://github.com/izzeldeenn/FROGO"
+                  href="https://github.com/izzeldeenn/GOATLY"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-8 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-center"
@@ -764,22 +764,22 @@ function LandingPageContent() {
     <div className="flex items-center justify-center">
       <div className="flex items-center space-x-3 space-x-reverse">
         <img 
-          src="/mrfrogo.png" 
-          alt="Mr Frogo" 
+          src="/goat.png" 
+          alt="Mr Goatly" 
           className="w-20 h-20 object-contain"
         />
         <div className="flex flex-col items-center">
           <div className="text-4xl font-bold tracking-tight">
             <span className={`inline-block font-black ${
                     theme === 'light' ? 'text-lime-900' : 'text-purple-100'
-                  }`}>
-                    Frogo
+                  }`} style={{ fontFamily: "'ADLaM Display', sans-serif" }}>
+                    Goatly
                   </span>
           </div>
           <div className={`text-xs mt-1 font-medium tracking-wider ${
             theme === 'light' ? 'text-lime-700' : 'text-purple-200'
           }`}>
-            Focus. Rise. Organize. Go.
+            great of all time
           </div>
         </div>
       </div>

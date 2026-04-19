@@ -1,4 +1,4 @@
-# <img src="public/mrfrogo.png" alt="Mr Frogo" width="30"> Frogo - Focus, Rise, Organize, Grow, Overcome
+# <img src="public/goat.png" alt="Mr Goatly" width="30"> Goatly - Focus, Rise, Organize, Grow, Overcome
 
 <div align="center">
 
@@ -10,8 +10,8 @@
 
 **🌟 An open-source community-driven study time management platform built by students, for students.**
 
-[![Live Demo](https://img.shields.io/badge/Demo-Live-brightgreen.svg)](https://frogo-community.vercel.app)
-[![GitHub](https://img.shields.io/badge/GitHub-Contribute-purple.svg)](https://github.com/izzeldeenn/FROGO)
+[![Live Demo](https://img.shields.io/badge/Demo-Live-brightgreen.svg)](https://goatly-community.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-Contribute-purple.svg)](https://github.com/izzeldeenn/GOATLY)
 [![Discord](https://img.shields.io/badge/Discord-Join-7289da.svg)](https://discord.gg/5wBNne8Z3f)
 
 </div>
@@ -29,13 +29,13 @@
 
 ## 🌟 About
 
-Frogo is more than just a study timer—it's a comprehensive open-source platform designed to help students achieve deep focus and academic excellence through community-driven tools and collaborative learning.
+Goatly is more than just a study timer—it's a comprehensive open-source platform designed to help students achieve deep focus and academic excellence through community-driven tools and collaborative learning.
 
 ### Our Mission
 
 > **"Focus Together, Succeed Together"** - We believe that the power of community can transform individual study habits into collective success.
 
-### What Makes Frogo Different
+### What Makes Goatly Different
 
 - **🌍 Community-Driven**: Built by students, for students
 - **🔓 Open Source**: Transparent, customizable, and free forever
@@ -43,7 +43,7 @@ Frogo is more than just a study timer—it's a comprehensive open-source platfor
 - **📊 Data-Driven**: Smart analytics to track and improve study patterns
 - **🤝 Collaborative**: Learn from peers and share success strategies
 
-### 🐸 The Mr. Frogo Philosophy
+### � The Mr. Goatly Philosophy
 
 *"The secret isn't in jumping a lot... The secret is in jumping in the right direction."*
 
@@ -97,8 +97,8 @@ This simple yet profound principle guides everything we build - every feature, e
 
 ```bash
 # Clone the repository
-git clone https://github.com/izzeldeenn/FROGO.git
-cd FROGO
+git clone https://github.com/izzeldeenn/GOATLY.git
+cd GOATLY
 
 # Install dependencies
 npm install
@@ -135,7 +135,7 @@ npm start
 npm run ws-server
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to see Frogo in action!
+Visit [http://localhost:3000](http://localhost:3000) to see Goatly in action!
 
 ## 🛠️ Tech Stack
 
@@ -258,7 +258,7 @@ npm run test:coverage
 
 ### 🚀 Deployment
 
-Frogo is deployed on Vercel for seamless integration:
+Goatly is deployed on Vercel for seamless integration:
 
 ```bash
 # Deploy to Vercel
@@ -321,7 +321,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### 🌟 Special Thanks
 
-- **👥 Our Community Contributors** - Everyone who helped build Frogo
+- **👥 Our Community Contributors** - Everyone who helped build Goatly
 - **🎨 Design Inspiration** - Modern productivity and focus apps
 - **📚 Educational Resources** - Study techniques and research
 - **🛠️ Open Source Community** - Tools and libraries that make this possible
@@ -338,10 +338,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 | Platform | Link |
 |----------|------|
-| **🚀 GitHub** | [github.com/izzeldeenn/FROGO](https://github.com/izzeldeenn/FROGO) |
+| **🚀 GitHub** | [github.com/izzeldeenn/GOATLY](https://github.com/izzeldeenn/GOATLY) |
 | **💬 Discord** | [discord.gg/5wBNne8Z3f](https://discord.gg/5wBNne8Z3f) |
-| **🌐 Live Demo** | [frogo-community.vercel.app](https://frogo-community.vercel.app) |
-| **📧 Email** | [support@frogo.app](mailto:support@frogo.app) |
+| **🌐 Live Demo** | [goatly-community.vercel.app](https://goatly-community.vercel.app) |
+| **📧 Email** | [support@goatly.app](mailto:support@goatly.app) |
 
 ### 🎯 Join Our Mission
 
@@ -349,10 +349,10 @@ Become part of a growing movement of students committed to focus, learning, and 
 
 - **🛠️ Contribute Code** - Help us build better features
 - **📝 Share Feedback** - Tell us what works and what doesn't
-- **🌍 Spread the Word** - Help other students discover Frogo
+- **🌍 Spread the Word** - Help other students discover Goatly
 - **🤝 Partner With Us** - Schools, organizations, and communities
 
-**Your journey starts here. Together, we focus, rise, organize, grow, and overcome.**
+**Your journey starts here. Together, we focus, rise, organize, grow, and overcome with Goatly.**
 
 ---
 
@@ -360,10 +360,10 @@ Become part of a growing movement of students committed to focus, learning, and 
 
 **⭐ Star this repo if it helped you focus better!**
 
-Made with ❤️ by the Frogo Community
+Made with ❤️ by the Goatly Community
 
-*"Focus. Rise. Organize. Grow. Overcome."*
+*"great of all time"*
 
-**🐸 "The secret isn't in jumping a lot... The secret is in jumping in the right direction." - Mr. Frogo**
+**� "The secret isn't in jumping a lot... The secret is in jumping in the right direction." - Mr. Goatly**
 
 </div>

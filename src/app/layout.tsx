@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Frogo",
+  title: "Goatly",
   description: "تطبيق ويب للترتيب والمؤقت",
 };
 

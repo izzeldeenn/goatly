@@ -90,8 +90,8 @@ function ExtensionLandingPageContent() {
               <div className="flex items-center">
                 <div className="flex items-center space-x-3">
                   <img 
-                    src="/mrfrogo.png" 
-                    alt="Mr Frogo" 
+                    src="/goat.png" 
+                    alt="Mr Goatly" 
                     className="w-10 h-10 object-contain"
                   />
                   <div className="flex flex-col">
@@ -99,7 +99,7 @@ function ExtensionLandingPageContent() {
                       <span className={`inline-block font-black ${
                         theme === 'light' ? 'text-blue-900' : 'text-blue-100'
                       }`}>
-                        Frogo
+                        Goatly
                       </span>
                     </div>
                     <div className={`text-xs font-medium tracking-wide ${
@@ -258,7 +258,7 @@ function ExtensionLandingPageContent() {
                   <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg ${
                     theme === 'light' ? 'bg-blue-100' : 'bg-gray-800'
                   }`}>
-                    <img src="/mrfrogo.png" alt="Frogo" className="w-14 h-14 object-contain" />
+                    <img src="/goat.png" alt="Goatly" className="w-14 h-14 object-contain" />
                   </div>
                   <div className="flex-1">
                     <h1 className={`text-4xl font-bold mb-3 ${
@@ -357,7 +357,7 @@ function ExtensionLandingPageContent() {
                   <a href="#" className={`text-sm font-semibold hover:underline flex items-center gap-1 ${
                     theme === 'light' ? 'text-blue-600 hover:text-blue-700' : 'text-blue-400 hover:text-blue-300'
                   }`}>
-                    {texts.frogoTeam}
+                    {texts.GoatlyTeam}
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"/>
                     </svg>
@@ -386,7 +386,7 @@ function ExtensionLandingPageContent() {
                           ? 'bg-gradient-to-br from-blue-500 to-purple-600' 
                           : 'bg-gradient-to-br from-blue-600 to-purple-700'
                       }`}>
-                        <img src="/mrfrogo.png" alt="Frogo Extension" className="w-16 h-16 object-contain filter brightness-0 invert" />
+                        <img src="/goat.png" alt="Goatly Extension" className="w-16 h-16 object-contain filter brightness-0 invert" />
                       </div>
                       <h3 className={`text-2xl font-bold mb-3 ${
                         theme === 'light' ? 'text-gray-800' : 'text-white'
@@ -577,7 +577,7 @@ function ExtensionLandingPageContent() {
                     theme === 'light' ? 'bg-gradient-to-br from-blue-50 to-indigo-100' : 'bg-gradient-to-br from-gray-700 to-gray-800'
                   }`}>
                     <div className="text-center">
-                      <img src="/mrfrogo.png" alt={screenshot.title} className="w-16 h-16 mx-auto mb-2 object-contain opacity-50" />
+                      <img src="/goat.png" alt={screenshot.title} className="w-16 h-16 mx-auto mb-2 object-contain opacity-50" />
                       <div className={`text-sm font-medium ${
                         theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                       }`}>
@@ -725,7 +725,7 @@ function ExtensionLandingPageContent() {
                 {
                   rating: 5,
                   title: "Life changing extension!",
-                  content: "Frogo has completely transformed my productivity. I can finally focus on my work without getting distracted by social media.",
+                  content: "Goatly has completely transformed my productivity. I can finally focus on my work without getting distracted by social media.",
                   author: "Sarah Johnson",
                   date: "2 weeks ago",
                   helpful: 23
@@ -749,7 +749,7 @@ function ExtensionLandingPageContent() {
                 {
                   rating: 5,
                   title: "Exactly what I needed",
-                  content: "I've tried many productivity extensions, but Frogo is by far the best. Clean interface, powerful features, and it actually works.",
+                  content: "I've tried many productivity extensions, but Goatly is by far the best. Clean interface, powerful features, and it actually works.",
                   author: "Alex Rodriguez",
                   date: "2 months ago",
                   helpful: 31
@@ -937,11 +937,11 @@ function ExtensionLandingPageContent() {
             <div className="grid md:grid-cols-4 gap-8 mb-8">
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <img src="/mrfrogo.png" alt="Frogo" className="w-8 h-8 object-contain" />
+                  <img src="/goat.png" alt="Goatly" className="w-8 h-8 object-contain" />
                   <span className={`font-bold ${
                     theme === 'light' ? 'text-gray-900' : 'text-white'
                   }`}>
-                    Frogo
+                    Goatly
                   </span>
                 </div>
                 <p className={`text-sm ${

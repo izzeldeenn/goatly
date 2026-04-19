@@ -53,8 +53,8 @@ export function SocialNavbar({ activeTab, setActiveTab }: SocialNavbarProps) {
                     : 'bg-gradient-to-br from-blue-900/30 to-purple-900/30 shadow-lg shadow-blue-400/10'
                 }`}>
                   <img 
-                    src="/mrfrogo.png" 
-                    alt="Frogo" 
+                    src="/goat.png" 
+                    alt="Goatly" 
                     className="w-9 h-9 object-contain drop-shadow-sm"
                   />
                 </div>
@@ -62,8 +62,8 @@ export function SocialNavbar({ activeTab, setActiveTab }: SocialNavbarProps) {
                   theme === 'light' 
                     ? 'from-blue-600 via-purple-600 to-pink-600 text-transparent' 
                     : 'from-blue-400 via-purple-400 to-pink-400 text-transparent'
-                }`}>
-                  Frogo
+                }`} style={{ fontFamily: "'ADLaM Display', sans-serif" }}>
+                  Goatly
                 </div>
               </div>
             </div>

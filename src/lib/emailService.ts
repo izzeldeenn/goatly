@@ -27,8 +27,8 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
     }
 
     const defaultSender = {
-      name: 'Frogo App',
-      email: process.env.BREVO_SENDER_EMAIL || 'noreply@frogo.app'
+      name: 'Goatly App',
+      email: process.env.BREVO_SENDER_EMAIL || 'noreply@goatly.app'
     };
 
     const message = {
@@ -91,13 +91,13 @@ export async function sendPasswordResetEmail(email: string, resetToken: string, 
       <body style="margin: 0; padding: 20px; background-color: #f5f5f5;">
         <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #4CAF50; margin: 0;">🐸 Frogo</h1>
+            <h1 style="color: #4CAF50; margin: 0;">� Goatly</h1>
             <h2 style="color: #333; margin: 10px 0;">إعادة تعيين كلمة المرور</h2>
           </div>
           
           <div style="color: #666; line-height: 1.6; margin-bottom: 30px;">
-            <p>مرحباً ${userName || 'صديق Frogo'}،</p>
-            <p>لقد تلقيت هذا البريد لأنك طلبت إعادة تعيين كلمة المرور لحسابك في Frogo.</p>
+            <p>مرحباً ${userName || 'صديق Goatly'}،</p>
+            <p>لقد تلقيت هذا البريد لأنك طلبت إعادة تعيين كلمة المرور لحسابك في Goatly.</p>
             <p>اضغط على الزر التالي لإعادة تعيين كلمة المرور:</p>
           </div>
           
@@ -125,7 +125,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string, 
           </div>
           
           <div style="text-align: center; margin-top: 30px; color: #999; font-size: 12px;">
-            <p>© 2026 Frogo - تطبيق تعلم اللغات المسلّي</p>
+            <p>© 2026 Goatly - تطبيق تعلم اللغات المسلّي</p>
           </div>
         </div>
       </body>
@@ -133,9 +133,9 @@ export async function sendPasswordResetEmail(email: string, resetToken: string, 
   `;
 
   const textContent = `
-    مرحباً ${userName || 'صديق Frogo'}،
+    مرحباً ${userName || 'صديق Goatly'}،
     
-    لقد تلقيت هذا البريد لأنك طلبت إعادة تعيين كلمة المرور لحسابك في Frogo.
+    لقد تلقيت هذا البريد لأنك طلبت إعادة تعيين كلمة المرور لحسابك في Goatly.
     
     اضغط على الرابط التالي لإعادة تعيين كلمة المرور:
     ${resetUrl}
@@ -145,12 +145,12 @@ export async function sendPasswordResetEmail(email: string, resetToken: string, 
     - إذا لم تطلب إعادة تعيين كلمة المرور، يرجى تجاهل هذا البريد
     - لأسباب أمنية، لا تشارك هذا الرابط مع أي شخص
     
-    © 2026 Frogo - تطبيق تعلم اللغات المسلّي
+    © 2026 Goatly - تطبيق تعلم اللغات المسلّي
   `;
 
   return sendEmail({
     to: email,
-    subject: 'إعادة تعيين كلمة المرور - Frogo',
+    subject: 'إعادة تعيين كلمة المرور - Goatly',
     htmlContent,
     textContent
   });

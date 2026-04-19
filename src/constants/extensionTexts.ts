@@ -6,28 +6,28 @@ export const extensionTexts = {
     reviews: 'Reviews',
     
     // Hero Section - Extension Store Style
-    extensionTitle: 'Frogo - Focus Extension',
+    extensionTitle: 'Goatly - Focus Extension',
     featured: 'Featured',
     categoryProductivity: 'Productivity',
     categoryFocus: 'Focus Tools',
     usersCount: '50K+ users',
     ratingText: '4.8 (2,347 reviews)',
-    heroDescription1: 'Transform your browsing experience with Frogo - the ultimate focus extension that helps you stay productive, block distractions, and achieve your goals.',
+    heroDescription1: 'Transform your browsing experience with Goatly - the ultimate focus extension that helps you stay productive, block distractions, and achieve your goals.',
     heroDescription2: 'Features include smart site blocking, focus timer, productivity tracking, and customizable settings to match your workflow.',
     addToBrowser: 'Add to',
     freeNoAds: 'Free • No ads • Privacy-focused',
     offeredBy: 'Offered by',
-    frogoTeam: 'Frogo Team',
+    GoatlyTeam: 'Goatly Team',
     
     // Browser Installation Section
     availableBrowsers: 'Available for all major browsers',
-    browserInstallDesc: 'Install Frogo on your favorite browser and start improving your focus today',
+    browserInstallDesc: 'Install Goatly on your favorite browser and start improving your focus today',
     currentlyUsing: 'Currently using',
     installForBrowser: 'Install for',
     
     // Screenshots Section
     screenshots: 'Screenshots',
-    screenshotsDesc: 'See Frogo in action',
+    screenshotsDesc: 'See Goatly in action',
     mainDashboard: 'Main Dashboard',
     mainDashboardDesc: 'Control your focus settings',
     siteBlocking: 'Site Blocking',
@@ -64,7 +64,7 @@ export const extensionTexts = {
     
     // Additional Information
     privacySecurity: 'Privacy & Security',
-    privacyDesc: 'Frogo respects your privacy. No data is sent to external servers, and all information is stored locally on your device.',
+    privacyDesc: 'Goatly respects your privacy. No data is sent to external servers, and all information is stored locally on your device.',
     noTracking: 'No tracking or analytics',
     localData: 'Local data storage only',
     noPersonalInfo: 'No personal information collected',
@@ -85,7 +85,7 @@ export const extensionTexts = {
     
     // Final CTA
     readyToBoost: 'Ready to boost your productivity?',
-    joinThousands: 'Join thousands of users who have transformed their focus with Frogo',
+    joinThousands: 'Join thousands of users who have transformed their focus with Goatly',
     addToBrowserFree: 'Add to',
     itsFree: '- It\'s Free',
     
@@ -99,7 +99,7 @@ export const extensionTexts = {
     github: 'GitHub',
     discord: 'Discord',
     tagline: 'Focus Extension for productive browsing',
-    copyright: '© 2024 Frogo Team. All rights reserved.'
+    copyright: '© 2024 Goatly Team. All rights reserved.'
   },
   
   ar: {
@@ -109,28 +109,28 @@ export const extensionTexts = {
     reviews: 'المراجعات',
     
     // Hero Section - Extension Store Style
-    extensionTitle: 'فروغو - إضافة التركيز',
+    extensionTitle: 'Goatly - إضافة التركيز',
     featured: 'مميز',
     categoryProductivity: 'الإنتاجية',
     categoryFocus: 'أدوات التركيز',
     usersCount: 'أكثر من 50 ألف مستخدم',
     ratingText: '4.8 (2,347 مراجعة)',
-    heroDescription1: 'حوّل تجربة التصفح مع فروغو - إضافة التركيز النهائية التي تساعدك على البقاء منتجاً، وحظر المشتتات، وتحقيق أهدافك.',
+    heroDescription1: 'حوّل تجربة التصفح مع Goatly - إضافة التركيز النهائية التي تساعدك على البقاء منتجاً، وحظر المشتتات، وتحقيق أهدافك.',
     heroDescription2: 'تشمل المميزات حظر المواقع الذكي، مؤقت التركيز، تتبع الإنتاجية، وإعدادات قابلة للتخصيص لتت匹配 سير عملك.',
     addToBrowser: 'أضف إلى',
     freeNoAds: 'مجاني • بدون إعلانات • يركز على الخصوصية',
     offeredBy: 'قدمتها',
-    frogoTeam: 'فريق فروغو',
+    GoatlyTeam: 'فريق Goatly',
     
     // Browser Installation Section
     availableBrowsers: 'متوفر لجميع المتصفحات الرئيسية',
-    browserInstallDesc: 'ثبت فروغو على متصفحك المفضل وابدأ في تحسين تركيزك اليوم',
+    browserInstallDesc: 'ثبت Goatly على متصفحك المفضل وابدأ في تحسين تركيزك اليوم',
     currentlyUsing: 'المستخدم حالياً',
     installForBrowser: 'ثبت لـ',
     
     // Screenshots Section
     screenshots: 'لقطات الشاشة',
-    screenshotsDesc: 'شاهد فروغو في العمل',
+    screenshotsDesc: 'شاهد Goatly في العمل',
     mainDashboard: 'لوحة التحكم الرئيسية',
     mainDashboardDesc: 'تحكم في إعدادات التركيز',
     siteBlocking: 'حظر المواقع',
@@ -167,7 +167,7 @@ export const extensionTexts = {
     
     // Additional Information
     privacySecurity: 'الخصوصية والأمان',
-    privacyDesc: 'فروغو يحترم خصوصيتك. لا يتم إرسال أي بيانات إلى خوادم خارجية، ويتم تخزين جميع المعلومات محلياً على جهازك.',
+    privacyDesc: 'Goatly يحترم خصوصيتك. لا يتم إرسال أي بيانات إلى خوادم خارجية، ويتم تخزين جميع المعلومات محلياً على جهازك.',
     noTracking: 'لا تتبع أو تحليلات',
     localData: 'تخزين البيانات المحلي فقط',
     noPersonalInfo: 'لا يتم جمع معلومات شخصية',
@@ -188,7 +188,7 @@ export const extensionTexts = {
     
     // Final CTA
     readyToBoost: 'هل أنت مستعد لزيادة إنتاجيتك؟',
-    joinThousands: 'انضم إلى آلاف المستخدمين الذين حوّلوا تركيزهم مع فروغو',
+    joinThousands: 'انضم إلى آلاف المستخدمين الذين حوّلوا تركيزهم مع Goatly',
     addToBrowserFree: 'أضف إلى',
     itsFree: '- مجاني',
     
@@ -202,7 +202,7 @@ export const extensionTexts = {
     github: 'جيت هب',
     discord: 'ديسكورد',
     tagline: 'إضافة التركيز للتصفح المنتج',
-    copyright: '© 2024 فريق فروغو. جميع الحقوق محفوظة.'
+    copyright: '© 2024 فريق Goatly. جميع الحقوق محفوظة.'
   }
 } as const;
 

@@ -87,7 +87,7 @@ export const landingTexts = {
     joinDiscussion: '🤝 Join Discussion',
     
     // Ethical Digital Economy
-    ethicalFramework: 'Frogo is built on an Ethical Digital Economy framework designed by its creator and formally documented under the Sahwa Foundation on GitHub.',
+    ethicalFramework: 'Goatly is built on an Ethical Digital Economy framework designed by its creator and formally documented under the Sahwa Foundation on GitHub.',
     sahwafoundationLink: 'Sahwa Foundation Documentation',
     
     // Browser Extension Section
@@ -116,7 +116,7 @@ export const landingTexts = {
     contact: 'Connect With Us',
     follow: 'Join Movement',
     tagline: 'Open-source community building the future of focused learning',
-    copyright: '© 2024 Frogo Community. Open-source, student-driven, always free.'
+    copyright: '© 2024 Goatly Community. Open-source, student-driven, always free.'
   },
   
   ar: {
@@ -237,7 +237,7 @@ export const landingTexts = {
     contact: 'تواصل معنا',
     follow: 'انضم للحركة',
     tagline: 'مجتمع مفتوح المصدر يبني مستقبل التعلم المركز',
-    copyright: '© 2024 مجتمع فروجو. مفتوح المصدر، يقوده الطلاب، مجاني دائماً.'
+    copyright: '© 2024 مجتمع Goatly. مفتوح المصدر، يقوده الطلاب، مجاني دائماً.'
   }
 } as const;
 

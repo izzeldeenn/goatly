@@ -23,7 +23,6 @@ import { AccountSwitcher } from '@/components/users/AccountSwitcher';
 import { dailyActivityDB } from '@/lib/dailyActivity';
 import { ActivityContribution } from '@/lib/dailyActivity';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
-import { BACKGROUNDS } from '@/constants/backgrounds';
 import { PresetSelector } from '@/components/settings/PresetSelector';
 import { LocalBackgroundSelector } from '@/components/backgrounds/LocalBackgroundSelector';
 
@@ -91,6 +90,12 @@ export function SettingsButton() {
   const [customThemeName, setCustomThemeName] = useState('');
   const [selectedBackground, setSelectedBackground] = useState('default');
   const [customBackgroundValue, setCustomBackgroundValue] = useState('');
+  
+  // Unsplash search state
+  const [unsplashSearchQuery, setUnsplashSearchQuery] = useState('');
+  const [unsplashResults, setUnsplashResults] = useState<any[]>([]);
+  const [isSearchingUnsplash, setIsSearchingUnsplash] = useState(false);
+  const [isApplyingBackground, setIsApplyingBackground] = useState(false);
   const [username, setUsername] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('');
   const [customAvatarUrl, setCustomAvatarUrl] = useState('');
@@ -329,16 +334,61 @@ export function SettingsButton() {
       localStorage.setItem('customBackgroundValue', backgroundValue);
     }
     
-    // Store in localStorage for global access
+    // Save to localStorage
     localStorage.setItem('selectedBackground', backgroundId);
+  };
+
+  // Search Unsplash for backgrounds
+  const searchUnsplash = async (query: string) => {
+    if (!query.trim()) return;
     
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('backgroundChange', { 
-      detail: { 
-        backgroundId, 
-        customValue: backgroundValue || (backgroundId.startsWith('custom-') ? customBackgroundValue : undefined)
-      } 
-    }));
+    setIsSearchingUnsplash(true);
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
+      if (!apiKey) {
+        console.error('Unsplash API key not found');
+        return;
+      }
+
+      const response = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=12&orientation=landscape`,
+        {
+          headers: {
+            'Authorization': `Client-ID ${apiKey}`
+          }
+        }
+      );
+      
+      const data = await response.json();
+      
+      if (data.results) {
+        setUnsplashResults(data.results);
+      }
+    } catch (error) {
+      console.error('Error searching Unsplash:', error);
+    } finally {
+      setIsSearchingUnsplash(false);
+    }
+  };
+
+  const handleUnsplashSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    searchUnsplash(unsplashSearchQuery);
+  };
+
+  const selectUnsplashBackground = async (photo: any) => {
+    setIsApplyingBackground(true);
+    try {
+      const imageUrl = photo.urls.full;
+      handleBackgroundSelect('custom-unsplash', imageUrl);
+      setCustomBackgroundValue(imageUrl);
+      localStorage.setItem('customBackgroundValue', imageUrl);
+      
+      // Wait for the background to be applied (image loading takes time)
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    } finally {
+      setIsApplyingBackground(false);
+    }
   };
 
   // Load background from localStorage on mount
@@ -1371,18 +1421,18 @@ export function SettingsButton() {
                         <div className="relative">
                           <div className="flex items-center space-x-reverse space-x-3 mb-6">
                             <div 
-                              className="w-8 h-8 rounded-xl flex items-center justify-center"
+                              className="w-10 h-10 rounded-xl flex items-center justify-center"
                               style={{
                                 background: `linear-gradient(135deg, ${customTheme.colors.accent}, ${customTheme.colors.primary})`,
-                                boxShadow: `0 4px 16px ${customTheme.colors.accent}40`
+                                boxShadow: `0 4px 20px ${customTheme.colors.accent}40`
                               }}
                             >
-                              <span className="text-white text-sm"> </span>
+                              <span className="text-white text-lg">🖼️</span>
                             </div>
-                            <label className={`text-sm font-black uppercase tracking-wider ${
-                              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                            <label className={`text-base font-bold ${
+                              theme === 'light' ? 'text-gray-800' : 'text-white'
                             }`}>
-                              
+                              {t.rank === 'ترتيب' ? 'الخلفيات' : 'Backgrounds'}
                             </label>
                           </div>
                           
@@ -1391,57 +1441,147 @@ export function SettingsButton() {
                             onBackgroundSelect={handleBackgroundSelect}
                           />
                           
-                          {/* Default Backgrounds */}
-                          <div className="mt-8">
-                            <h4 className={`text-lg font-semibold mb-4 ${
-                              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                            }`}>
-                              
-                            </h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                              {BACKGROUNDS.filter(bg => ['default', 'gradient1', 'gradient2', 'gradient3', 'gradient4', 'gradient5', 'pattern1', 'pattern2', 'focus1', 'focus2', 'focus3', 'focus4', 'focus5', 'focus6', 'focus7'].includes(bg.id)).map((background) => (
-                                <button
-                                  key={background.id}
-                                  onClick={() => handleBackgroundSelect(background.id)}
-                                  className={`p-3 rounded-2xl transition-all duration-300 relative overflow-hidden group ${
-                                    selectedBackground === background.id
-                                      ? 'ring-2 ring-offset-2'
-                                      : ''
-                                  }`}
-                                  style={{
-                                    background: selectedBackground === background.id
-                                      ? `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`
-                                      : `linear-gradient(135deg, ${customTheme.colors.surface}, ${customTheme.colors.background})`,
-                                    boxShadow: selectedBackground === background.id
-                                      ? `0 12px 48px ${customTheme.colors.primary}50, 0 4px 16px ${customTheme.colors.primary}30`
-                                      : `0 4px 16px ${customTheme.colors.border}30`
-                                  }}
-                                >
-                                  <div 
-                                    className="w-full h-12 rounded mb-2"
-                                    style={{ 
-                                      background: background.value,
-                                      border: background.value === 'transparent' ? `2px dashed ${theme === 'light' ? '#d1d5db' : '#4b5563'}` : 'none',
-                                      backgroundImage: background.value.startsWith('url(') ? background.value : 'none',
-                                      backgroundSize: background.value.startsWith('url(') ? 'cover' : 'auto',
-                                      backgroundPosition: background.value.startsWith('url(') ? 'center' : 'auto'
-                                    }}
-                                  />
-                                  <div className={`text-xs font-medium ${
-                                    selectedBackground === background.id ? (theme === 'light' ? 'text-white' : 'text-black') : (theme === 'light' ? 'text-gray-900' : 'text-gray-50')
+                          {/* Unsplash Search - Modern Design */}
+                          <div className="mt-10">
+                            <div className="relative overflow-hidden rounded-2xl p-6"
+                              style={{
+                                background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
+                                border: `1px solid ${customTheme.colors.border}30`,
+                                boxShadow: `0 4px 20px ${customTheme.colors.border}15`
+                              }}
+                            >
+                              <div className="flex items-center gap-3 mb-5">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <h4 className={`text-lg font-bold ${
+                                    theme === 'light' ? 'text-gray-800' : 'text-white'
                                   }`}>
-                                    {background.name}
-                                  </div>
-                                  
-                                  {/* Hover effect */}
-                                  <div 
-                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                    style={{
-                                      background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)'
-                                    }}
+                                    {t.rank === 'ترتيب' ? 'بحث عن خلفيات' : 'Search Backgrounds'}
+                                  </h4>
+                                  <p className={`text-sm ${
+                                    theme === 'light' ? 'text-gray-500' : 'text-gray-400'
+                                  }`}>
+                                    {t.rank === 'ترتيب' ? 'اكتشف آلاف الخلفيات الجميلة من Unsplash' : 'Discover thousands of beautiful backgrounds from Unsplash'}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <form onSubmit={handleUnsplashSearchSubmit} className="flex gap-3 mb-6">
+                                <div className="flex-1 relative">
+                                  <input
+                                    type="text"
+                                    value={unsplashSearchQuery}
+                                    onChange={(e) => setUnsplashSearchQuery(e.target.value)}
+                                    placeholder={t.rank === 'ترتيب' ? 'ابحث عن طبيعة، مدينة، تجريدي...' : 'Search nature, city, abstract...'}
+                                    disabled={isSearchingUnsplash || isApplyingBackground}
+                                    className={`w-full px-5 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:border-blue-500 ${
+                                      theme === 'dark'
+                                        ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-500'
+                                        : 'bg-white/50 border-gray-200 text-black placeholder-gray-400'
+                                    } disabled:opacity-50`}
                                   />
+                                </div>
+                                <button
+                                  type="submit"
+                                  disabled={isSearchingUnsplash || !unsplashSearchQuery.trim() || isApplyingBackground}
+                                  className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 disabled:opacity-50 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                                    theme === 'dark'
+                                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                                      : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600'
+                                  }`}
+                                >
+                                  {isSearchingUnsplash ? (
+                                    <>
+                                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                      {t.rank === 'ترتيب' ? 'جاري البحث' : 'Searching'}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                      </svg>
+                                      {t.rank === 'ترتيب' ? 'بحث' : 'Search'}
+                                    </>
+                                  )}
                                 </button>
-                              ))}
+                              </form>
+                              
+                              {/* Loading State */}
+                              {(isSearchingUnsplash || isApplyingBackground) && (
+                                <div className="flex items-center justify-center py-12">
+                                  <div className="flex flex-col items-center gap-4">
+                                    <div className="relative">
+                                      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                      <div className="absolute inset-0 w-12 h-12 border-4 border-purple-500 border-b-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                                    </div>
+                                    <p className={`text-base font-medium ${
+                                      theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                                    }`}>
+                                      {isApplyingBackground 
+                                        ? (t.rank === 'ترتيب' ? 'جاري تطبيق الخلفية...' : 'Applying background...')
+                                        : (t.rank === 'ترتيب' ? 'جاري البحث عن الخلفيات...' : 'Searching for backgrounds...')
+                                      }
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Unsplash Results */}
+                              {unsplashResults.length > 0 && !isSearchingUnsplash && (
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                  {unsplashResults.map((photo) => (
+                                    <button
+                                      key={photo.id}
+                                      onClick={() => selectUnsplashBackground(photo)}
+                                      disabled={isApplyingBackground}
+                                      className={`relative overflow-hidden rounded-2xl transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 hover:shadow-2xl ${
+                                        selectedBackground === 'custom-unsplash' && customBackgroundValue === photo.urls.full
+                                          ? 'ring-4 ring-blue-500 ring-offset-2'
+                                          : ''
+                                      }`}
+                                      style={{
+                                        boxShadow: selectedBackground === 'custom-unsplash' && customBackgroundValue === photo.urls.full
+                                          ? `0 0 30px ${customTheme.colors.primary}50`
+                                          : `0 4px 15px ${customTheme.colors.border}20`
+                                      }}
+                                    >
+                                      {selectedBackground === 'custom-unsplash' && customBackgroundValue === photo.urls.full && isApplyingBackground && (
+                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 backdrop-blur-sm">
+                                          <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        </div>
+                                      )}
+                                      <img
+                                        src={photo.urls.regular}
+                                        alt={photo.alt_description || photo.description || 'Background'}
+                                        className="w-full h-28 object-cover transition-transform duration-500 group-hover:scale-110"
+                                      />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                      <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <div className="flex items-center gap-2">
+                                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                          </svg>
+                                          <p className="text-xs text-white font-medium line-clamp-1">
+                                            {photo.alt_description || photo.description || 'Background'}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      {selectedBackground === 'custom-unsplash' && customBackgroundValue === photo.urls.full && (
+                                        <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
+                                        </div>
+                                      )}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

@@ -287,7 +287,15 @@ export function MusicPlayer({ isVisible: externalVisible, setIsVisible: external
                         <path d="M8.445 14.832A1 1 0 0010 14v-8a1 1 0 00-1.555-.832L3 9.168V6a1 1 0 00-2 0v8a1 1 0 002 0v-3.168l5.445 4z"/>
                       </svg>
                     </button>
-                    <button onClick={() => { isPlaying ? pauseTrack() : playTrack(currentTrack); handlePlayPause(); }} className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-red-500/30">
+                    <button onClick={() => {
+                      if (isPlaying) {
+                        pauseTrack();
+                        controlYoutubePlayer('pause');
+                      } else {
+                        playTrack(currentTrack);
+                        controlYoutubePlayer('play');
+                      }
+                    }} className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-red-500/30">
                       {isPlaying ? (
                         <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"/>
@@ -357,7 +365,7 @@ export function MusicPlayer({ isVisible: externalVisible, setIsVisible: external
                   {filteredTracks.map(track => (
                     <div
                       key={track.id}
-                      onClick={() => { playTrack(track); setTimeout(() => handlePlayPause(), 100); }}
+                      onClick={() => { playTrack(track); setTimeout(() => controlYoutubePlayer('play'), 100); }}
                       className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all hover:bg-gray-800/50 border border-transparent ${
                         currentTrack?.id === track.id ? 'bg-gray-800 border-red-500' : ''
                       }`}

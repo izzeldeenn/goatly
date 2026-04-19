@@ -22,7 +22,6 @@ import { BACKGROUNDS } from '@/constants/backgrounds';
 import { useFirstTimeSetup } from '@/hooks/useFirstTimeSetup';
 import { OnboardingWizard } from '@/components/auth/OnboardingWizard';
 import { MusicPlayer } from '@/components/music/MusicPlayer';
-import { MusicToggleButton } from '@/components/music/MusicToggleButton';
 import { dailyActivityDB } from '@/lib/dailyActivity';
 import { useBackgroundValue } from '@/hooks/useBackgroundValue';
 import { UserProfileModal } from '@/components/users/UserProfileModal';
@@ -442,7 +441,6 @@ function HomeContent() {
               <Logo />
             </div>
             <div className="absolute top-8 left-8 flex gap-2">
-              <MusicToggleButton />
               <button
                 onClick={() => window.location.href = '/social'}
                 className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
@@ -470,7 +468,6 @@ function HomeContent() {
           <div className="flex justify-between items-center p-4">
             <Logo />
             <div className="flex gap-2">
-              <MusicToggleButton />
               <button
                 onClick={() => window.location.href = '/social'}
                 className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"

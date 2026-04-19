@@ -240,19 +240,20 @@ export function ServiceSelector() {
           {/* Fixed Music Button */}
           <div className="px-4 py-2 flex-shrink-0">
             <button
-              className={`group relative w-9 h-9 rounded-xl flex items-center justify-center text-base transition-all duration-200 flex-shrink-0 border-2 ${
+              className={`group relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 flex-shrink-0 overflow-hidden ${
                 theme === 'light'
-                  ? 'bg-purple-500 text-white border-purple-600 hover:bg-purple-600 hover:border-purple-700 hover:shadow-md'
-                  : 'bg-purple-600 text-white border-purple-500 hover:bg-purple-700 hover:border-purple-400 hover:shadow-md'
+                  ? 'bg-gradient-to-br from-red-500 via-red-600 to-red-700 hover:from-red-600 hover:via-red-700 hover:to-red-800 shadow-lg shadow-red-500/30'
+                  : 'bg-gradient-to-br from-red-600 via-red-700 to-red-800 hover:from-red-700 hover:via-red-800 hover:to-red-900 shadow-lg shadow-red-600/40'
               }`}
               title="Music Player"
               onClick={() => setIsMusicPlayerOpen(true)}
             >
-              <span className="transition-transform duration-200 group-hover:scale-110">
-                🎵
-              </span>
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+              <svg className="w-5 h-5 text-white relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+              </svg>
               {/* Music Indicator */}
-              <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-lg shadow-green-400/50 animate-pulse"></div>
             </button>
           </div>
           
@@ -265,31 +266,30 @@ export function ServiceSelector() {
               <button
                 key={button.id}
                 onClick={() => setActiveTimer(button.type)}
-                className={`group relative w-9 h-9 rounded-xl flex items-center justify-center text-base transition-all duration-200 flex-shrink-0 border-2 ${
+                className={`group relative w-10 h-10 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 flex-shrink-0 overflow-hidden ${
                   activeTimer === button.type
                     ? theme === 'light'
-                      ? 'bg-gray-900 text-white border-gray-900 shadow-lg'
-                      : 'bg-white text-gray-900 border-white shadow-lg'
+                      ? 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 shadow-lg shadow-blue-500/30'
+                      : 'bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 shadow-lg shadow-blue-600/40'
                     : theme === 'light'
-                      ? 'bg-white text-gray-800 border-gray-400 hover:bg-gray-100 hover:border-gray-600 hover:shadow-md'
-                      : 'bg-gray-900 text-gray-100 border-gray-500 hover:bg-gray-800 hover:border-gray-300 hover:shadow-md'
+                      ? 'bg-white border-2 border-gray-300 hover:border-gray-400 hover:shadow-md'
+                      : 'bg-gray-800 border-2 border-gray-600 hover:border-gray-500 hover:shadow-md'
                 }`}
                 title={button.label}
               >
-                <span className={`transition-transform duration-200 group-hover:scale-110 ${
-                  activeTimer === button.type
-                    ? theme === 'light' ? 'text-white' : 'text-gray-900'
-                    : theme === 'light' ? 'text-gray-800' : 'text-gray-100'
+                {activeTimer !== button.type && (
+                  <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors"></div>
+                )}
+                <span className={`relative z-10 transition-transform duration-300 group-hover:scale-110 ${
+                  activeTimer === button.type ? 'text-white' : theme === 'light' ? 'text-gray-700' : 'text-gray-200'
                 }`}>
                   {button.icon}
                 </span>
-                {/* Active Indicator - More visible */}
+                {/* Active Indicator */}
                 {activeTimer === button.type && (
-                  <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ${
-                    theme === 'light' ? 'bg-blue-500' : 'bg-blue-400'
-                  } border-2 border-white shadow-sm`}></div>
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-lg shadow-green-400/50 animate-pulse"></div>
                 )}
-                              </button>
+              </button>
             ))}
           </div>
           

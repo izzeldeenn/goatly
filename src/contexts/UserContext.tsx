@@ -132,7 +132,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 username: dbUser.username,
                 email: dbUser.email,
                 hashKey: dbUser.hash_key,
-                avatar: dbUser.avatar || '👤',
+                avatar: dbUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar77',
                 score: dbUser.score,
                 createdAt: dbUser.created_at,
                 lastActive: dbUser.last_active
@@ -172,7 +172,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                           ...user,
                           username: changedUser.username,
                           email: changedUser.email,
-                          avatar: changedUser.avatar || '👤',
+                          avatar: changedUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar77',
                           score: changedUser.score,
                           lastActive: changedUser.last_active
                         };
@@ -223,7 +223,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
               username: dbUser.username,
               email: dbUser.email,
               hashKey: dbUser.hash_key,
-              avatar: dbUser.avatar || '👤',
+              avatar: dbUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar77',
               score: dbUser.score,
               createdAt: dbUser.created_at,
               lastActive: dbUser.last_active
@@ -256,7 +256,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     // Restore username, email, and avatar from localStorage if available
     let savedUsername = accountInfo.username;
     let savedEmail = accountInfo.email;
-    let savedAvatar = '👤';
+    let savedAvatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar77';
     
     if (typeof window !== 'undefined') {
       const localUsername = localStorage.getItem(`username_${accountInfo.accountId}`);
@@ -664,13 +664,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
       // Hash password before storing
       const hashedPassword = await hashPassword(password);
 
+      // Generate random avatar seed
+      const randomAvatarSeed = `avatar${Math.floor(Math.random() * 1000)}`;
+      const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomAvatarSeed}`;
+
       // Update current user's account with email, hashed password, and new username
       const updatedUserData: Partial<UserAccount> = {
         account_id: currentUser.accountId,
         username: username, // Update username
         email: email, // Add email
         password: hashedPassword, // Add hashed password
-        avatar: currentUser.avatar, // Keep existing avatar
+        avatar: avatarUrl, // Generate DiceBear avatar with random number
         score: currentUser.score, // Keep existing score
         created_at: currentUser.createdAt, // Keep original creation date
         last_active: new Date().toISOString(), // Update last active
@@ -697,6 +701,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 ...user,
                 username: username,
                 email: email,
+                avatar: avatarUrl,
                 lastActive: new Date().toISOString()
               };
             }

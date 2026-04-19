@@ -170,12 +170,6 @@ export function useTimerState() {
           }
         }
       }
-      
-      // Update timer display every 1 second
-      intervalId = setInterval(async () => {
-        setTime((prevTime: number) => prevTime + 1);
-        updateSessionTime(1); // Update session time by 1 second
-      }, 1000);
     } else {
       setTimerActive(false);
       
@@ -253,6 +247,25 @@ export function useTimerState() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isRunning]);
+
+  // Separate useEffect for starting interval when session becomes active
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    if (isRunning && isSessionActive && currentSession) {
+      // Update timer display every 1 second
+      intervalId = setInterval(async () => {
+        setTime((prevTime: number) => prevTime + 1);
+        updateSessionTime(1); // Update session time by 1 second
+      }, 1000);
+    }
+    
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isRunning, isSessionActive, currentSession]);
 
   // Clear saved state when time changes
   useEffect(() => {

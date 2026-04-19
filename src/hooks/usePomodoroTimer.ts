@@ -237,15 +237,6 @@ export function usePomodoroTimer() {
       if (currentSession === 'work' && !isSessionActive && currentUser?.accountId) {
         startSession(currentUser.accountId);
       }
-      
-      intervalId = setInterval(() => {
-        setTimeLeft((prev: number) => prev - 1);
-        
-        // Update session time for work sessions
-        if (currentSession === 'work') {
-          updateSessionTime(1);
-        }
-      }, 1000);
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
       setTimerActive(false);
@@ -324,6 +315,29 @@ export function usePomodoroTimer() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isRunning, currentSession]);
+
+  // Separate useEffect for starting interval when session becomes active
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    if (isRunning && timeLeft > 0 && isSessionActive && currentSession === 'work') {
+      intervalId = setInterval(() => {
+        setTimeLeft((prev: number) => prev - 1);
+        updateSessionTime(1);
+      }, 1000);
+    } else if (isRunning && timeLeft > 0 && currentSession !== 'work') {
+      // For break sessions, just update timeLeft without session tracking
+      intervalId = setInterval(() => {
+        setTimeLeft((prev: number) => prev - 1);
+      }, 1000);
+    }
+    
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isRunning, timeLeft, isSessionActive, currentSession]);
 
   const formatTime = (totalSeconds: number) => {
     const h = Math.floor(totalSeconds / 3600);

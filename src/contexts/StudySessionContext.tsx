@@ -35,32 +35,9 @@ export function StudySessionProvider({ children }: { children: ReactNode }) {
   // Load session state from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedSession = localStorage.getItem('study_session');
-      if (savedSession) {
-        try {
-          const sessionData = JSON.parse(savedSession);
-          // Check if the session is still valid (not too old)
-          const sessionAge = Date.now() - new Date(sessionData.startTime).getTime();
-          const maxSessionAge = 24 * 60 * 60 * 1000; // 24 hours
-          
-          if (sessionAge < maxSessionAge) {
-            // Restore session regardless of isActive state
-            // This allows resuming paused sessions
-            setCurrentSession({
-              ...sessionData,
-              startTime: new Date(sessionData.startTime),
-              endTime: sessionData.endTime ? new Date(sessionData.endTime) : undefined
-            });
-            setIsSessionActive(sessionData.isActive || false);
-          } else {
-            // Clear old session
-            localStorage.removeItem('study_session');
-          }
-        } catch (error) {
-          console.error('Failed to load session:', error);
-          localStorage.removeItem('study_session');
-        }
-      }
+      // Always clear saved session on mount to ensure fresh start
+      // This prevents conflicts and ensures proper synchronization with database
+      localStorage.removeItem('study_session');
     }
   }, []);
 

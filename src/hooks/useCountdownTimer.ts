@@ -190,11 +190,6 @@ export function useCountdownTimer() {
       if (!isSessionActive && currentUser?.accountId) {
         startSession(currentUser.accountId);
       }
-      
-      intervalId = setInterval(() => {
-        setTimeLeft((prev: number) => prev - 1);
-        updateSessionTime(1);
-      }, 1000);
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
       setTimerActive(false);
@@ -269,6 +264,24 @@ export function useCountdownTimer() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isRunning]);
+
+  // Separate useEffect for starting interval when session becomes active
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    if (isRunning && timeLeft > 0 && isSessionActive) {
+      intervalId = setInterval(() => {
+        setTimeLeft((prev: number) => prev - 1);
+        updateSessionTime(1);
+      }, 1000);
+    }
+    
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isRunning, timeLeft, isSessionActive]);
 
   // Clear saved state when inputs change
   useEffect(() => {

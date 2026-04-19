@@ -207,7 +207,7 @@ export const landingTexts = {
     joinDiscussion: '🤝 انضم للنقاش',
     
     // Ethical Digital Economy
-    ethicalFramework: 'فروجو مبني على إطار الاقتصاد الرقمي الأخلاقي الذي صممه منشئه وموثق رسمياً تحت مؤسسة صحوة على GitHub.',
+    ethicalFramework: 'Goatly مبني على إطار الاقتصاد الرقمي الأخلاقي الذي صممه منشئه وموثق رسمياً تحت مؤسسة صحوة على GitHub.',
     sahwafoundationLink: 'توثيق مؤسسة صحوة',
     
     // Browser Extension Section

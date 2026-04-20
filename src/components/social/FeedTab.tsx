@@ -100,38 +100,36 @@ export function FeedTab({
   return (
     <div className="grid lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-6">
-        {/* Elegant background decoration for feed */}
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none overflow-hidden -z-10">
-          <div className={`absolute top-20 left-20 w-32 h-32 rounded-full blur-2xl ${
-            theme === 'light' ? 'bg-blue-400' : 'bg-blue-300'
-          }`}></div>
-          <div className={`absolute top-40 right-20 w-24 h-24 rounded-full blur-xl ${
-            theme === 'light' ? 'bg-purple-400' : 'bg-purple-300'
-          }`}></div>
-        </div>
-
-        <div className={`p-6 rounded-2xl border backdrop-blur-sm transition-all duration-300 ${
+        <div className={`p-6 rounded-lg border transition-all duration-300 ${
           theme === 'light' 
-            ? 'bg-white/95 border-gray-200/60 shadow-sm shadow-gray-500/10' 
-            : 'bg-gray-900/95 border-gray-800/60 shadow-xl shadow-black/20'
+            ? 'bg-white border-gray-200' 
+            : 'bg-black border-gray-800'
         }`}>
           <div className="flex items-start gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold transition-all duration-300 hover:scale-105 shadow-lg ${
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden transition-all duration-300 hover:scale-105 ${
               theme === 'light'
-                ? 'bg-gradient-to-br from-blue-500 to-purple-500 shadow-blue-500/25'
-                : 'bg-gradient-to-br from-blue-400 to-purple-400 shadow-blue-400/25'
+                ? 'bg-black'
+                : 'bg-white'
             }`}>
-              <span className="text-lg">{currentUser?.username?.charAt(0) || 'U'}</span>
+              {currentUser?.avatar?.startsWith('http') ? (
+                <img 
+                  src={currentUser.avatar} 
+                  alt={currentUser.username}
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
+              ) : (
+                <span className={`text-lg ${theme === 'light' ? 'text-white' : 'text-black'}`}>{currentUser?.username?.charAt(0) || 'U'}</span>
+              )}
             </div>
             <div className="flex-1">
               <textarea
                 value={newPost}
                 onChange={(e) => onNewPostChange(e.target.value)}
                 placeholder={language === 'ar' ? 'Share your study progress...' : 'Share your study progress...'}
-                className={`w-full p-4 rounded-xl border resize-none transition-all duration-300 backdrop-blur-sm ${
+                className={`w-full p-4 rounded-lg border resize-none transition-all duration-300 ${
                   theme === 'light'
-                    ? 'bg-gray-50/80 border-gray-200/50 text-gray-900 placeholder-gray-500 focus:bg-white/90 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/20'
-                    : 'bg-gray-800/80 border-gray-700/50 text-white placeholder-gray-400 focus:bg-gray-700/90 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/20'
+                    ? 'bg-gray-50 border-gray-200 text-black placeholder-gray-400 focus:border-black'
+                    : 'bg-gray-900 border-gray-800 text-white placeholder-gray-500 focus:border-white'
                 }`}
                 rows={3}
               />
@@ -144,11 +142,11 @@ export function FeedTab({
                 <button
                   onClick={onPostSubmit}
                   disabled={!newPost.trim() || !currentUser}
-                  className={`px-6 py-2.5 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                  className={`px-6 py-2.5 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
                     newPost.trim() && currentUser
                       ? theme === 'light'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/25'
-                        : 'bg-gradient-to-r from-blue-400 to-blue-500 text-white hover:from-blue-500 hover:to-blue-600 shadow-xl shadow-blue-400/25'
+                        ? 'bg-black text-white hover:bg-gray-800'
+                        : 'bg-white text-black hover:bg-gray-200'
                       : theme === 'light'
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : 'bg-gray-800 text-gray-600 cursor-not-allowed'
@@ -162,10 +160,10 @@ export function FeedTab({
         </div>
 
         {loading && (
-          <div className={`text-center py-12 rounded-2xl backdrop-blur-sm transition-all duration-300 ${
+          <div className={`text-center py-12 rounded-lg transition-all duration-300 ${
             theme === 'light' 
-              ? 'bg-white/95 border border-gray-200/60 shadow-sm shadow-gray-500/10' 
-              : 'bg-gray-900/95 border border-gray-800/60 shadow-xl shadow-black/20'
+              ? 'bg-white border border-gray-200' 
+              : 'bg-black border border-gray-800'
           }`}>
             <div className={`text-lg font-medium transition-colors duration-300 ${
               theme === 'light' ? 'text-gray-600' : 'text-gray-400'
@@ -178,19 +176,27 @@ export function FeedTab({
         {!loading && posts.map((post) => (
           <div 
             key={post.id}
-            className={`p-6 rounded-2xl border backdrop-blur-sm transition-all duration-300 hover:shadow-lg ${
+            className={`p-6 rounded-lg border transition-all duration-300 hover:shadow-lg ${
               theme === 'light' 
-                ? 'bg-white/95 border-gray-200/60 shadow-sm shadow-gray-500/10 hover:shadow-gray-500/20' 
-                : 'bg-gray-900/95 border-gray-800/60 shadow-xl shadow-black/20 hover:shadow-black/30'
+                ? 'bg-white border-gray-200 hover:shadow-md' 
+                : 'bg-black border-gray-800 hover:shadow-lg'
             }`}
           >
             <div className="flex items-start gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold transition-all duration-300 hover:scale-105 shadow-lg ${
+              <div className={`w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden transition-all duration-300 hover:scale-105 ${
                 theme === 'light'
-                  ? 'bg-gradient-to-br from-gray-400 to-gray-600 shadow-gray-500/25'
-                  : 'bg-gradient-to-br from-gray-600 to-gray-800 shadow-gray-400/25'
+                  ? 'bg-gray-300'
+                  : 'bg-gray-700'
               }`}>
-                <span className="text-lg">{post.username.charAt(0)}</span>
+                {post.user_avatar?.startsWith('http') ? (
+                  <img 
+                    src={post.user_avatar} 
+                    alt={post.username}
+                    className="w-12 h-12 rounded-lg object-cover"
+                  />
+                ) : (
+                  <span className={`text-lg ${theme === 'light' ? 'text-black' : 'text-white'}`}>{post.username.charAt(0)}</span>
+                )}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -207,22 +213,30 @@ export function FeedTab({
                 </div>
                 {editingPost[post.id] ? (
                   <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold transition-all duration-300 hover:scale-105 shadow-lg ${
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden transition-all duration-300 hover:scale-105 ${
                       theme === 'light'
-                        ? 'bg-gradient-to-br from-blue-500 to-purple-500 shadow-blue-500/25'
-                        : 'bg-gradient-to-br from-blue-400 to-purple-400 shadow-blue-400/25'
+                        ? 'bg-black'
+                        : 'bg-white'
                     }`}>
-                      <span className="text-lg">{currentUser?.username?.charAt(0) || 'U'}</span>
+                      {currentUser?.avatar?.startsWith('http') ? (
+                        <img 
+                          src={currentUser.avatar} 
+                          alt={currentUser.username}
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <span className={`text-lg ${theme === 'light' ? 'text-white' : 'text-black'}`}>{currentUser?.username?.charAt(0) || 'U'}</span>
+                      )}
                     </div>
                     <div className="flex-1">
                       <textarea
                         value={editingPostContent[post.id] || ''}
                         onChange={(e) => onEditPostContentChange(post.id, e.target.value)}
                         placeholder={language === 'ar' ? 'اكتب منشوراً...' : 'Write your post...'}
-                        className={`w-full p-4 rounded-xl border text-sm resize-none transition-all duration-300 backdrop-blur-sm ${
+                        className={`w-full p-4 rounded-lg border text-sm resize-none transition-all duration-300 ${
                           theme === 'light'
-                            ? 'bg-white/80 border-gray-200/50 text-gray-900 placeholder-gray-500 focus:bg-white/90 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/20'
-                            : 'bg-gray-800/80 border-gray-700/50 text-white placeholder-gray-400 focus:bg-gray-700/90 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/20'
+                            ? 'bg-white border-gray-200 text-black placeholder-gray-400 focus:border-black'
+                            : 'bg-black border-gray-800 text-white placeholder-gray-500 focus:border-white'
                         }`}
                         rows={3}
                       />
@@ -230,11 +244,11 @@ export function FeedTab({
                         <button
                           onClick={() => onSavePostEdit(post.id)}
                           disabled={!editingPostContent[post.id]?.trim()}
-                          className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                          className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
                             editingPostContent[post.id]?.trim()
                               ? theme === 'light'
-                                ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-lg shadow-green-500/25'
-                                : 'bg-gradient-to-r from-green-400 to-green-500 text-white hover:from-green-500 hover:to-green-600 shadow-xl shadow-green-400/25'
+                                ? 'bg-black text-white hover:bg-gray-800'
+                                : 'bg-white text-black hover:bg-gray-200'
                               : theme === 'light'
                                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                 : 'bg-gray-800 text-gray-600 cursor-not-allowed'
@@ -244,7 +258,7 @@ export function FeedTab({
                         </button>
                         <button
                           onClick={() => onEditPost(post.id, '')}
-                          className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                          className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
                             theme === 'light'
                               ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                               : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -268,11 +282,11 @@ export function FeedTab({
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
                       post.liked
                         ? theme === 'light'
-                          ? 'bg-red-50 text-red-600 border border-red-200/60 shadow-sm shadow-red-500/20'
-                          : 'bg-red-900/30 text-red-400 border border-red-700/40 shadow-lg shadow-red-400/20'
+                          ? 'bg-red-100 text-red-600 border border-red-300'
+                          : 'bg-red-900/50 text-red-400 border border-red-700'
                         : theme === 'light'
-                          ? 'bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-600 border border-transparent hover:border-red-200/60'
-                          : 'bg-gray-800/40 text-gray-400 hover:bg-red-900/30 hover:text-red-400 border border-transparent hover:border-red-700/40'
+                          ? 'bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 border border-gray-200 hover:border-red-300'
+                          : 'bg-gray-800 text-gray-400 hover:bg-red-900/50 hover:text-red-400 border border-gray-700 hover:border-red-700'
                     }`}
                   >
                     <svg className="w-4 h-4" fill={post.liked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
@@ -284,8 +298,8 @@ export function FeedTab({
                     onClick={() => onToggleComments(post.id)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
                       theme === 'light'
-                        ? 'bg-gray-50 text-gray-600 hover:bg-blue-50 hover:text-blue-600 border border-transparent hover:border-blue-200/60'
-                        : 'bg-gray-800/40 text-gray-400 hover:bg-blue-900/30 hover:text-blue-400 border border-transparent hover:border-blue-700/40'
+                        ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-black border border-gray-200'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-gray-700'
                     }`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,8 +309,8 @@ export function FeedTab({
                   </button>
                   <button className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
                     theme === 'light'
-                      ? 'bg-gray-50 text-gray-600 hover:bg-green-50 hover:text-green-600 border border-transparent hover:border-green-200/60'
-                      : 'bg-gray-800/40 text-gray-400 hover:bg-green-900/30 hover:text-green-400 border border-transparent hover:border-green-700/40'
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-black border border-gray-200'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-gray-700'
                   }`}>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -308,8 +322,8 @@ export function FeedTab({
                         onClick={() => onEditPost(post.id, post.content)}
                         className={`p-1.5 rounded-lg text-sm transition-all duration-300 transform hover:scale-105 ${
                           theme === 'light'
-                            ? 'text-gray-500 hover:text-green-600 hover:bg-green-50'
-                            : 'text-gray-400 hover:text-green-400 hover:bg-green-900/30'
+                            ? 'text-gray-500 hover:text-black hover:bg-gray-100'
+                            : 'text-gray-400 hover:text-white hover:bg-gray-800'
                         }`}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -334,17 +348,25 @@ export function FeedTab({
 
                 {showComments[post.id] && (
                   <div className={`mt-6 pt-6 border-t transition-all duration-300 ${
-                    theme === 'light' ? 'border-gray-200/60' : 'border-gray-800/60'
+                    theme === 'light' ? 'border-gray-200' : 'border-gray-800'
                   }`}>
                     {post.commentsList.map((comment) => (
                       <div key={comment.id} className="mb-4">
                         <div className="flex items-start gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold transition-all duration-300 hover:scale-105 shadow-md ${
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden transition-all duration-300 hover:scale-105 ${
                             theme === 'light'
-                              ? 'bg-gradient-to-br from-gray-400 to-gray-600 shadow-gray-500/25'
-                              : 'bg-gradient-to-br from-gray-600 to-gray-800 shadow-gray-400/25'
+                              ? 'bg-gray-300'
+                              : 'bg-gray-700'
                           }`}>
-                            <span className="text-sm">{comment.username.charAt(0)}</span>
+                            {comment.user_avatar?.startsWith('http') ? (
+                              <img 
+                                src={comment.user_avatar} 
+                                alt={comment.username}
+                                className="w-10 h-10 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <span className={`text-sm ${theme === 'light' ? 'text-black' : 'text-white'}`}>{comment.username.charAt(0)}</span>
+                            )}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
@@ -365,10 +387,10 @@ export function FeedTab({
                                   value={editingCommentContent[comment.id] || ''}
                                   onChange={(e) => onEditCommentContentChange(comment.id, e.target.value)}
                                   placeholder={language === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...'}
-                                  className={`w-full p-3 rounded-lg border text-sm resize-none transition-all duration-300 backdrop-blur-sm ${
+                                  className={`w-full p-3 rounded-lg border text-sm resize-none transition-all duration-300 ${
                                     theme === 'light'
-                                      ? 'bg-white/80 border-gray-200/50 text-gray-900 placeholder-gray-500 focus:bg-white/90 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/20'
-                                      : 'bg-gray-800/80 border-gray-700/50 text-white placeholder-gray-400 focus:bg-gray-700/90 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/20'
+                                      ? 'bg-white border-gray-200 text-black placeholder-gray-400 focus:border-black'
+                                      : 'bg-black border-gray-800 text-white placeholder-gray-500 focus:border-white'
                                   }`}
                                   rows={2}
                                 />
@@ -379,8 +401,8 @@ export function FeedTab({
                                     className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
                                       editingCommentContent[comment.id]?.trim()
                                         ? theme === 'light'
-                                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-md shadow-green-500/25'
-                                          : 'bg-gradient-to-r from-green-400 to-green-500 text-white hover:from-green-500 hover:to-green-600 shadow-lg shadow-green-400/25'
+                                          ? 'bg-black text-white hover:bg-gray-800'
+                                          : 'bg-white text-black hover:bg-gray-200'
                                         : theme === 'light'
                                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                           : 'bg-gray-800 text-gray-600 cursor-not-allowed'
@@ -412,8 +434,8 @@ export function FeedTab({
                                     onClick={() => onToggleReplies(comment.id)}
                                     className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300 transform hover:scale-105 ${
                                       theme === 'light'
-                                        ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200/60'
-                                        : 'bg-blue-900/30 text-blue-400 hover:bg-blue-800/40 border border-blue-700/40'
+                                        ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
                                     }`}
                                   >
                                     {language === 'ar' ? 'رد' : 'Reply'}
@@ -424,8 +446,8 @@ export function FeedTab({
                                         onClick={() => onEditComment(comment.id, comment.content)}
                                         className={`p-1 rounded-lg text-xs transition-all duration-300 transform hover:scale-105 ${
                                           theme === 'light'
-                                            ? 'text-gray-500 hover:text-green-600 hover:bg-green-50'
-                                            : 'text-gray-400 hover:text-green-400 hover:bg-green-900/30'
+                                            ? 'text-gray-500 hover:text-black hover:bg-gray-100'
+                                            : 'text-gray-400 hover:text-white hover:bg-gray-800'
                                         }`}
                                       >
                                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -451,17 +473,25 @@ export function FeedTab({
                             )}
 
                             {showReplies[comment.id] && (
-                              <div className={`flex items-start gap-2 mt-3 p-3 rounded-lg backdrop-blur-sm transition-all duration-300 ${
+                              <div className={`flex items-start gap-2 mt-3 p-3 rounded-lg transition-all duration-300 ${
                                 theme === 'light'
-                                  ? 'bg-gray-50/80 border border-gray-200/50'
-                                  : 'bg-gray-800/80 border border-gray-700/50'
+                                  ? 'bg-gray-50 border border-gray-200'
+                                  : 'bg-gray-900 border border-gray-700'
                               }`}>
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold transition-all duration-300 hover:scale-105 shadow-md ${
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden transition-all duration-300 hover:scale-105 ${
                                   theme === 'light'
-                                    ? 'bg-gradient-to-br from-blue-500 to-purple-500 shadow-blue-500/25'
-                                    : 'bg-gradient-to-br from-blue-400 to-purple-400 shadow-blue-400/25'
+                                    ? 'bg-black'
+                                    : 'bg-white'
                                 }`}>
-                                  <span className="text-xs">{currentUser?.username?.charAt(0) || 'U'}</span>
+                                  {currentUser?.avatar?.startsWith('http') ? (
+                                    <img 
+                                      src={currentUser.avatar} 
+                                      alt={currentUser.username}
+                                      className="w-8 h-8 rounded-lg object-cover"
+                                    />
+                                  ) : (
+                                    <span className={`text-xs ${theme === 'light' ? 'text-white' : 'text-black'}`}>{currentUser?.username?.charAt(0) || 'U'}</span>
+                                  )}
                                 </div>
                                 <div className="flex-1">
                                   <input
@@ -469,10 +499,10 @@ export function FeedTab({
                                     value={replyInputs[comment.id] || ''}
                                     onChange={(e) => onReplyChange(comment.id, e.target.value)}
                                     placeholder={language === 'ar' ? 'اكتب رداً...' : 'Write a reply...'}
-                                    className={`w-full p-2 rounded-lg border text-xs transition-all duration-300 backdrop-blur-sm ${
+                                    className={`w-full p-2 rounded-lg border text-xs transition-all duration-300 ${
                                       theme === 'light'
-                                        ? 'bg-white/80 border-gray-200/50 text-gray-900 placeholder-gray-500 focus:bg-white/90 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/20'
-                                        : 'bg-gray-800/80 border-gray-700/50 text-white placeholder-gray-400 focus:bg-gray-700/90 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/20'
+                                        ? 'bg-white border-gray-200 text-black placeholder-gray-400 focus:border-black'
+                                        : 'bg-black border-gray-800 text-white placeholder-gray-500 focus:border-white'
                                     }`}
                                     onKeyPress={(e) => {
                                       if (e.key === 'Enter') {
@@ -486,8 +516,8 @@ export function FeedTab({
                                     className={`mt-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
                                       replyInputs[comment.id]?.trim()
                                         ? theme === 'light'
-                                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md shadow-blue-500/25'
-                                          : 'bg-gradient-to-r from-blue-400 to-blue-500 text-white hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-400/25'
+                                          ? 'bg-black text-white hover:bg-gray-800'
+                                          : 'bg-white text-black hover:bg-gray-200'
                                         : theme === 'light'
                                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                           : 'bg-gray-800 text-gray-600 cursor-not-allowed'
@@ -504,12 +534,20 @@ export function FeedTab({
                     ))}
 
                     <div className="flex items-start gap-3 mt-6">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold transition-all duration-300 hover:scale-105 shadow-lg ${
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden transition-all duration-300 hover:scale-105 ${
                         theme === 'light'
-                          ? 'bg-gradient-to-br from-blue-500 to-purple-500 shadow-blue-500/25'
-                          : 'bg-gradient-to-br from-blue-400 to-purple-400 shadow-blue-400/25'
+                          ? 'bg-black'
+                          : 'bg-white'
                       }`}>
-                        <span className="text-sm">{currentUser?.username?.charAt(0) || 'U'}</span>
+                        {currentUser?.avatar?.startsWith('http') ? (
+                          <img 
+                            src={currentUser.avatar} 
+                            alt={currentUser.username}
+                            className="w-10 h-10 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <span className={`text-sm ${theme === 'light' ? 'text-white' : 'text-black'}`}>{currentUser?.username?.charAt(0) || 'U'}</span>
+                        )}
                       </div>
                       <div className="flex-1">
                         <input
@@ -517,10 +555,10 @@ export function FeedTab({
                           value={commentInputs[post.id] || ''}
                           onChange={(e) => onCommentChange(post.id, e.target.value)}
                           placeholder={language === 'ar' ? 'Add a comment...' : 'Add a comment...'}
-                          className={`w-full p-3 rounded-lg border text-sm transition-all duration-300 backdrop-blur-sm ${
+                          className={`w-full p-3 rounded-lg border text-sm transition-all duration-300 ${
                             theme === 'light'
-                              ? 'bg-gray-50/80 border-gray-200/50 text-gray-900 placeholder-gray-500 focus:bg-white/90 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/20'
-                              : 'bg-gray-800/80 border-gray-700/50 text-white placeholder-gray-400 focus:bg-gray-700/90 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/20'
+                              ? 'bg-gray-50 border-gray-200 text-black placeholder-gray-400 focus:border-black'
+                              : 'bg-gray-900 border-gray-800 text-white placeholder-gray-500 focus:border-white'
                           }`}
                           onKeyPress={(e) => {
                             if (e.key === 'Enter') {
@@ -538,15 +576,15 @@ export function FeedTab({
         ))}
 
         {!loading && posts.length === 0 && (
-          <div className={`text-center py-16 rounded-2xl backdrop-blur-sm transition-all duration-300 ${
+          <div className={`text-center py-16 rounded-lg transition-all duration-300 ${
             theme === 'light' 
-              ? 'bg-white/95 border border-gray-200/60 shadow-sm shadow-gray-500/10' 
-              : 'bg-gray-900/95 border border-gray-800/60 shadow-xl shadow-black/20'
+              ? 'bg-white border border-gray-200' 
+              : 'bg-black border border-gray-800'
           }`}>
             <div className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${
               theme === 'light'
-                ? 'bg-gradient-to-br from-gray-100 to-gray-200'
-                : 'bg-gradient-to-br from-gray-800 to-gray-900'
+                ? 'bg-gray-100'
+                : 'bg-gray-800'
             }`}>
               <svg className={`w-8 h-8 ${
                 theme === 'light' ? 'text-gray-400' : 'text-gray-500'

@@ -335,7 +335,7 @@ function SocialPageContent() {
   return (
     <CustomThemeProvider>
       <div className={`min-h-screen flex flex-col ${
-        theme === 'light' ? 'bg-gray-50' : 'bg-black'
+        theme === 'light' ? 'bg-white' : 'bg-black'
       }`}>
         {/* Top Navigation */}
         <div className={`border-b ${
@@ -352,7 +352,7 @@ function SocialPageContent() {
           <div className={`flex-1 border-l ${
             theme === 'light' ? 'border-gray-200' : 'border-gray-800'
           }`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-4xl mx-auto px-6 py-8">
           {activeTab === 'feed' && (
             <FeedTab
               posts={posts}
@@ -391,7 +391,7 @@ function SocialPageContent() {
           )}
 
           {activeTab === 'friends' && (
-            <FriendshipManager 
+            <FriendshipManager
               onSwitchToMessaging={(friendId: string) => {
                 console.log('🎯 onSwitchToMessaging called in social/page.tsx:', {
                   friendId,
@@ -403,7 +403,6 @@ function SocialPageContent() {
             />
           )}
 
-          
           {activeTab === 'notifications' && (
             <NotificationsTab activeTab={activeTab} />
           )}

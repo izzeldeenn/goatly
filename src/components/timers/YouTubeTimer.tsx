@@ -16,7 +16,7 @@ export function YouTubeTimer() {
   const { startSession, endSession, updateSessionTime, isSessionActive } = useStudySession();
   const { setTimerActive: setTimerActiveIndicator } = useTimerIndicator();
   const { showFullscreenPrompt, setShowFullscreenPrompt, requestFullscreen } = useFullscreen();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   
   // Use timer state hook
   const {
@@ -102,7 +102,8 @@ export function YouTubeTimer() {
 
   // Get embed URL from video ID
   const getEmbedUrl = (videoId: string) => {
-    return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=0&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&cc_load_policy=0&hl=ar&fs=1&autohide=1&showinfo=0`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.goatly.space';
+    return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=0&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&cc_load_policy=0&hl=ar&fs=1&autohide=1&showinfo=0&origin=${encodeURIComponent(origin)}`;
   };
 
   // Search YouTube videos using API
@@ -613,14 +614,12 @@ export function YouTubeTimer() {
             <h3 className={`text-lg font-bold mb-4 ${
               theme === 'light' ? 'text-gray-900' : 'text-white'
             }`}>
-              {language === 'ar' ? 'تأكيد إيقاف التايمر' : 'Confirm Stop Timer'}
+              {t.confirmStopTimer}
             </h3>
             <p className={`mb-6 ${
               theme === 'light' ? 'text-gray-600' : 'text-gray-300'
             }`}>
-              {language === 'ar' 
-                ? 'إذا أوقفت التايمر الآن، ستفقد تركيزك ولن تحصل على النقاط لهذه الجلسة.'
-                : 'If you stop the timer now, you will lose your focus and won\'t earn points for this session.'}
+              {t.stopTimerMessage}
             </p>
             <div className="flex gap-3 rtl:flex-row-reverse">
               <button
@@ -631,7 +630,7 @@ export function YouTubeTimer() {
                     : 'bg-red-600 text-white hover:bg-red-700'
                 }`}
               >
-                {language === 'ar' ? 'تأكيد الإيقاف' : 'Confirm Stop'}
+                {t.confirmStop}
               </button>
               <button
                 onClick={cancelStop}
@@ -641,7 +640,7 @@ export function YouTubeTimer() {
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
-                {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                {t.cancel}
               </button>
             </div>
           </div>

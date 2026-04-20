@@ -34,7 +34,7 @@ export default function ExtensionLandingPage() {
 
 function ExtensionLandingPageContent() {
   const { theme } = useTheme();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const texts = extensionTexts[language];
@@ -424,12 +424,12 @@ function ExtensionLandingPageContent() {
                     <div className={`text-sm font-medium ${
                       theme === 'light' ? 'text-gray-700' : 'text-gray-300'
                     }`}>
-                      {language === 'ar' ? 'المستخدمون' : 'Users'}
+                      {t.users}
                     </div>
                   </div>
                   <div className={`text-center p-6 rounded-xl border-2 transform hover:scale-105 transition-all ${
-                    theme === 'light' 
-                      ? 'bg-green-50 border-green-200 hover:border-green-300 hover:shadow-lg' 
+                    theme === 'light'
+                      ? 'bg-green-50 border-green-200 hover:border-green-300 hover:shadow-lg'
                       : 'bg-gray-800 border-green-700 hover:border-green-600 hover:shadow-lg'
                   }`}>
                     <div className={`text-3xl font-bold mb-2 ${
@@ -440,12 +440,12 @@ function ExtensionLandingPageContent() {
                     <div className={`text-sm font-medium ${
                       theme === 'light' ? 'text-gray-700' : 'text-gray-300'
                     }`}>
-                      {language === 'ar' ? 'التقييم' : 'Rating'}
+                      {t.rating}
                     </div>
                   </div>
                   <div className={`text-center p-6 rounded-xl border-2 transform hover:scale-105 transition-all ${
-                    theme === 'light' 
-                      ? 'bg-purple-50 border-purple-200 hover:border-purple-300 hover:shadow-lg' 
+                    theme === 'light'
+                      ? 'bg-purple-50 border-purple-200 hover:border-purple-300 hover:shadow-lg'
                       : 'bg-gray-800 border-purple-700 hover:border-purple-600 hover:shadow-lg'
                   }`}>
                     <div className={`text-3xl font-bold mb-2 ${
@@ -456,7 +456,7 @@ function ExtensionLandingPageContent() {
                     <div className={`text-sm font-medium ${
                       theme === 'light' ? 'text-gray-700' : 'text-gray-300'
                     }`}>
-                      {language === 'ar' ? 'مجاني' : 'Free'}
+                      {t.free}
                     </div>
                   </div>
                 </div>

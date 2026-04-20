@@ -19,7 +19,7 @@ export function Timer() {
     formatTime
   } = useTimerState();
 
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { getSessionDuration } = useStudySession();
   const sessionTime = getSessionDuration();
   
@@ -66,7 +66,7 @@ export function Timer() {
               <div className="flex justify-between items-center mb-3">
                 <div className="flex items-center gap-2">
                   <span className={`text-sm ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`}>
-                    {language === 'ar' ? 'النقطة القادمة' : 'Next Point'}
+                    {t.nextPoint}
                   </span>
                   <span className={`font-bold text-lg ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`}>
                     {minutesToNextPoint}:{secsToNextPoint.toString().padStart(2, '0')}
@@ -99,9 +99,7 @@ export function Timer() {
                 </div>
               </div>
               <p className={`text-sm mt-3 font-medium ${theme === 'light' ? 'text-amber-700' : 'text-amber-300'}`}>
-                {language === 'ar' 
-                  ? '🎯 أكمل 10 دقائق للحصول على نقطة' 
-                  : '🎯 Complete 10 minutes to earn a point'}
+                {t.completeTenMinutes}
               </p>
             </div>
           )}
@@ -201,14 +199,12 @@ export function Timer() {
             <h3 className={`text-lg font-bold mb-4 ${
               theme === 'light' ? 'text-gray-900' : 'text-white'
             }`}>
-              {language === 'ar' ? 'تأكيد إيقاف التايمر' : 'Confirm Stop Timer'}
+              {t.confirmStopTimer}
             </h3>
             <p className={`mb-6 ${
               theme === 'light' ? 'text-gray-600' : 'text-gray-300'
             }`}>
-              {language === 'ar' 
-                ? 'إذا أوقفت التايمر الآن، ستفقد تركيزك ولن تحصل على النقاط لهذه الجلسة.'
-                : 'If you stop the timer now, you will lose your focus and won\'t earn points for this session.'}
+              {t.stopTimerMessage}
             </p>
             <div className="flex gap-3 rtl:flex-row-reverse">
               <button
@@ -219,7 +215,7 @@ export function Timer() {
                     : 'bg-red-600 text-white hover:bg-red-700'
                 }`}
               >
-                {language === 'ar' ? 'تأكيد الإيقاف' : 'Confirm Stop'}
+                {t.confirmStop}
               </button>
               <button
                 onClick={cancelStop}
@@ -229,7 +225,7 @@ export function Timer() {
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
-                {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                {t.cancel}
               </button>
             </div>
           </div>

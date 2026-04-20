@@ -132,7 +132,18 @@ const translations = {
     disableService: 'Disable',
     serviceDescription: 'Choose which services to show in your timer selector',
     newServices: 'New Services',
-    comingSoon: 'Coming Soon'
+    comingSoon: 'Coming Soon',
+    // Extension page
+    users: 'Users',
+    rating: 'Rating',
+    free: 'Free',
+    // Timer modals
+    confirmStopTimer: 'Confirm Stop Timer',
+    stopTimerMessage: 'If you stop the timer now, you will lose your focus and won\'t earn points for this session.',
+    confirmStop: 'Confirm Stop',
+    // Timer progress
+    nextPoint: 'Next Point',
+    completeTenMinutes: '🎯 Complete 10 minutes to earn a point'
   },
   ar: {
     // Timer
@@ -261,7 +272,18 @@ const translations = {
     disableService: 'تعطيل',
     serviceDescription: 'اختر الخدمات التي تريد إظهارها في منتقي المؤقت',
     newServices: 'خدمات جديدة',
-    comingSoon: 'قريباً'
+    comingSoon: 'قريباً',
+    // Extension page
+    users: 'المستخدمون',
+    rating: 'التقييم',
+    free: 'مجاني',
+    // Timer modals
+    confirmStopTimer: 'تأكيد إيقاف التايمر',
+    stopTimerMessage: 'إذا أوقفت التايمر الآن، ستفقد تركيزك ولن تحصل على النقاط لهذه الجلسة.',
+    confirmStop: 'تأكيد الإيقاف',
+    // Timer progress
+    nextPoint: 'النقطة القادمة',
+    completeTenMinutes: '🎯 أكمل 10 دقائق للحصول على نقطة'
   }
 };
 

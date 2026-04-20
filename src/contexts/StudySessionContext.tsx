@@ -50,6 +50,15 @@ export function StudySessionProvider({ children }: { children: ReactNode }) {
 
   const startSession = async (accountId: string) => {
     try {
+      // End any existing session before starting a new one
+      if (currentSession && currentSession.isActive) {
+        await endSession(accountId);
+      }
+      
+      // Clear current session
+      setCurrentSession(null);
+      setIsSessionActive(false);
+      
       // Start session in database
       const dbSession = await activitySessionDB.startSession(accountId);
       
@@ -119,8 +128,9 @@ export function StudySessionProvider({ children }: { children: ReactNode }) {
       // Save completed session to history
       saveSessionToHistory(endedSession);
       
-      // Clear current session from localStorage
+      // Clear current session from localStorage and state
       localStorage.removeItem('study_session');
+      setCurrentSession(null);
     }
   };
 

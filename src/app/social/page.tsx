@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
@@ -8,6 +8,7 @@ import { CustomThemeProvider } from '@/contexts/CustomThemeContext';
 import { SocialNavbar } from '@/components/social/SocialNavbar';
 import { SocialSidebar } from '@/components/social/SocialSidebar';
 import { socialDB, SocialPost, SocialComment } from '@/lib/social';
+import { supabase } from '@/lib/supabase';
 import MessagingSystem from '@/components/chat/MessagingSystem';
 import FriendshipManager from '@/components/users/FriendshipManager';
 import { FeedTab } from '@/components/social/FeedTab';
@@ -53,6 +54,7 @@ function SocialPageContent() {
   const [editingComment, setEditingComment] = useState<{ [key: string]: boolean }>({});
   const [editingPostContent, setEditingPostContent] = useState<{ [key: string]: string }>({});
   const [editingCommentContent, setEditingCommentContent] = useState<{ [key: string]: string }>({});
+  const postsLoadedRef = useRef(false);
 
   // Load posts from database
   const loadPosts = async () => {
@@ -60,11 +62,27 @@ function SocialPageContent() {
     try {
       const dbPosts = await socialDB.getPosts();
       
+      // Get authenticated user UUID for like checking
+      let userUuid = null;
+      
+      if (currentUser) {
+        userUuid = currentUser.accountId;
+        
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user?.id) {
+            userUuid = session.user.id;
+          }
+        } catch (error) {
+          console.error('Error getting auth session:', error);
+        }
+      }
+      
       // Transform posts to include liked status and comments
       const postsWithDetails = await Promise.all(
         dbPosts.map(async (post) => {
           const comments = await socialDB.getComments(post.id);
-          const liked = currentUser ? await socialDB.didUserLikePost(post.id, currentUser.accountId) : false;
+          const liked = userUuid ? await socialDB.didUserLikePost(post.id, userUuid) : false;
           
           return {
             ...post,
@@ -83,8 +101,11 @@ function SocialPageContent() {
   };
 
   useEffect(() => {
-    loadPosts();
-  }, []);
+    if (currentUser && !postsLoadedRef.current) {
+      loadPosts();
+      postsLoadedRef.current = true;
+    }
+  }, [currentUser]);
 
   const handlePostSubmit = async () => {
     if (!currentUser || !newPost.trim()) return;

@@ -282,14 +282,14 @@ export function FeedTab({
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
                       post.liked
                         ? theme === 'light'
-                          ? 'bg-red-100 text-red-600 border border-red-300'
-                          : 'bg-red-900/50 text-red-400 border border-red-700'
+                          ? 'bg-red-500 text-white border border-red-600'
+                          : 'bg-red-600 text-white border border-red-500'
                         : theme === 'light'
                           ? 'bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 border border-gray-200 hover:border-red-300'
                           : 'bg-gray-800 text-gray-400 hover:bg-red-900/50 hover:text-red-400 border border-gray-700 hover:border-red-700'
                     }`}
                   >
-                    <svg className="w-4 h-4" fill={post.liked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill={post.liked ? "currentColor" : "none"} stroke={post.liked ? "currentColor" : "currentColor"} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
                     <span>{post.likes}</span>

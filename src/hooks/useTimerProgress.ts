@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePoints } from '@/contexts/PointsContext';
 
 interface UseTimerProgressReturn {
@@ -13,11 +13,15 @@ interface UseTimerProgressReturn {
   confirmStop: (handleStop: () => void) => void;
   cancelStop: () => void;
   handleStartWithSound: (handleStart: () => void) => void;
+  pendingPoints: number;
+  clearPendingPoints: () => void;
 }
 
 export function useTimerProgress(sessionTime: number, isRunning: boolean): UseTimerProgressReturn {
-  const { coins } = usePoints();
+  const { coins, addCoins } = usePoints();
   const [showStopConfirmation, setShowStopConfirmation] = useState(false);
+  const lastAwardedTimeRef = useRef(0);
+  const [pendingPoints, setPendingPoints] = useState(0);
 
   // Calculate progress to next point based on current session time (every 10 minutes = 600 seconds)
   // Each session starts fresh, so progress is based on current session time only
@@ -26,6 +30,37 @@ export function useTimerProgress(sessionTime: number, isRunning: boolean): UseTi
   const secondsToNextPoint = secondsPerPoint - (sessionTime % secondsPerPoint);
   const minutesToNextPoint = Math.floor(secondsToNextPoint / 60);
   const secsToNextPoint = secondsToNextPoint % 60;
+
+  // Track pending points (display only, not added to database yet)
+  useEffect(() => {
+    if (isRunning && sessionTime > 0) {
+      const currentMilestone = Math.floor(sessionTime / secondsPerPoint);
+      const lastMilestone = Math.floor(lastAwardedTimeRef.current / secondsPerPoint);
+
+      // If we've reached a new milestone (every 10 minutes), track pending points
+      if (currentMilestone > lastMilestone) {
+        const pointsEarned = currentMilestone - lastMilestone;
+        setPendingPoints(prev => prev + pointsEarned);
+        lastAwardedTimeRef.current = sessionTime;
+      }
+    }
+  }, [sessionTime, isRunning]);
+
+  // Clear pending points when session starts fresh
+  useEffect(() => {
+    if (sessionTime === 0) {
+      setPendingPoints(0);
+      lastAwardedTimeRef.current = 0;
+    }
+  }, [sessionTime]);
+
+  // Function to add pending points to database and clear them
+  const clearPendingPoints = () => {
+    if (pendingPoints > 0) {
+      addCoins(pendingPoints);
+      setPendingPoints(0);
+    }
+  };
 
   // Sound effects using Web Audio API
   const playStartSound = () => {
@@ -104,6 +139,8 @@ export function useTimerProgress(sessionTime: number, isRunning: boolean): UseTi
     handleStopClick,
     confirmStop,
     cancelStop,
-    handleStartWithSound
+    handleStartWithSound,
+    pendingPoints,
+    clearPendingPoints
   };
 }

@@ -323,7 +323,7 @@ export function UserActivityDashboard({ accountId }: UserActivityDashboardProps)
           <div className={`text-sm font-medium mb-2 ${
             theme === 'light' ? 'text-gray-500' : 'text-gray-400'
           }`}>
-            {t.rank === 'ترتيب' ? 'النقاط المكتسبة' : 'Points Earned'}
+            {t.rank === 'ترتيب' ? 'العملات المكتسبة' : 'Points Earned'}
           </div>
           <div className={`text-2xl font-bold ${
             theme === 'light' ? 'text-gray-900' : 'text-gray-100'

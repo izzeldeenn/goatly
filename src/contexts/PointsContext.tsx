@@ -26,7 +26,7 @@ interface PointsContextType {
   // Helper functions for common operations
   calculateCoinsFromStudyTime: (studySeconds: number) => number;
   rewardDailyLogin: () => boolean;
-  rewardSessionComplete: (minutes: number) => number;
+  rewardSessionComplete: (minutes: number, pendingPoints?: number) => number;
   rewardPomodoroSession: () => number;
   rewardLevelUp: () => number;
   rewardAchievement: (achievementId: string) => number;
@@ -145,21 +145,21 @@ export function PointsProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
-  // Session complete reward
-  const rewardSessionComplete = (minutes: number): number => {
+  // Session complete reward - adds pending points that were tracked during the session
+  const rewardSessionComplete = (minutes: number, pendingPoints: number = 0): number => {
     if (!currentUser) return 0;
 
-    const baseReward = 5;
-    const bonusReward = Math.floor(minutes / 30) * 2; // 2 coins per 30 minutes
-    
-    const totalReward = baseReward + bonusReward;
-    
-    setTimeout(() => addCoins(totalReward), 50);
+    // Add pending points that were tracked during the session
+    const totalReward = pendingPoints;
 
-    setRewardData((prev: RewardData) => ({
-      ...prev,
-      totalEarned: prev.totalEarned + totalReward
-    }));
+    if (totalReward > 0) {
+      setTimeout(() => addCoins(totalReward), 50);
+
+      setRewardData((prev: RewardData) => ({
+        ...prev,
+        totalEarned: prev.totalEarned + totalReward
+      }));
+    }
 
     return totalReward;
   };

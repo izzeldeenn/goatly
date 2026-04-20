@@ -44,7 +44,9 @@ export function YouTubeTimer() {
     handleStopClick,
     confirmStop,
     cancelStop,
-    handleStartWithSound
+    handleStartWithSound,
+    pendingPoints,
+    clearPendingPoints
   } = useTimerProgress(sessionTime, isRunning);
 
   const handleStartClick = () => handleStartWithSound(handleStart);

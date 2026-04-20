@@ -231,7 +231,7 @@ export function UserProfileModal({ isOpen, user, onClose }: UserProfileModalProp
             <div className={`text-xs ${
               theme === 'light' ? 'text-gray-600' : 'text-gray-300'
             }`}>
-              {language === 'ar' ? 'النقاط' : 'Points'}
+              {language === 'ar' ? 'العملات' : 'Points'}
             </div>
           </div>
           

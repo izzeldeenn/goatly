@@ -42,7 +42,9 @@ export function PomodoroTimer() {
     handleStopClick,
     confirmStop,
     cancelStop,
-    handleStartWithSound
+    handleStartWithSound,
+    pendingPoints,
+    clearPendingPoints
   } = useTimerProgress(sessionTime, isRunning);
 
   const handleStartClick = () => handleStartWithSound(handleStart);
@@ -444,7 +446,7 @@ export function PomodoroTimer() {
             <p className={`mb-6 ${
               theme === 'light' ? 'text-gray-600' : 'text-gray-300'
             }`}>
-              إذا أوقفت التايمر الآن، ستفقد تركيزك ولن تحصل على النقاط لهذه الجلسة.
+              إذا أوقفت التايمر الآن، ستفقد تركيزك ولن تحصل على العملات لهذه الجلسة.
             </p>
             <div className="flex gap-3 rtl:flex-row-reverse">
               <button

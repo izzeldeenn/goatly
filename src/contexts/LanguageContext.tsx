@@ -216,7 +216,7 @@ const translations = {
     levelText: 'مستوى',
     timeToday: 'وقت اليوم',
     coinsToday: 'عملات اليوم',
-    points: 'نقاط',
+    points: 'عملات',
     up: 'صاعد',
     down: 'نازل',
     items: 'العناصر',
@@ -279,7 +279,7 @@ const translations = {
     free: 'مجاني',
     // Timer modals
     confirmStopTimer: 'تأكيد إيقاف التايمر',
-    stopTimerMessage: 'إذا أوقفت التايمر الآن، ستفقد تركيزك ولن تحصل على النقاط لهذه الجلسة.',
+    stopTimerMessage: 'إذا أوقفت التايمر الآن، ستفقد تركيزك ولن تحصل على العملات لهذه الجلسة.',
     confirmStop: 'تأكيد الإيقاف',
     // Timer progress
     nextPoint: 'النقطة القادمة',

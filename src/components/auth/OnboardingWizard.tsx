@@ -23,7 +23,7 @@ export function OnboardingWizard({ onComplete, isOpen }: OnboardingWizardProps) 
     { title: 'مرحباً!', description: 'دعنا نعد شكل التطبيق لك' },
     { title: 'اختر شكلك', description: 'اختر الإعدادات المسبقة التي تناسبك' },
     { title: 'اسمك', description: 'كيف نناديك؟' },
-    { title: 'نظام النقاط', description: 'اكتشف كيف تكسب عملات ومستويات' },
+    { title: 'نظام العملات', description: 'اكتشف كيف تكسب عملات ومستويات' },
     { title: 'الترتيب والإحصائيات', description: 'تتبع تقدمك وتنافس مع الآخرين' },
     { title: 'المؤقت الذكي', description: 'استخدم أدوات الدراسة الفعالة' },
     { title: 'جاهز!', description: 'تم إعداد كل شيء بنجاح' }
@@ -266,7 +266,7 @@ export function OnboardingWizard({ onComplete, isOpen }: OnboardingWizardProps) 
                 className="text-lg font-bold mb-6 text-center"
                 style={{ color: theme === 'light' ? '#1f2937' : '#f9fafb' }}
               >
-                نظام النقاط والمكافآت
+                نظام العملات والمكافآت
               </h3>
               <div className="space-y-6 max-w-2xl mx-auto">
                 <div className="flex items-start gap-4">
@@ -341,7 +341,7 @@ export function OnboardingWizard({ onComplete, isOpen }: OnboardingWizardProps) 
                       className="text-sm opacity-75"
                       style={{ color: theme === 'light' ? '#6b7280' : '#d1d5db' }}
                     >
-                      أكمل تحديات يومية في السلوكيات والعادات والمشاعر لكسب نقاط إضافية.
+                      أكمل تحديات يومية في السلوكيات والعادات والمشاعر لكسب عملات إضافية.
                       سلسلة الأيام المتتالية تضاعف مكافآتك!
                     </p>
                   </div>
@@ -354,7 +354,7 @@ export function OnboardingWizard({ onComplete, isOpen }: OnboardingWizardProps) 
                     className="text-sm font-bold"
                     style={{ color: theme === 'light' ? '#d97706' : '#fbbf24' }}
                   >
-                    💡 نصيحة: الدراسة المنتظمة تكسب نقاط أكثر من الجلسات الطويلة المتقطعة!
+                    💡 نصيحة: الدراسة المنتظمة تكسب عملات أكثر من الجلسات الطويلة المتقطعة!
                   </p>
                 </div>
               </div>
@@ -391,7 +391,7 @@ export function OnboardingWizard({ onComplete, isOpen }: OnboardingWizardProps) 
                       style={{ color: theme === 'light' ? '#6b7280' : '#d1d5db' }}
                     >
                       تنافس مع جميع المستخدمين واحتل المراكز الأولى!
-                      الترتيب يعتمد على مجموع نقاطك ومستواك وسلسلة أيام الدراسة.
+                      الترتيب يعتمد على مجموع عملاتك ومستواك وسلسلة أيام الدراسة.
                     </p>
                   </div>
                 </div>
@@ -651,7 +651,7 @@ export function OnboardingWizard({ onComplete, isOpen }: OnboardingWizardProps) 
                   className="text-base opacity-75"
                   style={{ color: theme === 'light' ? '#6b7280' : '#d1d5db' }}
                 >
-                  ✅ نظام النقاط والمكافآت مفعل
+                  ✅ نظام العملات والمكافآت مفعل
                 </p>
                 <p 
                   className="text-base opacity-75"
@@ -679,7 +679,7 @@ export function OnboardingWizard({ onComplete, isOpen }: OnboardingWizardProps) 
                 <div className="text-sm space-y-1 text-right" style={{ color: theme === 'light' ? '#6b7280' : '#d1d5db' }}>
                   <p>• ابدأ بجلسة بومودورو 25 دقيقة</p>
                   <p>• حافظ على سلسلة أيام الدراسة</p>
-                  <p>• أكمل التحديات اليومية لنقاط إضافية</p>
+                  <p>• أكمل التحديات اليومية للحصول على عملات إضافية</p>
                   <p>• تابع تقدمك في لوحة الترتيب</p>
                 </div>
               </div>

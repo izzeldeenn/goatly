@@ -48,7 +48,9 @@ export function PDFStudyTimer({ onClose }: PDFStudyTimerProps) {
     handleStopClick,
     confirmStop,
     cancelStop,
-    handleStartWithSound
+    handleStartWithSound,
+    pendingPoints,
+    clearPendingPoints
   } = useTimerProgress(sessionTime, isRunning);
 
   const handleStartClick = () => handleStartWithSound(handleStart);
@@ -408,7 +410,7 @@ export function PDFStudyTimer({ onClose }: PDFStudyTimerProps) {
               theme === 'light' ? 'text-gray-600' : 'text-gray-300'
             }`}>
               {t.rank === 'ترتيب' 
-                ? 'إذا أوقفت التايمر الآن، ستفقد تركيزك ولن تحصل على النقاط لهذه الجلسة.'
+                ? 'إذا أوقفت التايمر الآن، ستفقد تركيزك ولن تحصل على العملات لهذه الجلسة.'
                 : 'If you stop the timer now, you will lose your focus and won\'t earn points for this session.'}
             </p>
             <div className="flex gap-3 rtl:flex-row-reverse">

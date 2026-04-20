@@ -602,7 +602,7 @@ export default function ChallengePage() {
                       <span className="font-medium text-gray-100">{Math.floor((getCurrentUser()?.score || 0) / 100) + 1}</span>
                     </div>
                     <div className="flex justify-center items-center gap-2 text-sm">
-                      <span className="text-gray-400">النقاط:</span>
+                      <span className="text-gray-400">العملات:</span>
                       <span className="font-medium text-gray-100">{getCurrentUser()?.score || 0}</span>
                     </div>
                   </div>
@@ -667,7 +667,7 @@ export default function ChallengePage() {
                       <span className="font-medium text-gray-100">{challengeState.opponent.rank}</span>
                     </div>
                     <div className="flex justify-center items-center gap-2 text-sm">
-                      <span className="text-gray-400">النقاط:</span>
+                      <span className="text-gray-400">العملات:</span>
                       <span className="font-medium text-gray-100">{challengeState.opponent.score}</span>
                     </div>
                   </div>
@@ -770,7 +770,7 @@ export default function ChallengePage() {
                       <div className="text-xs text-gray-400">وقت الدراسة</div>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-400">النقاط:</span>
+                      <span className="text-gray-400">العملات:</span>
                       <span className="font-medium text-gray-100">{getCurrentUser()?.score || 0}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
@@ -804,7 +804,7 @@ export default function ChallengePage() {
                       <span className="font-medium text-gray-100">{challengeState.opponent?.username}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-400">النقاط:</span>
+                      <span className="text-gray-400">العملات:</span>
                       <span className="font-medium text-gray-100">{challengeState.opponent?.score}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">

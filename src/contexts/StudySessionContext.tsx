@@ -89,7 +89,7 @@ export function StudySessionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const endSession = async (accountId: string) => {
+  const endSession = async (accountId: string, pendingPoints: number = 0) => {
     if (currentSession) {
       const endedSession = {
         ...currentSession,
@@ -97,14 +97,14 @@ export function StudySessionProvider({ children }: { children: ReactNode }) {
         isActive: false,
         duration: currentSession.studyTime
       };
-      
+
       setCurrentSession(endedSession);
       setIsSessionActive(false);
-      
+
       // Calculate duration in seconds and points earned
       const durationSeconds = currentSession.studyTime;
-      const pointsEarned = Math.floor(durationSeconds / 600); // 1 point per 10 minutes (600 seconds)
-      
+      const pointsEarned = pendingPoints || Math.floor(durationSeconds / 600); // 1 point per 10 minutes (600 seconds)
+
       // End session in database if we have a DB session ID
       if (currentSession.dbSessionId) {
         try {
@@ -113,7 +113,7 @@ export function StudySessionProvider({ children }: { children: ReactNode }) {
             durationSeconds,
             pointsEarned
           );
-          
+
           // Update daily activity
           await activitySessionDB.updateDailyActivityFromSession(
             accountId,
@@ -124,10 +124,10 @@ export function StudySessionProvider({ children }: { children: ReactNode }) {
           console.error('Failed to end session in database:', error);
         }
       }
-      
+
       // Save completed session to history
       saveSessionToHistory(endedSession);
-      
+
       // Clear current session from localStorage and state
       localStorage.removeItem('study_session');
       setCurrentSession(null);

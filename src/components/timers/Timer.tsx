@@ -32,7 +32,9 @@ export function Timer() {
     handleStopClick,
     confirmStop,
     cancelStop,
-    handleStartWithSound
+    handleStartWithSound,
+    pendingPoints,
+    clearPendingPoints
   } = useTimerProgress(sessionTime, isRunning);
 
   const handleStartClick = () => handleStartWithSound(handleStart);
@@ -78,8 +80,13 @@ export function Timer() {
                     <text x="12" y="16" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#B8860B">$</text>
                   </svg>
                   <span className={`font-bold text-lg ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`}>
-                    {coins}
+                    {coins + pendingPoints}
                   </span>
+                  {pendingPoints > 0 && (
+                    <span className={`text-xs ${theme === 'light' ? 'text-amber-500' : 'text-amber-400'}`}>
+                      (+{pendingPoints})
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="relative h-4 rounded-full overflow-hidden bg-gradient-to-r from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30">

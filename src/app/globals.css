@@ -291,3 +291,50 @@ body {
     transform: rotate(-1turn);
   }
 }
+
+/* Modern Scrollbar Styling */
+/* Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #666;
+}
+
+/* Show scrollbar on hover of the element */
+*:hover::-webkit-scrollbar-thumb {
+  opacity: 0.6;
+}
+
+/* Show fully when hovering the scrollbar itself */
+*:hover::-webkit-scrollbar-thumb:hover {
+  opacity: 1;
+}
+
+/* Firefox - thin scrollbar always visible */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+}
+
+.dark * {
+  scrollbar-color: #666 transparent;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}

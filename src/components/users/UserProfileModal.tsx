@@ -52,7 +52,7 @@ export function UserProfileModal({ isOpen, user, onClose }: UserProfileModalProp
 
   const getTodayStudyTime = (user: UserAccount) => {
     const dailyStudyTime = user.dailyStudyTime || 0;
-    return typeof dailyStudyTime === 'number' && !isNaN(dailyStudyTime) ? dailyStudyTime * 60 : 0;
+    return typeof dailyStudyTime === 'number' && !isNaN(dailyStudyTime) ? dailyStudyTime : 0;
   };
 
   const getCoinsFromStudyTime = (studySeconds: number) => {

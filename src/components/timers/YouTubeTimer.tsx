@@ -102,8 +102,7 @@ export function YouTubeTimer() {
 
   // Get embed URL from video ID
   const getEmbedUrl = (videoId: string) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.goatly.space';
-    return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=0&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&cc_load_policy=0&hl=ar&fs=1&autohide=1&showinfo=0&origin=${encodeURIComponent(origin)}`;
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&cc_load_policy=1&hl=ar&fs=1&autohide=1&showinfo=0`;
   };
 
   // Search YouTube videos using API
@@ -200,23 +199,76 @@ export function YouTubeTimer() {
     setSearchQuery(e.target.value);
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Check if it's a YouTube URL
     if (searchQuery.includes('youtube.com') || searchQuery.includes('youtu.be')) {
       setVideoUrl(searchQuery);
       const videoId = getVideoId(searchQuery);
       if (videoId) {
-        setSelectedVideo({
-          id: { videoId },
-          snippet: {
-            title: 'YouTube Video',
-            channelTitle: 'YouTube',
-            thumbnails: {
-              medium: { url: '' }
+        setIsSearching(true);
+        try {
+          const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
+          if (apiKey) {
+            // Fetch video info from YouTube API
+            const response = await fetch(
+              `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`
+            );
+            const data = await response.json();
+            
+            if (data.items && data.items.length > 0) {
+              const videoInfo = data.items[0];
+              setSelectedVideo({
+                id: { videoId },
+                snippet: {
+                  title: videoInfo.snippet.title,
+                  channelTitle: videoInfo.snippet.channelTitle,
+                  thumbnails: {
+                    medium: { url: videoInfo.snippet.thumbnails.medium?.url || videoInfo.snippet.thumbnails.default?.url || '' }
+                  }
+                }
+              });
+            } else {
+              // Fallback if API fails
+              setSelectedVideo({
+                id: { videoId },
+                snippet: {
+                  title: 'YouTube Video',
+                  channelTitle: 'YouTube',
+                  thumbnails: {
+                    medium: { url: '' }
+                  }
+                }
+              });
             }
+          } else {
+            // Fallback if no API key
+            setSelectedVideo({
+              id: { videoId },
+              snippet: {
+                title: 'YouTube Video',
+                channelTitle: 'YouTube',
+                thumbnails: {
+                  medium: { url: '' }
+                }
+              }
+            });
           }
-        });
+        } catch (error) {
+          console.error('Error fetching video info:', error);
+          setSelectedVideo({
+            id: { videoId },
+            snippet: {
+              title: 'YouTube Video',
+              channelTitle: 'YouTube',
+              thumbnails: {
+                medium: { url: '' }
+              }
+            }
+          });
+        } finally {
+          setIsSearching(false);
+        }
       }
     } else {
       // It's a search query
@@ -358,7 +410,7 @@ export function YouTubeTimer() {
           }`}>
             <div className="flex items-center gap-4">
               {/* Selected Video Info */}
-              {selectedVideo && (
+              {selectedVideo && selectedVideo.snippet.thumbnails.medium?.url && (
                 <div className="flex items-center gap-3">
                   <img
                     src={selectedVideo.snippet.thumbnails.medium.url}
@@ -504,7 +556,7 @@ export function YouTubeTimer() {
       {!showVideo && (
         <div className="flex-1 overflow-y-auto p-4">
           {/* Selected Video Display */}
-          {selectedVideo && (
+          {selectedVideo && selectedVideo.snippet.thumbnails.medium?.url && (
             <div className={`mb-6 p-4 rounded-lg border-2 ${
               theme === 'dark' ? 'bg-[#1a1a1a] border-gray-800' : 'bg-gray-50 border-gray-200'
             }`}>
@@ -567,37 +619,54 @@ export function YouTubeTimer() {
             </div>
           )}
 
+          {/* Loading Indicator */}
+          {isSearching && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="relative w-12 h-12">
+                <div className="absolute inset-0 border-4 border-gray-300 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+              </div>
+              <p className={`mt-4 text-sm ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                جاري البحث...
+              </p>
+            </div>
+          )}
+
           {/* Search Results Grid */}
-          {searchResults.length > 0 && (
+          {searchResults.length > 0 && !isSearching && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {searchResults.map((video) => (
-                <div
-                  key={video.id.videoId}
-                  onClick={() => handleVideoSelect(video)}
-                  className={`cursor-pointer rounded-lg overflow-hidden transition-all duration-200 hover:scale-[1.02] ${
-                    theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-gray-50'
-                  }`}
-                >
-                  <div className="relative">
-                    <img
-                      src={video.snippet.thumbnails.medium.url}
-                      alt={video.snippet.title}
-                      className="w-full h-40 object-cover"
-                    />
+                video.snippet.thumbnails.medium?.url && (
+                  <div
+                    key={video.id.videoId}
+                    onClick={() => handleVideoSelect(video)}
+                    className={`cursor-pointer rounded-lg overflow-hidden transition-all duration-200 hover:scale-[1.02] ${
+                      theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-gray-50'
+                    }`}
+                  >
+                    <div className="relative">
+                      <img
+                        src={video.snippet.thumbnails.medium.url}
+                        alt={video.snippet.title}
+                        className="w-full h-40 object-cover"
+                      />
+                    </div>
+                    <div className="p-3">
+                      <h3 className={`text-sm font-medium line-clamp-2 mb-1 ${
+                        theme === 'dark' ? 'text-white' : 'text-black'
+                      }`}>
+                        {video.snippet.title}
+                      </h3>
+                      <p className={`text-xs ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        {video.snippet.channelTitle}
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-3">
-                    <h3 className={`text-sm font-medium line-clamp-2 mb-1 ${
-                      theme === 'dark' ? 'text-white' : 'text-black'
-                    }`}>
-                      {video.snippet.title}
-                    </h3>
-                    <p className={`text-xs ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      {video.snippet.channelTitle}
-                    </p>
-                  </div>
-                </div>
+                )
               ))}
             </div>
           )}

@@ -40,6 +40,12 @@ export function ActivityGraph({ contributions, username }: ActivityGraphProps) {
   for (let i = 0; i < allDates.length; i += 7) {
     weeks.push(allDates.slice(i, i + 7));
   }
+  
+  // Reverse weeks to show most recent first (left to right)
+  weeks.reverse();
+  
+  // Reverse days within each week to show most recent day at the top
+  weeks.forEach(week => week.reverse());
 
   // Generate month labels for the top header
   const generateMonthLabels = () => {

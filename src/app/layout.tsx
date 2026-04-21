@@ -11,6 +11,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { FirstTimeSetup } from "@/components/auth/FirstTimeSetup";
 import { MusicProvider } from "@/contexts/MusicContext";
 import { CustomThemeProvider } from "@/contexts/CustomThemeContext";
+import { RoomProvider } from "@/contexts/RoomContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -98,8 +99,10 @@ export default function RootLayout({
                 <PointsProvider>
                   <StudySessionProvider>
                     <MusicProvider>
-                      <FirstTimeSetup />
-                      {children}
+                      <RoomProvider>
+                        <FirstTimeSetup />
+                        {children}
+                      </RoomProvider>
                     </MusicProvider>
                   </StudySessionProvider>
                 </PointsProvider>

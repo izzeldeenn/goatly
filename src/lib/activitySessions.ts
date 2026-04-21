@@ -76,7 +76,7 @@ export class ActivitySessionDB {
       .single();
 
     if (error) {
-      console.error('Error starting session:', error);
+      console.error('Error starting session:', error.message, error.details, error.hint, error.code);
       throw error;
     }
 
@@ -99,7 +99,7 @@ export class ActivitySessionDB {
       .single();
 
     if (error) {
-      console.error('Error ending session:', error);
+      console.error('Error ending session:', error.message, error.details, error.hint, error.code);
       throw error;
     }
 
@@ -189,7 +189,7 @@ export class ActivitySessionDB {
       .single();
 
     if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Error fetching existing activity:', fetchError);
+      console.error('Error fetching existing activity:', fetchError.message, fetchError.details, fetchError.hint, fetchError.code);
       return;
     }
 
@@ -205,7 +205,7 @@ export class ActivitySessionDB {
         .eq('id', existingActivity.id);
 
       if (updateError) {
-        console.error('Error updating daily activity:', updateError);
+        console.error('Error updating daily activity:', updateError.message, updateError.details, updateError.hint, updateError.code);
       }
     } else {
       // Create new activity
@@ -220,7 +220,7 @@ export class ActivitySessionDB {
         });
 
       if (insertError) {
-        console.error('Error creating daily activity:', insertError);
+        console.error('Error creating daily activity:', insertError.message, insertError.details, insertError.hint, insertError.code);
       }
     }
 

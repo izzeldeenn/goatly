@@ -338,3 +338,79 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* Black hole floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(2deg);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Pulsing circle animations for black hole effect */
+@keyframes pulse-slow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.1;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+@keyframes pulse-medium {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.05;
+  }
+}
+
+.animate-pulse-medium {
+  animation: pulse-medium 3s ease-in-out infinite;
+}
+
+@keyframes pulse-fast {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: scale(1.7);
+    opacity: 0.02;
+  }
+}
+
+.animate-pulse-fast {
+  animation: pulse-fast 2s ease-in-out infinite;
+}
+
+/* Space warping/lensing animation */
+@keyframes space-warp {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.1) rotate(180deg);
+    opacity: 0.1;
+  }
+}
+
+.animate-space-warp {
+  animation: space-warp 8s ease-in-out infinite;
+}

@@ -17,7 +17,7 @@ interface StudySessionContextType {
   currentSession: StudySession | null;
   isSessionActive: boolean;
   startSession: (accountId: string) => Promise<void>;
-  endSession: (accountId: string) => Promise<void>;
+  endSession: (accountId: string, pendingPoints?: number) => Promise<void>;
   pauseSession: () => void;
   resumeSession: () => void;
   updateSessionTime: (additionalSeconds: number) => void;

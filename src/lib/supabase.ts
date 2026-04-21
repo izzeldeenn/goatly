@@ -170,6 +170,42 @@ export interface ReferralFrontend {
   createdAt: string;
 }
 
+// Study room interface for database (snake_case - matches Supabase)
+export interface StudyRoom {
+  id?: string;
+  name: string;
+  creator_id: string;
+  created_at: string;
+}
+
+// Study room interface for frontend (camelCase)
+export interface StudyRoomFrontend {
+  id?: string;
+  name: string;
+  creatorId: string;
+  createdAt: string;
+}
+
+// Room member interface for database (snake_case - matches Supabase)
+export interface RoomMember {
+  id?: string;
+  room_id: string;
+  user_id: string;
+  joined_at: string;
+  left_at?: string;
+  last_heartbeat: string;
+}
+
+// Room member interface for frontend (camelCase)
+export interface RoomMemberFrontend {
+  id?: string;
+  roomId: string;
+  userId: string;
+  joinedAt: string;
+  leftAt?: string;
+  lastHeartbeat: string;
+}
+
 // Database operations for user accounts
 export class UserAccountDB {
   private static instance: UserAccountDB;
@@ -529,8 +565,8 @@ export class ChallengeDB {
 
       if (error) throw error;
       return data;
-    } catch (error) {
-      console.error('Error creating challenge:', error);
+    } catch (error: any) {
+      console.error('Error creating challenge:', error?.message || error, error?.details, error?.hint, error?.code);
       return null;
     }
   }
@@ -607,8 +643,8 @@ export class ChallengeDB {
         .subscribe();
 
       return subscription;
-    } catch (error) {
-      console.error('Error subscribing to challenge:', error);
+    } catch (error: any) {
+      console.error('Error subscribing to challenge:', error?.message || error, error?.details, error?.hint, error?.code);
     }
   }
 
@@ -616,8 +652,8 @@ export class ChallengeDB {
   unsubscribeFromChallenge(challengeId: string) {
     try {
       supabase.channel(`challenge_${challengeId}`).unsubscribe();
-    } catch (error) {
-      console.error('Error unsubscribing from challenge:', error);
+    } catch (error: any) {
+      console.error('Error unsubscribing from challenge:', error?.message || error, error?.details, error?.hint, error?.code);
     }
   }
 }
@@ -650,8 +686,8 @@ export class ChallengeSessionDB {
 
       if (error) throw error;
       return data;
-    } catch (error) {
-      console.error('Error creating challenge session:', error);
+    } catch (error: any) {
+      console.error('Error creating challenge session:', error?.message || error, error?.details, error?.hint, error?.code);
       return null;
     }
   }
@@ -720,8 +756,8 @@ export class ChallengeSessionDB {
         .subscribe();
 
       return subscription;
-    } catch (error) {
-      console.error('Error subscribing to challenge sessions:', error);
+    } catch (error: any) {
+      console.error('Error subscribing to challenge sessions:', error?.message || error, error?.details, error?.hint, error?.code);
     }
   }
 
@@ -729,8 +765,8 @@ export class ChallengeSessionDB {
   unsubscribeFromChallengeSessions(challengeId: string) {
     try {
       supabase.channel(`challenge_sessions_${challengeId}`).unsubscribe();
-    } catch (error) {
-      console.error('Error unsubscribing from challenge sessions:', error);
+    } catch (error: any) {
+      console.error('Error unsubscribing from challenge sessions:', error?.message || error, error?.details, error?.hint, error?.code);
     }
   }
 }
@@ -769,8 +805,8 @@ export class WaitingListDB {
 
       if (error) throw error;
       return data;
-    } catch (error) {
-      console.error('Error adding to waiting list:', error);
+    } catch (error: any) {
+      console.error('Error adding to waiting list:', error?.message || error, error?.details, error?.hint, error?.code);
       return null;
     }
   }
@@ -786,8 +822,8 @@ export class WaitingListDB {
 
       if (error) throw error;
       return true;
-    } catch (error) {
-      console.error('Error removing from waiting list:', error);
+    } catch (error: any) {
+      console.error('Error removing from waiting list:', error?.message || error, error?.details, error?.hint, error?.code);
       return false;
     }
   }
@@ -817,8 +853,8 @@ export class WaitingListDB {
       console.log('Match query result:', data, 'Error:', error);
       if (error) throw error;
       return data;
-    } catch (error) {
-      console.error('Error finding match:', error);
+    } catch (error: any) {
+      console.error('Error finding match:', error?.message || error, error?.details, error?.hint, error?.code);
       return null;
     }
   }
@@ -853,8 +889,8 @@ export class WaitingListDB {
         .subscribe();
 
       return subscription;
-    } catch (error) {
-      console.error('Error subscribing to waiting list:', error);
+    } catch (error: any) {
+      console.error('Error subscribing to waiting list:', error?.message || error, error?.details, error?.hint, error?.code);
     }
   }
 
@@ -862,8 +898,8 @@ export class WaitingListDB {
   unsubscribeFromWaitingList() {
     try {
       supabase.channel('waiting_list_changes').unsubscribe();
-    } catch (error) {
-      console.error('Error unsubscribing from waiting list:', error);
+    } catch (error: any) {
+      console.error('Error unsubscribing from waiting list:', error?.message || error, error?.details, error?.hint, error?.code);
     }
   }
 }
@@ -904,12 +940,12 @@ export class ReferralDB {
         .single();
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Supabase error:', error.message, error.details, error.hint, error.code);
         throw error;
       }
       return data;
-    } catch (error) {
-      console.error('Error creating referral:', error);
+    } catch (error: any) {
+      console.error('Error creating referral:', error?.message || error, error?.details, error?.hint, error?.code);
       return null;
     }
   }
@@ -925,8 +961,8 @@ export class ReferralDB {
 
       if (error) throw error;
       return data;
-    } catch (error) {
-      console.error('Error getting referral by code:', error);
+    } catch (error: any) {
+      console.error('Error getting referral by code:', error?.message || error, error?.details, error?.hint, error?.code);
       return null;
     }
   }
@@ -942,8 +978,8 @@ export class ReferralDB {
 
       if (error) throw error;
       return data || [];
-    } catch (error) {
-      console.error('Error getting referrals by referrer:', error);
+    } catch (error: any) {
+      console.error('Error getting referrals by referrer:', error?.message || error, error?.details, error?.hint, error?.code);
       return [];
     }
   }
@@ -959,8 +995,8 @@ export class ReferralDB {
 
       if (error) throw error;
       return data !== null;
-    } catch (error) {
-      console.error('Error checking if user has been referred:', error);
+    } catch (error: any) {
+      console.error('Error checking if user has been referred:', error?.message || error, error?.details, error?.hint, error?.code);
       return false;
     }
   }
@@ -977,8 +1013,8 @@ export class ReferralDB {
 
       const totalPoints = data?.reduce((sum, referral) => sum + referral.points_rewarded, 0) || 0;
       return totalPoints;
-    } catch (error) {
-      console.error('Error getting total referral points:', error);
+    } catch (error: any) {
+      console.error('Error getting total referral points:', error?.message || error, error?.details, error?.hint, error?.code);
       return 0;
     }
   }
@@ -994,9 +1030,224 @@ export class ReferralDB {
 
       if (error) throw error;
       return data;
-    } catch (error) {
-      console.error('Error getting user by referral code:', error);
+    } catch (error: any) {
+      console.error('Error getting user by referral code:', error?.message || error, error?.details, error?.hint, error?.code);
       return null;
+    }
+  }
+}
+
+// Database operations for study rooms
+export class RoomDB {
+  private static instance: RoomDB;
+
+  static getInstance(): RoomDB {
+    if (!RoomDB.instance) {
+      RoomDB.instance = new RoomDB();
+    }
+    return RoomDB.instance;
+  }
+
+  // Create a new study room
+  async createRoom(name: string, creatorId: string): Promise<StudyRoom | null> {
+    try {
+      const { data, error } = await supabase
+        .from('study_rooms')
+        .insert({
+          name,
+          creator_id: creatorId
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error: any) {
+      console.error('Error creating room:', error?.message || error, error?.details, error?.hint, error?.code);
+      return null;
+    }
+  }
+
+  // Get all rooms
+  async getAllRooms(): Promise<StudyRoom[]> {
+    try {
+      const { data, error } = await supabase
+        .from('study_rooms')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error: any) {
+      console.error('Error getting rooms:', error?.message || error, error?.details, error?.hint, error?.code);
+      return [];
+    }
+  }
+
+  // Get room by ID
+  async getRoomById(roomId: string): Promise<StudyRoom | null> {
+    try {
+      const { data, error } = await supabase
+        .from('study_rooms')
+        .select('*')
+        .eq('id', roomId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error: any) {
+      console.error('Error getting room:', error?.message || error, error?.details, error?.hint, error?.code);
+      return null;
+    }
+  }
+
+  // Delete a room
+  async deleteRoom(roomId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('study_rooms')
+        .delete()
+        .eq('id', roomId);
+
+      if (error) throw error;
+      return true;
+    } catch (error: any) {
+      console.error('Error deleting room:', error?.message || error, error?.details, error?.hint, error?.code);
+      return false;
+    }
+  }
+
+  // Join a room
+  async joinRoom(roomId: string, userId: string): Promise<RoomMember | null> {
+    try {
+      // Use upsert to handle both new joins and rejoins in a single operation
+      // If the record exists (user was in room before), update left_at to null
+      // If it doesn't exist, insert a new record
+      const { data, error } = await supabase
+        .from('room_members')
+        .upsert({
+          room_id: roomId,
+          user_id: userId,
+          left_at: null, // Always set to null on join/rejoin
+          last_heartbeat: new Date().toISOString()
+        }, {
+          onConflict: 'room_id,user_id',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error: any) {
+      console.error('Error joining room:', error?.message || error, error?.details, error?.hint, error?.code);
+      return null;
+    }
+  }
+
+  // Get all members in a room
+  async getRoomMembers(roomId: string): Promise<RoomMember[]> {
+    try {
+      const { data, error } = await supabase
+        .from('room_members')
+        .select('*')
+        .eq('room_id', roomId)
+        .is('left_at', null)
+        .order('joined_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error: any) {
+      console.error('Error getting room members:', error?.message || error, error?.details, error?.hint, error?.code);
+      return [];
+    }
+  }
+
+  // Update heartbeat for a member
+  async updateHeartbeat(roomId: string, userId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('room_members')
+        .update({ last_heartbeat: new Date().toISOString() })
+        .eq('room_id', roomId)
+        .eq('user_id', userId)
+        .is('left_at', null);
+
+      if (error) throw error;
+      return true;
+    } catch (error: any) {
+      console.error('Error updating heartbeat:', error?.message || error, error?.details, error?.hint, error?.code);
+      return false;
+    }
+  }
+
+  // Leave a room
+  async leaveRoom(roomId: string, userId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('room_members')
+        .update({ left_at: new Date().toISOString() })
+        .eq('room_id', roomId)
+        .eq('user_id', userId)
+        .is('left_at', null);
+
+      if (error) throw error;
+      return true;
+    } catch (error: any) {
+      console.error('Error leaving room:', error?.message || error, error?.details, error?.hint, error?.code);
+      return false;
+    }
+  }
+
+  // Get user's current room (if any)
+  async getUserCurrentRoom(userId: string): Promise<RoomMember | null> {
+    try {
+      const { data, error } = await supabase
+        .from('room_members')
+        .select('*')
+        .eq('user_id', userId)
+        .is('left_at', null)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error: any) {
+      console.error('Error getting user current room:', error?.message || error, error?.details, error?.hint, error?.code);
+      return null;
+    }
+  }
+
+  // Clean up inactive members (no heartbeat for 2 minutes)
+  async cleanupInactiveMembers(): Promise<boolean> {
+    try {
+      const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+      
+      const { error } = await supabase
+        .from('room_members')
+        .delete()
+        .lt('last_heartbeat', twoMinutesAgo);
+
+      if (error) throw error;
+      return true;
+    } catch (error: any) {
+      console.error('Error cleaning up inactive members:', error?.message || error, error?.details, error?.hint, error?.code);
+      return false;
+    }
+  }
+
+  // Get users by their IDs
+  async getUsersByIds(userIds: string[]): Promise<UserAccount[]> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key')
+        .in('id', userIds);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error: any) {
+      console.error('Error getting users by IDs:', error?.message || error, error?.details, error?.hint, error?.code);
+      return [];
     }
   }
 }
@@ -1008,6 +1259,7 @@ export const challengeDB = ChallengeDB.getInstance();
 export const challengeSessionDB = ChallengeSessionDB.getInstance();
 export const waitingListDB = WaitingListDB.getInstance();
 export const referralDB = ReferralDB.getInstance();
+export const roomDB = RoomDB.getInstance();
 
 // Check if Supabase is available
 export const isSupabaseAvailable = async (): Promise<boolean> => {

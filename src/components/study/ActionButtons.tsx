@@ -162,6 +162,42 @@ export function ActionButtons() {
     </button>
   );
 
+  const renderRoomsButton = () => (
+    <button
+      onClick={() => window.location.href = '/rooms'}
+      className="group relative w-12 h-12 rounded-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 inline-flex items-center justify-center overflow-hidden"
+      style={{
+        background: `linear-gradient(135deg, #6366f1, #4f46e5)`,
+        boxShadow: `0 4px 16px #6366f130, 0 0 0 2px #6366f115`,
+        color: '#ffffff'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'scale(1.05) translateY(-2px)';
+        e.currentTarget.style.boxShadow = `0 6px 24px #6366f140, 0 0 0 2px #6366f120`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'scale(1) translateY(0)';
+        e.currentTarget.style.boxShadow = `0 4px 16px #6366f130, 0 0 0 2px #6366f115`;
+      }}
+      aria-label={language === 'ar' ? 'غرف الدراسة' : 'Study Rooms'}
+      title={language === 'ar' ? 'غرف الدراسة' : 'Study Rooms'}
+    >
+      <div className="relative flex items-center justify-center">
+        <img
+          src="/icons/icons8-team-48.png"
+          alt="Study Rooms"
+          className="w-8 h-8 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12"
+        />
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-300"
+          style={{
+            background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%)'
+          }}
+        />
+      </div>
+    </button>
+  );
+
   const renderNotesButton = () => (
     <button
       onClick={() => setIsNotesOpen(!isNotesOpen)}
@@ -249,6 +285,7 @@ export function ActionButtons() {
   return (
     <div className="flex flex-col gap-3">
       {renderDailyGiftButton()}
+      {renderRoomsButton()}
       {renderStoreButton()}
       {renderRealTimeChallengeButton()}
       {renderNotesButton()}

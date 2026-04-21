@@ -366,8 +366,13 @@ export function YouTubeTimer() {
                       <text x="12" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#B8860B">$</text>
                     </svg>
                     <span className={`font-bold text-sm ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`}>
-                      {coins}
+                      {coins + pendingPoints}
                     </span>
+                    {pendingPoints > 0 && (
+                      <span className={`text-xs ${theme === 'light' ? 'text-amber-500' : 'text-amber-400'}`}>
+                        (+{pendingPoints})
+                      </span>
+                    )}
                   </div>
                   <span className={`text-xs ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`}>
                     {minutesToNextPoint}:{secsToNextPoint.toString().padStart(2, '0')}
@@ -453,8 +458,13 @@ export function YouTubeTimer() {
                         <text x="12" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#B8860B">$</text>
                       </svg>
                       <span className={`font-bold text-sm ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`}>
-                        {coins}
+                        {coins + pendingPoints}
                       </span>
+                      {pendingPoints > 0 && (
+                        <span className={`text-xs ${theme === 'light' ? 'text-amber-500' : 'text-amber-400'}`}>
+                          (+{pendingPoints})
+                        </span>
+                      )}
                     </div>
                     <span className={`text-xs ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`}>
                       {minutesToNextPoint}:{secsToNextPoint.toString().padStart(2, '0')}

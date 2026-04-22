@@ -548,7 +548,7 @@ export function SettingsButton() {
               showSettings ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
             }`}
             style={{
-              backgroundColor: theme === 'light' ? '#ffffff' : '#1f2937',
+              backgroundColor: theme === 'light' ? '#ffffff' : '#000000',
               border: `2px solid ${customTheme.colors.border}`
             }}
           >
@@ -640,7 +640,7 @@ export function SettingsButton() {
               </div>
 
               {/* Mobile Navigation Header */}
-              <div className="md:hidden bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700 p-4">
+              <div className="md:hidden bg-gradient-to-r from-gray-50 to-gray-100 dark:from-black dark:to-black border-b border-gray-200 dark:border-gray-700 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div
@@ -686,7 +686,7 @@ export function SettingsButton() {
                         key={section.id}
                         onClick={() => setActiveSection(section.id)}
                         className={`flex-shrink-0 px-4 py-3 min-w-fit rounded-xl text-xs font-medium transition-all duration-200 touch-manipulation ${
-                          active ? 'shadow-md scale-105' : 'hover:bg-gray-100 dark:hover:bg-gray-700 active:scale-95'
+                          active ? 'shadow-md scale-105' : 'hover:bg-gray-100 dark:hover:bg-black active:scale-95'
                         }`}
                         style={{
                           background: active ? `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})` : 'transparent',
@@ -1123,9 +1123,11 @@ export function SettingsButton() {
                       <div 
                         className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
                         style={{
-                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                          border: `1px solid ${customTheme.colors.border}20`,
-                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                          background: theme === 'light' 
+                            ? `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`
+                            : `linear-gradient(135deg, #1a1a1a, #0a0a0a)`,
+                          border: `1px solid ${customTheme.colors.border}40`,
+                          boxShadow: `0 8px 32px ${customTheme.colors.border}20`
                         }}
                       >
                         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20"
@@ -1146,7 +1148,7 @@ export function SettingsButton() {
                               <span className="text-white text-sm">🎨</span>
                             </div>
                             <label className={`text-sm font-black uppercase tracking-wider ${
-                              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                              theme === 'light' ? 'text-gray-700' : 'text-white'
                             }`}>
                               {t.appearance}
                             </label>
@@ -1155,8 +1157,10 @@ export function SettingsButton() {
                           <div 
                             className="p-6 rounded-2xl"
                             style={{
-                              background: `linear-gradient(135deg, ${customTheme.colors.surface}40, ${customTheme.colors.background}10)`,
-                              border: `1px solid ${customTheme.colors.border}20`
+                              background: theme === 'light'
+                                ? `linear-gradient(135deg, ${customTheme.colors.surface}40, ${customTheme.colors.background}10)`
+                                : `linear-gradient(135deg, #2a2a2a, #1a1a1a)`,
+                              border: `1px solid ${customTheme.colors.border}50`
                             }}
                           >
                             <ThemeToggle />
@@ -1168,9 +1172,11 @@ export function SettingsButton() {
                       <div 
                         className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
                         style={{
-                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                          border: `1px solid ${customTheme.colors.border}20`,
-                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                          background: theme === 'light' 
+                            ? `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`
+                            : `linear-gradient(135deg, #1a1a1a, #0a0a0a)`,
+                          border: `1px solid ${customTheme.colors.border}40`,
+                          boxShadow: `0 8px 32px ${customTheme.colors.border}20`
                         }}
                       >
                         <div className="absolute top-0 left-0 w-24 h-24 rounded-full blur-2xl opacity-20"
@@ -1191,7 +1197,7 @@ export function SettingsButton() {
                               <span className="text-white text-sm">🌐</span>
                             </div>
                             <label className={`text-sm font-black uppercase tracking-wider ${
-                              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                              theme === 'light' ? 'text-gray-700' : 'text-white'
                             }`}>
                               {t.language}
                             </label>
@@ -1241,9 +1247,11 @@ export function SettingsButton() {
                       <div 
                         className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
                         style={{
-                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                          border: `1px solid ${customTheme.colors.border}20`,
-                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                          background: theme === 'light' 
+                            ? `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`
+                            : `linear-gradient(135deg, #1a1a1a, #0a0a0a)`,
+                          border: `1px solid ${customTheme.colors.border}40`,
+                          boxShadow: `0 8px 32px ${customTheme.colors.border}20`
                         }}
                       >
                         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20"
@@ -1289,9 +1297,11 @@ export function SettingsButton() {
                       <div 
                         className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
                         style={{
-                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                          border: `1px solid ${customTheme.colors.border}20`,
-                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                          background: theme === 'light' 
+                            ? `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`
+                            : `linear-gradient(135deg, #1a1a1a, #0a0a0a)`,
+                          border: `1px solid ${customTheme.colors.border}40`,
+                          boxShadow: `0 8px 32px ${customTheme.colors.border}20`
                         }}
                       >
                         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20"
@@ -1312,7 +1322,7 @@ export function SettingsButton() {
                               <span className="text-white text-sm">🎨</span>
                             </div>
                             <label className={`text-sm font-black uppercase tracking-wider ${
-                              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                              theme === 'light' ? 'text-gray-700' : 'text-white'
                             }`}>
                               الثيمات الجاهزة
                             </label>
@@ -1388,11 +1398,13 @@ export function SettingsButton() {
                           style={{
                             background: showCustomCreator 
                               ? `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`
-                              : `linear-gradient(135deg, ${customTheme.colors.surface}, ${customTheme.colors.background})`,
-                            color: showCustomCreator ? '#ffffff' : customTheme.colors.text,
+                              : theme === 'light' 
+                                ? `linear-gradient(135deg, ${customTheme.colors.surface}, ${customTheme.colors.background})`
+                                : 'linear-gradient(135deg, #2a2a2a, #1a1a1a)',
+                            color: showCustomCreator ? '#ffffff' : theme === 'light' ? customTheme.colors.text : '#ffffff',
                             boxShadow: showCustomCreator
                               ? `0 12px 48px ${customTheme.colors.primary}40`
-                              : `0 8px 32px ${customTheme.colors.border}30`
+                              : `0 8px 32px ${customTheme.colors.border}40`
                           }}
                         >
                           <span className="relative z-10">
@@ -1418,9 +1430,11 @@ export function SettingsButton() {
                       <div 
                         className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
                         style={{
-                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                          border: `1px solid ${customTheme.colors.border}20`,
-                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                          background: theme === 'light' 
+                            ? `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`
+                            : `linear-gradient(135deg, #1a1a1a, #0a0a0a)`,
+                          border: `1px solid ${customTheme.colors.border}40`,
+                          boxShadow: `0 8px 32px ${customTheme.colors.border}20`
                         }}
                       >
                         <div className="absolute top-0 left-0 w-24 h-24 rounded-full blur-2xl opacity-20"
@@ -1456,9 +1470,11 @@ export function SettingsButton() {
                           <div className="mt-10">
                             <div className="relative overflow-hidden rounded-2xl p-6"
                               style={{
-                                background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                                border: `1px solid ${customTheme.colors.border}30`,
-                                boxShadow: `0 4px 20px ${customTheme.colors.border}15`
+                                background: theme === 'light'
+                                  ? `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`
+                                  : `linear-gradient(135deg, #2a2a2a, #1a1a1a)`,
+                                border: `1px solid ${customTheme.colors.border}40`,
+                                boxShadow: `0 4px 20px ${customTheme.colors.border}20`
                               }}
                             >
                               <div className="flex items-center gap-3 mb-5">
@@ -1491,7 +1507,7 @@ export function SettingsButton() {
                                     disabled={isSearchingUnsplash || isApplyingBackground}
                                     className={`w-full px-5 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:border-blue-500 ${
                                       theme === 'dark'
-                                        ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-500'
+                                        ? 'bg-black/50 border-gray-700 text-white placeholder-gray-500'
                                         : 'bg-white/50 border-gray-200 text-black placeholder-gray-400'
                                     } disabled:opacity-50`}
                                   />
@@ -1605,9 +1621,11 @@ export function SettingsButton() {
                       <div 
                         className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
                         style={{
-                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                          border: `1px solid ${customTheme.colors.border}20`,
-                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                          background: theme === 'light' 
+                            ? `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`
+                            : `linear-gradient(135deg, #1a1a1a, #0a0a0a)`,
+                          border: `1px solid ${customTheme.colors.border}40`,
+                          boxShadow: `0 8px 32px ${customTheme.colors.border}20`
                         }}
                       >
                         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20"
@@ -2311,7 +2329,7 @@ export function SettingsButton() {
                                   className={`flex-1 px-4 py-2 rounded-xl border-2 text-sm ${
                                     theme === 'light' 
                                       ? 'bg-white text-gray-900 border-gray-300' 
-                                      : 'bg-gray-800 text-white border-gray-600'
+                                      : 'bg-black text-white border-gray-600'
                                   }`}
                                   style={{ borderColor: customTheme.colors.border }}
                                 />
@@ -2331,7 +2349,7 @@ export function SettingsButton() {
                                 className={`w-full px-4 py-3 rounded-xl border-2 ${
                                   theme === 'light' 
                                     ? 'bg-white text-gray-900 border-gray-300' 
-                                    : 'bg-gray-800 text-white border-gray-600'
+                                    : 'bg-black text-white border-gray-600'
                                 }`}
                                 style={{ borderColor: customTheme.colors.border }}
                               >
@@ -2779,7 +2797,7 @@ export function SettingsButton() {
                   </div>
                   
                   {/* Mobile Save Button Area */}
-                  <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white to-white/95 dark:from-gray-900 dark:to-gray-900/95 border-t border-gray-200 dark:border-gray-700 z-50">
+                  <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white to-white/95 dark:from-black dark:to-black/95 border-t border-gray-200 dark:border-gray-700 z-50">
                     <div className="flex gap-3">
                       <button
                         onClick={() => setShowSettings(false)}

@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { RoomList } from '@/components/rooms/RoomList';
 import { StudyRoom } from '@/components/rooms/StudyRoom';
 import { useRoom } from '@/contexts/RoomContext';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function RoomsPage() {
+function RoomsPageContent() {
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [selectedRoomName, setSelectedRoomName] = useState<string>('');
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -67,4 +67,12 @@ export default function RoomsPage() {
 
   // Otherwise show room list
   return <RoomList onJoinRoom={handleJoinRoom} />;
+}
+
+export default function RoomsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>}>
+      <RoomsPageContent />
+    </Suspense>
+  );
 }

@@ -28,6 +28,7 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
   const [zoom, setZoom] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const { localSeconds, leaveRoom: leaveRoomTimer, error } = useRoomTimer(
     roomId,
@@ -242,29 +243,39 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
     const userPosition = memberPositions[currentMember.id];
     if (!userPosition) return;
     
+    // Get parent container's position in viewport
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRect) return;
+    
     // Calculate pan position to center on user's card
-    // The user's card is at userPosition.x% and userPosition.y% of the space
-    // Since transformOrigin is center center, we need to account for that
-    const containerWidth = window.innerWidth;
-    const containerHeight = window.innerHeight;
+    // The space container uses transformOrigin: center center, so translation is from space's center
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
     const spaceWidth = containerWidth * (spaceSize / 100);
     const spaceHeight = containerHeight * (spaceSize / 100);
+    const cardSize = 128; // Actual card size in pixels (w-32 h-32 = 128px)
     
-    // User's position in pixels relative to space
+    // User's position in pixels relative to space (from top-left of space)
     const userPixelX = (userPosition.x / 100) * spaceWidth;
     const userPixelY = (userPosition.y / 100) * spaceHeight;
     
-    // Space center relative to container
-    const spaceCenterX = (containerWidth - spaceWidth) / 2;
-    const spaceCenterY = (containerHeight - spaceHeight) / 2;
+    // Card center relative to space's top-left
+    const cardCenterX = userPixelX + (cardSize / 2);
+    const cardCenterY = userPixelY + (cardSize / 2);
     
-    // User's absolute position
-    const userAbsoluteX = spaceCenterX + userPixelX;
-    const userAbsoluteY = spaceCenterY + userPixelY;
+    // Space center relative to space's top-left
+    const spaceCenterX = spaceWidth / 2;
+    const spaceCenterY = spaceHeight / 2;
     
-    // Calculate pan to center user's card
-    const newPanX = (containerWidth / 2) - userAbsoluteX;
-    const newPanY = (containerHeight / 2) - userAbsoluteY;
+    // Offset of card center from space center
+    const offsetX = cardCenterX - spaceCenterX;
+    const offsetY = cardCenterY - spaceCenterY;
+    
+    // Since transformOrigin is center center, we need to negate the offset
+    // to bring the card to screen center
+    // Add offset to position card slightly right and up
+    const newPanX = -offsetX + 150; // Move right
+    const newPanY = -offsetY - 150; // Move up
     
     setPanPosition({ x: newPanX, y: newPanY });
     setZoom(1);
@@ -309,7 +320,7 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
             onClick={handleLeave}
             className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
           >
-            🚪 Leave Room
+            🚪 {texts.leaveRoom}
           </button>
         </div>
       </div>
@@ -325,6 +336,7 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
 
       {/* Space-like room area with black hole effect */}
       <div 
+        ref={containerRef}
         className="flex-1 overflow-hidden relative cursor-grab active:cursor-grabbing bg-black"
         onMouseDown={handleDragStart}
         onMouseMove={handleDragMove}
@@ -344,7 +356,7 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
             </svg>
-            <span>موقعي</span>
+            <span>{texts.myLocation}</span>
           </button>
         )}
         {/* Draggable space container */}

@@ -129,6 +129,8 @@ export const landingTexts = {
     waitingForMembers: 'Waiting for members to join...',
     enterRoomName: 'Enter room name...',
     creating: 'Creating...',
+    leaveRoom: 'Leave Room',
+    myLocation: 'My Location',
 
     // Social
     likedYourPost: 'liked your post',
@@ -435,6 +437,8 @@ export const landingTexts = {
     waitingForMembers: 'في انتظار انضمام الأعضاء...',
     enterRoomName: 'أدخل اسم الغرفة...',
     creating: 'جاري الإنشاء...',
+    leaveRoom: 'مغادرة الغرفة',
+    myLocation: 'موقعي',
 
     // Social
     likedYourPost: 'أعجب بمنشورك',

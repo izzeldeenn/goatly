@@ -6,6 +6,8 @@ import { RoomMember } from './RoomMember';
 import { useRoomTimer } from '@/hooks/useRoomTimer';
 import { useRoom } from '@/contexts/RoomContext';
 import { useUser } from '@/contexts/UserContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { landingTexts } from '@/constants/landingTexts';
 import { RoomMember as RoomMemberType, UserAccount, roomDB } from '@/lib/supabase';
 import { Logo } from '@/components/ui/Logo';
 
@@ -16,6 +18,8 @@ interface StudyRoomProps {
 
 export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
   const router = useRouter();
+  const { language } = useLanguage();
+  const texts = landingTexts[language];
   const { currentRoomMembers, leaveRoom, refreshRoomMembers } = useRoom();
   const { getCurrentUser } = useUser();
   const currentUser = getCurrentUser();
@@ -35,7 +39,7 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <p className="text-white text-xl">Please log in to join a study room</p>
+        <p className="text-white text-xl">{texts.pleaseLogIn}</p>
       </div>
     );
   }
@@ -44,7 +48,7 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
   if (!roomId) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <p className="text-white text-xl">Invalid room ID</p>
+        <p className="text-white text-xl">{texts.invalidRoomId}</p>
       </div>
     );
   }
@@ -298,7 +302,7 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
             <Logo />
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">🚀 {roomName}</h1>
-              <p className="text-gray-400">Study together in real-time</p>
+              <p className="text-gray-400">{texts.studyTogether}</p>
             </div>
           </div>
           <button
@@ -373,7 +377,7 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
           {/* Members grid */}
           {currentRoomMembers.length === 0 ? (
             <div className="text-center py-20 relative z-10">
-              <p className="text-gray-500 text-xl">Waiting for members to join...</p>
+              <p className="text-gray-500 text-xl">{texts.waitingForMembers}</p>
             </div>
           ) : (
             <div className="relative w-full h-full relative z-10">

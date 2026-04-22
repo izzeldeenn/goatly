@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { landingTexts } from '@/constants/landingTexts';
 
 interface CreateRoomModalProps {
   isOpen: boolean;
@@ -9,6 +11,8 @@ interface CreateRoomModalProps {
 }
 
 export function CreateRoomModal({ isOpen, onClose, onCreateRoom }: CreateRoomModalProps) {
+  const { language } = useLanguage();
+  const texts = landingTexts[language];
   const [roomName, setRoomName] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -34,12 +38,12 @@ export function CreateRoomModal({ isOpen, onClose, onCreateRoom }: CreateRoomMod
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
-        <h2 className="text-2xl font-bold text-white mb-6">🚀 Create Study Room</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">🚀 {texts.createRoom}</h2>
         
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
             <label htmlFor="roomName" className="block text-gray-300 mb-2 font-medium">
-              Room Name
+              {texts.roomName}
             </label>
             <input
               id="roomName"

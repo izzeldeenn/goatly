@@ -26,6 +26,7 @@ import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { PresetSelector } from '@/components/settings/PresetSelector';
 import { LocalBackgroundSelector } from '@/components/backgrounds/LocalBackgroundSelector';
 import { ReferralCard } from '@/components/referral/ReferralCard';
+import { landingTexts } from '@/constants/landingTexts';
 
 // Generate 250 avatars dynamically
 const AVATARS = Array.from({ length: 250 }, (_, i) => 
@@ -48,6 +49,7 @@ export function SettingsButton() {
   const { coins, level, experience } = usePoints();
   const { getCurrentUser, updateUserName, updateUserAvatar, isLoggedIn } = useUser();
   const { language, setLanguage, t } = useLanguage();
+  const texts = landingTexts[language];
   const { currentTheme, setTheme, availableThemes, createCustomTheme, updateThemeColors } = useCustomTheme();
   const customTheme = useCustomThemeClasses();
 
@@ -1216,7 +1218,7 @@ export function SettingsButton() {
                                 e.currentTarget.style.boxShadow = 'none';
                               }}
                             >
-                              <option value="en">English</option>
+                              <option value="en">{texts.english}</option>
                               <option value="ar">العربية</option>
                             </select>
                             <div 
@@ -1751,11 +1753,11 @@ export function SettingsButton() {
                                   border: `1px solid ${customTheme.colors.border}`
                                 }}
                               >
-                                <option value="font-mono">Monospace</option>
-                                <option value="font-sans">Sans Serif</option>
-                                <option value="font-serif">Serif</option>
-                                <option value="font-bold">Bold</option>
-                                <option value="font-light">Light</option>
+                                <option value="font-mono">{texts.monospace}</option>
+                                <option value="font-sans">{texts.sansSerif}</option>
+                                <option value="font-serif">{texts.serif}</option>
+                                <option value="font-bold">{texts.bold}</option>
+                                <option value="font-light">{texts.light}</option>
                               </select>
                             </div>
 
@@ -1939,11 +1941,11 @@ export function SettingsButton() {
                                   border: `1px solid ${customTheme.colors.border}`
                                 }}
                               >
-                                <option value="font-mono">Monospace</option>
-                                <option value="font-sans">Sans Serif</option>
-                                <option value="font-serif">Serif</option>
-                                <option value="font-bold">Bold</option>
-                                <option value="font-light">Light</option>
+                                <option value="font-mono">{texts.monospace}</option>
+                                <option value="font-sans">{texts.sansSerif}</option>
+                                <option value="font-serif">{texts.serif}</option>
+                                <option value="font-bold">{texts.bold}</option>
+                                <option value="font-light">{texts.light}</option>
                               </select>
                             </div>
 
@@ -2125,9 +2127,9 @@ export function SettingsButton() {
                                     : 'border-gray-600 bg-black text-white focus:border-blue-400'
                                 }`}
                               >
-                                <option value="font-mono">Mono</option>
-                                <option value="font-sans">Sans Serif</option>
-                                <option value="font-serif">Serif</option>
+                                <option value="font-mono">{texts.monospace}</option>
+                                <option value="font-sans">{texts.sansSerif}</option>
+                                <option value="font-serif">{texts.serif}</option>
                               </select>
                             </div>
 
@@ -2333,9 +2335,9 @@ export function SettingsButton() {
                                 }`}
                                 style={{ borderColor: customTheme.colors.border }}
                               >
-                                <option value="font-mono">Mono</option>
-                                <option value="font-sans">Sans</option>
-                                <option value="font-serif">Serif</option>
+                                <option value="font-mono">{texts.monospace}</option>
+                                <option value="font-sans">{texts.sansSerif}</option>
+                                <option value="font-serif">{texts.serif}</option>
                               </select>
                             </div>
 

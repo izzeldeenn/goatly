@@ -104,6 +104,63 @@ export const landingTexts = {
     browserExtensionLink: "Browser Extension",
     browserExtensionNav: "Browser Extension",
     extensionRating: "4.8 (50K+ users)",
+
+    // Music Player
+    youtubeMusic: 'YouTube Music',
+    listenToFavorites: 'Listen to your favorites',
+    settings: 'Settings',
+    autoPlay: 'Auto Play',
+    loop: 'Loop',
+    noResultsFound: 'No results found. Try searching for a song or paste a YouTube URL.',
+
+    // Study Rooms
+    studyRooms: 'Study Rooms',
+    joinRoomDescription: 'Join a room to study together with others',
+    loadingRooms: 'Loading rooms...',
+    noStudyRooms: 'No study rooms available',
+    createRoom: 'Create Room',
+    roomName: 'Room Name',
+    roomCreator: 'Room Creator',
+    activeMembers: 'Active Members',
+    created: 'Created',
+    pleaseLogIn: 'Please log in to join a study room',
+    invalidRoomId: 'Invalid room ID',
+    studyTogether: 'Study together in real-time',
+    waitingForMembers: 'Waiting for members to join...',
+
+    // Social
+    likedYourPost: 'liked your post',
+    commentedOnYourPost: 'commented on your post',
+
+    // Settings
+    english: 'English',
+    monospace: 'Monospace',
+    sansSerif: 'Sans Serif',
+    serif: 'Serif',
+    bold: 'Bold',
+    light: 'Light',
+
+    // Reset Password
+    loading: 'Loading...',
+
+    // Extension
+    arabic: 'العربية',
+
+    // Challenge
+    vs: 'VS',
+
+    // AI Dashboard
+    aiDashboard: 'AI Recommendations Dashboard',
+    totalRecommendations: 'Total Recommendations',
+    pending: 'Pending',
+    inProgress: 'In Progress',
+    completed: 'Completed',
+    dismissed: 'Dismissed',
+    testAiAnalysis: 'Test AI Analysis',
+    noRecommendationsFound: 'No recommendations found',
+    estimatedImpact: 'Estimated Impact',
+    actionItems: 'Action Items',
+
     // Footer
     product: 'Community Resources',
     pricing: 'Free Forever',
@@ -223,8 +280,64 @@ export const landingTexts = {
     browserExtensionLink: "استكشف الاضافة",
     browserExtensionNav: "استكشف الاضافة",
     extensionRating: "4.8 (50 ألف مستخدم)",
-    
-    
+
+    // Music Player
+    youtubeMusic: 'موسيقى يوتيوب',
+    listenToFavorites: 'استمع إلى مفضلاتك',
+    settings: 'الإعدادات',
+    autoPlay: 'تشغيل تلقائي',
+    loop: 'تكرار',
+    noResultsFound: 'لم يتم العثور على نتائج. جرب البحث عن أغنية أو الصق رابط يوتيوب.',
+
+    // Study Rooms
+    studyRooms: 'غرف الدراسة',
+    joinRoomDescription: 'انضم لغرفة للدراسة مع الآخرين',
+    loadingRooms: 'جاري تحميل الغرف...',
+    noStudyRooms: 'لا توجد غرف دراسة متاحة',
+    createRoom: 'إنشاء غرفة',
+    roomName: 'اسم الغرفة',
+    roomCreator: 'منشئ الغرفة',
+    activeMembers: 'الأعضاء النشطون',
+    created: 'تم الإنشاء',
+    pleaseLogIn: 'يرجى تسجيل الدخول للانضمام لغرفة دراسة',
+    invalidRoomId: 'معرف الغرفة غير صالح',
+    studyTogether: 'ادرسوا معاً في الوقت الفعلي',
+    waitingForMembers: 'في انتظار انضمام الأعضاء...',
+
+    // Social
+    likedYourPost: 'أعجب بمنشورك',
+    commentedOnYourPost: 'علق على منشورك',
+
+    // Settings
+    english: 'الإنجليزية',
+    monospace: 'Monospace',
+    sansSerif: 'Sans Serif',
+    serif: 'Serif',
+    bold: 'عريض',
+    light: 'خفيف',
+
+    // Reset Password
+    loading: 'جاري التحميل...',
+
+    // Extension
+    arabic: 'العربية',
+
+    // Challenge
+    vs: 'ضد',
+
+    // AI Dashboard
+    aiDashboard: 'لوحة توصيات الذكاء الاصطناعي',
+    totalRecommendations: 'إجمالي التوصيات',
+    pending: 'قيد الانتظار',
+    inProgress: 'قيد التنفيذ',
+    completed: 'مكتمل',
+    dismissed: 'مرفوض',
+    testAiAnalysis: 'اختبار تحليل الذكاء الاصطناعي',
+    noRecommendationsFound: 'لم يتم العثور على توصيات',
+    estimatedImpact: 'التأثير المقدر',
+    actionItems: 'عناصر الإجراء',
+
+
     // Footer
     product: 'موارد المجتمع',
     pricing: 'مجاني للأبد',

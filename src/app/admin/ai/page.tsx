@@ -3,9 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useAIRecommendations } from '@/hooks/useAI';
 import { useAI } from '@/hooks/useAI';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { AIRecommendation, aiRecommendationsDB } from '@/lib/ai/aiRecommendationsDB';
+import { landingTexts } from '@/constants/landingTexts';
 
 export default function AIRecommendationsPage() {
+  const { language } = useLanguage();
+  const texts = landingTexts[language];
   const { recommendations, loading, error, fetchRecommendations, updateRecommendationStatus, deleteRecommendation, getRecommendationStats } = useAIRecommendations();
   const { analyzeUserBehavior, analyzeSales, analyzeStrategy, analyzeCode } = useAI();
   const [stats, setStats] = useState<any>(null);
@@ -228,26 +232,26 @@ export default function AIRecommendationsPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">AI Recommendations Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-8">{texts.aiDashboard}</h1>
 
         {/* Stats */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-gray-800 p-4 rounded-lg">
               <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="text-gray-400">Total Recommendations</div>
+              <div className="text-gray-400">{texts.totalRecommendations}</div>
             </div>
             <div className="bg-gray-800 p-4 rounded-lg">
               <div className="text-2xl font-bold text-yellow-400">{stats.pending}</div>
-              <div className="text-gray-400">Pending</div>
+              <div className="text-gray-400">{texts.pending}</div>
             </div>
             <div className="bg-gray-800 p-4 rounded-lg">
               <div className="text-2xl font-bold text-blue-400">{stats.inProgress}</div>
-              <div className="text-gray-400">In Progress</div>
+              <div className="text-gray-400">{texts.inProgress}</div>
             </div>
             <div className="bg-gray-800 p-4 rounded-lg">
               <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
-              <div className="text-gray-400">Completed</div>
+              <div className="text-gray-400">{texts.completed}</div>
             </div>
           </div>
         )}
@@ -288,7 +292,7 @@ export default function AIRecommendationsPage() {
 
         {/* AI Analysis Test Buttons */}
         <div className="mb-6 p-4 bg-gray-800 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">Test AI Analysis</h3>
+          <h3 className="text-lg font-semibold mb-4">{texts.testAiAnalysis}</h3>
           <div className="flex gap-4 flex-wrap">
             <button
               onClick={handleAnalyzeUserBehavior}
@@ -319,11 +323,11 @@ export default function AIRecommendationsPage() {
 
         {/* Recommendations List */}
         {loading ? (
-          <div className="text-center py-8">Loading...</div>
+          <div className="text-center py-8">{texts.loading}</div>
         ) : error ? (
           <div className="text-red-500 py-8">{error}</div>
         ) : filteredRecommendations.length === 0 ? (
-          <div className="text-gray-400 py-8">No recommendations found</div>
+          <div className="text-gray-400 py-8">{texts.noRecommendationsFound}</div>
         ) : (
           <div className="space-y-4">
             {filteredRecommendations.map((rec) => (
@@ -345,7 +349,7 @@ export default function AIRecommendationsPage() {
                     <p className="text-gray-300 mb-4">{rec.description}</p>
                     {rec.estimated_impact && (
                       <p className="text-sm text-gray-400 mb-2">
-                        <strong>Estimated Impact:</strong> {rec.estimated_impact}
+                        <strong>{texts.estimatedImpact}:</strong> {rec.estimated_impact}
                       </p>
                     )}
                   </div>
@@ -355,10 +359,10 @@ export default function AIRecommendationsPage() {
                       onChange={(e) => handleStatusChange(rec.id, e.target.value)}
                       className="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm"
                     >
-                      <option value="pending">Pending</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                      <option value="dismissed">Dismissed</option>
+                      <option value="pending">{texts.pending}</option>
+                      <option value="in_progress">{texts.inProgress}</option>
+                      <option value="completed">{texts.completed}</option>
+                      <option value="dismissed">{texts.dismissed}</option>
                     </select>
                     <button
                       onClick={() => handleDelete(rec.id)}
@@ -370,7 +374,7 @@ export default function AIRecommendationsPage() {
                 </div>
                 {rec.action_items && rec.action_items.length > 0 && (
                   <div className="border-t border-gray-700 pt-4">
-                    <h4 className="font-semibold mb-2">Action Items:</h4>
+                    <h4 className="font-semibold mb-2">{texts.actionItems}:</h4>
                     <ul className="list-disc list-inside space-y-1">
                       {rec.action_items.map((item, index) => (
                         <li key={index} className="text-gray-300">{item}</li>

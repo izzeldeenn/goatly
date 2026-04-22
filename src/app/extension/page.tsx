@@ -8,6 +8,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { CustomThemeProvider } from '@/contexts/CustomThemeContext';
 import { extensionTexts, extensionFeatures, extensionTestimonials, browserStats } from '@/constants/extensionTexts';
+import { landingTexts } from '@/constants/landingTexts';
 
 export default function ExtensionLandingPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -38,6 +39,7 @@ function ExtensionLandingPageContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const texts = extensionTexts[language];
+  const landingTextsObj = landingTexts[language];
   const currentFeatures = extensionFeatures[language];
   const currentTestimonials = extensionTestimonials[language];
   const currentStats = browserStats[language];
@@ -142,7 +144,7 @@ function ExtensionLandingPageContent() {
                   }`}
                 >
                   <option value="en">EN</option>
-                  <option value="ar">Arabic</option>
+                  <option value="ar">{landingTextsObj.arabic}</option>
                 </select>
                 <ThemeToggle />
               </div>
@@ -217,7 +219,7 @@ function ExtensionLandingPageContent() {
                   }`}
                 >
                   <option value="en">EN</option>
-                  <option value="ar">Arabic</option>
+                  <option value="ar">{landingTextsObj.arabic}</option>
                 </select>
                 <ThemeToggle />
               </div>

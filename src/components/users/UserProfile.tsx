@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { useCustomTheme } from '@/contexts/CustomThemeContext';
+import { landingTexts } from '@/constants/landingTexts';
 
 // Generate 250 avatars dynamically
 const AVATARS = Array.from({ length: 250 }, (_, i) => 
@@ -19,6 +20,7 @@ export function UserProfile() {
   const { coins, level, experience } = usePoints();
   const { getCurrentUser, updateUserName, updateUserAvatar } = useUser();
   const { language, setLanguage, t } = useLanguage();
+  const texts = landingTexts[language];
   const customTheme = useCustomThemeClasses();
   const [showSettings, setShowSettings] = useState(false);
   const [username, setUsername] = useState('');
@@ -202,7 +204,7 @@ export function UserProfile() {
                         : 'border-yellow-600 bg-black text-white focus:border-green-400'
                     }`}
                   >
-                    <option value="en">English</option>
+                    <option value="en">{texts.english}</option>
                     <option value="ar">العربية</option>
                   </select>
                 </div>

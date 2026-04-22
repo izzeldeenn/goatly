@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useMusic } from '@/contexts/MusicContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { landingTexts } from '@/constants/landingTexts';
 
 declare global {
   interface Window {
@@ -11,6 +13,8 @@ declare global {
 }
 
 export function MusicPlayer({ isVisible: externalVisible, setIsVisible: externalSetVisible }: { isVisible?: boolean; setIsVisible?: (visible: boolean) => void } = {}) {
+  const { language } = useLanguage();
+  const texts = landingTexts[language];
   const {
     isPlaying,
     currentTrack,
@@ -211,8 +215,8 @@ export function MusicPlayer({ isVisible: externalVisible, setIsVisible: external
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-white font-bold text-lg">YouTube Music</h2>
-                  <p className="text-gray-400 text-xs">Listen to your favorites</p>
+                  <h2 className="text-white font-bold text-lg">{texts.youtubeMusic}</h2>
+                  <p className="text-gray-400 text-xs">{texts.listenToFavorites}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -233,16 +237,16 @@ export function MusicPlayer({ isVisible: externalVisible, setIsVisible: external
           {/* Settings Panel */}
           {showSettings && (
             <div className="p-5 border-b border-gray-800 bg-black/30">
-              <h4 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">Settings</h4>
+              <h4 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">{texts.settings}</h4>
               <label className="flex items-center justify-between cursor-pointer p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors mb-3">
-                <span className="text-gray-300 text-sm">Auto Play</span>
+                <span className="text-gray-300 text-sm">{texts.autoPlay}</span>
                 <div className="relative">
                   <input type="checkbox" checked={autoPlay} onChange={(e) => setAutoPlay(e.target.checked)} className="sr-only peer"/>
                   <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
                 </div>
               </label>
               <label className="flex items-center justify-between cursor-pointer p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
-                <span className="text-gray-300 text-sm">Loop</span>
+                <span className="text-gray-300 text-sm">{texts.loop}</span>
                 <div className="relative">
                   <input type="checkbox" checked={loop} onChange={(e) => setLoop(e.target.checked)} className="sr-only peer"/>
                   <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
@@ -359,7 +363,7 @@ export function MusicPlayer({ isVisible: externalVisible, setIsVisible: external
                   <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               ) : filteredTracks.length === 0 ? (
-                <p className="text-gray-500 text-sm text-center py-8">No results found. Try searching for a song or paste a YouTube URL.</p>
+                <p className="text-gray-500 text-sm text-center py-8">{texts.noResultsFound}</p>
               ) : (
                 <div className="space-y-2">
                   {filteredTracks.map(track => (

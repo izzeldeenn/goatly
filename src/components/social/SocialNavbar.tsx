@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { landingTexts } from '@/constants/landingTexts';
 
 interface SocialNavbarProps {
   activeTab: string;
@@ -14,6 +15,7 @@ interface SocialNavbarProps {
 export function SocialNavbar({ activeTab, setActiveTab }: SocialNavbarProps) {
   const { theme } = useTheme();
   const { language, t } = useLanguage();
+  const texts = landingTexts[language];
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -138,7 +140,7 @@ export function SocialNavbar({ activeTab, setActiveTab }: SocialNavbarProps) {
                             }`}>
                               <span className={`font-semibold ${
                                 theme === 'light' ? 'text-black' : 'text-white'
-                              }`}>John Doe</span> {language === 'ar' ? 'liked your post' : 'liked your post'}
+                              }`}>John Doe</span> {texts.likedYourPost}
                             </p>
                             <p className={`text-xs mt-1 ${
                               theme === 'light' ? 'text-gray-500' : 'text-gray-400'
@@ -166,7 +168,7 @@ export function SocialNavbar({ activeTab, setActiveTab }: SocialNavbarProps) {
                             }`}>
                               <span className={`font-semibold ${
                                 theme === 'light' ? 'text-black' : 'text-white'
-                              }`}>Sarah Miller</span> {language === 'ar' ? 'commented on your post' : 'commented on your post'}
+                              }`}>Sarah Miller</span> {texts.commentedOnYourPost}
                             </p>
                             <p className={`text-xs mt-1 ${
                               theme === 'light' ? 'text-gray-500' : 'text-gray-400'

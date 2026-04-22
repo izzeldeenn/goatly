@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { challengeDB, challengeSessionDB, userDB, waitingListDB, UserAccount, UserAccountFrontend } from '@/lib/supabase';
+import { landingTexts } from '@/constants/landingTexts';
 
 // Opponent interface
 interface Opponent {
@@ -80,6 +82,8 @@ const convertUserToOpponent = (user: UserAccount): Opponent => {
 
 export default function ChallengePage() {
   const { theme } = useTheme();
+  const { language } = useLanguage();
+  const texts = landingTexts[language];
   const { getCurrentUser, updateUserScore, setTimerActive, isTimerActive } = useUser();
   const router = useRouter();
   
@@ -627,7 +631,7 @@ export default function ChallengePage() {
 
               {/* VS Divider */}
               <div className="md:hidden flex items-center justify-center py-2">
-                <div className="px-3 py-1 bg-gray-800 rounded text-sm font-medium text-gray-300">VS</div>
+                <div className="px-3 py-1 bg-gray-800 rounded text-sm font-medium text-gray-300">{texts.vs}</div>
               </div>
 
               {/* Opponent Card */}
@@ -694,7 +698,7 @@ export default function ChallengePage() {
             {/* VS Badge - Desktop */}
             <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
               <div className="bg-gray-800 text-gray-300 rounded-full w-12 h-12 flex items-center justify-center font-medium text-sm">
-                VS
+                {texts.vs}
               </div>
             </div>
 

@@ -6,11 +6,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { validatePasswordStrength } from '@/utils/password';
+import { landingTexts } from '@/constants/landingTexts';
 
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { language, t } = useLanguage();
+  const texts = landingTexts[language];
   const { theme } = useTheme();
   const customTheme = useCustomThemeClasses();
   
@@ -295,12 +297,15 @@ function ResetPasswordContent() {
 }
 
 export default function ResetPasswordPage() {
+  const { language } = useLanguage();
+  const texts = landingTexts[language];
+  
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="animate-pulse text-center">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{texts.loading}</p>
         </div>
       </div>
     }>

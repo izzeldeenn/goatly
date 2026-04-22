@@ -7,6 +7,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { dailyActivityDB } from '@/lib/dailyActivity';
+import { landingTexts } from '@/constants/landingTexts';
 
 const AVATARS = [
   'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar1',
@@ -31,6 +32,7 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
   const { coins, level, experience } = usePoints();
   const { getCurrentUser, updateUserName, updateUserAvatar, isTimerActive } = useUser();
   const { language, setLanguage, t } = useLanguage();
+  const texts = landingTexts[language];
   const [showSettings, setShowSettings] = useState(false);
   const [username, setUsername] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('');
@@ -311,7 +313,7 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
                           : 'bg-gray-800 border-2 border-gray-700 text-gray-100 focus:border-blue-400 focus:bg-gray-750'
                       }`}
                     >
-                      <option value="en">English</option>
+                      <option value="en">{texts.english}</option>
                       <option value="ar">العربية</option>
                     </select>
                   </div>

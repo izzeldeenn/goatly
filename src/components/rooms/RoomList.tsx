@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRoom } from '@/contexts/RoomContext';
 import { useUser } from '@/contexts/UserContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { landingTexts } from '@/constants/landingTexts';
 import { StudyRoom as StudyRoomType, roomDB } from '@/lib/supabase';
 import { CreateRoomModal } from './CreateRoomModal';
 import { Logo } from '@/components/ui/Logo';
@@ -19,6 +21,8 @@ interface RoomWithInfo extends StudyRoomType {
 }
 
 export function RoomList({ onJoinRoom }: RoomListProps) {
+  const { language } = useLanguage();
+  const texts = landingTexts[language];
   const { rooms, loading, createRoom, loadRooms, joinRoom } = useRoom();
   const { getCurrentUser } = useUser();
   const router = useRouter();
@@ -83,7 +87,7 @@ export function RoomList({ onJoinRoom }: RoomListProps) {
   const handleJoinRoom = async (roomId: string) => {
     const currentUser = getCurrentUser();
     if (!currentUser || !currentUser.id) {
-      alert('Please log in to join a room');
+      alert(texts.pleaseLogIn);
       return;
     }
 
@@ -103,8 +107,8 @@ export function RoomList({ onJoinRoom }: RoomListProps) {
           <div className="flex items-center space-x-6">
             <Logo />
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">🚀 Study Rooms</h1>
-              <p className="text-gray-400">Join a room to study together with others</p>
+              <h1 className="text-3xl font-bold text-white mb-2">🚀 {texts.studyRooms}</h1>
+              <p className="text-gray-400">{texts.joinRoomDescription}</p>
             </div>
           </div>
           <button
@@ -121,11 +125,11 @@ export function RoomList({ onJoinRoom }: RoomListProps) {
         <div className="max-w-7xl mx-auto">
           {loading ? (
             <div className="text-center py-20">
-              <p className="text-gray-500 text-xl">Loading rooms...</p>
+              <p className="text-gray-500 text-xl">{texts.loadingRooms}</p>
             </div>
           ) : roomsWithInfo.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-gray-500 text-xl mb-4">No study rooms available</p>
+              <p className="text-gray-500 text-xl mb-4">{texts.noStudyRooms}</p>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="text-white hover:text-gray-300"
@@ -163,6 +167,9 @@ interface RoomCardProps {
 }
 
 function RoomCard({ room, onJoin }: RoomCardProps) {
+  const { language } = useLanguage();
+  const texts = landingTexts[language];
+  
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/rooms?roomId=${room.id}`;
     try {
@@ -200,7 +207,7 @@ function RoomCard({ room, onJoin }: RoomCardProps) {
           )}
           <div className="flex-1">
             <p className="text-sm font-medium text-white">{room.creatorName}</p>
-            <p className="text-xs text-gray-400">Room Creator</p>
+            <p className="text-xs text-gray-400">{texts.roomCreator}</p>
           </div>
         </div>
       </div>
@@ -222,11 +229,11 @@ function RoomCard({ room, onJoin }: RoomCardProps) {
             </div>
             <div>
               <p className="text-lg font-bold text-white">{room.memberCount}</p>
-              <p className="text-xs text-gray-400">Active Members</p>
+              <p className="text-xs text-gray-400">{texts.activeMembers}</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-500">Created</p>
+            <p className="text-xs text-gray-500">{texts.created}</p>
             <p className="text-sm text-gray-300">{new Date(room.created_at).toLocaleDateString()}</p>
           </div>
         </div>

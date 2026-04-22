@@ -27,6 +27,7 @@ import { PresetSelector } from '@/components/settings/PresetSelector';
 import { LocalBackgroundSelector } from '@/components/backgrounds/LocalBackgroundSelector';
 import { ReferralCard } from '@/components/referral/ReferralCard';
 import { landingTexts } from '@/constants/landingTexts';
+import { discordOTPDB, supabase } from '@/lib/supabase';
 
 // Generate 250 avatars dynamically
 const AVATARS = Array.from({ length: 250 }, (_, i) => 
@@ -55,6 +56,7 @@ export function SettingsButton() {
 
   // Settings sections configuration
   const getSettingsSections = () => [
+    { id: 'discord', name: 'Discord', icon: '🎮' },
     { id: 'presets', name: texts.presets, icon: '🎨' },
     { id: 'profile', name: texts.profile, icon: '👤' },
     { id: 'referral', name: texts.referral, icon: '🎁' },
@@ -108,6 +110,44 @@ export function SettingsButton() {
   const [avatarPage, setAvatarPage] = useState(1);
   const [avatarSearch, setAvatarSearch] = useState('');
   const avatarsPerPage = 20;
+
+  // Discord OTP state
+  const [discordOTP, setDiscordOTP] = useState('');
+  const [discordOTPExpiry, setDiscordOTPExpiry] = useState<number>(0);
+  const [discordOTPTimeLeft, setDiscordOTPTimeLeft] = useState(0);
+  const [isDiscordLinked, setIsDiscordLinked] = useState(false);
+
+  // Generate OTP valid for 5 minutes
+  const generateDiscordOTP = async () => {
+    const user = getCurrentUser();
+    if (!user?.hashKey) return;
+
+    // Generate OTP using database
+    const otpCode = await discordOTPDB.generateOTP(user.hashKey);
+    if (otpCode) {
+      setDiscordOTP(otpCode);
+      setDiscordOTPExpiry(Date.now() + 5 * 60 * 1000); // 5 minutes from now
+    }
+  };
+
+  // Update OTP countdown
+  useEffect(() => {
+    const updateCountdown = () => {
+      if (discordOTPExpiry > 0) {
+        const timeLeft = Math.max(0, Math.floor((discordOTPExpiry - Date.now()) / 1000));
+        setDiscordOTPTimeLeft(timeLeft);
+
+        if (timeLeft === 0) {
+          setDiscordOTP('');
+          setDiscordOTPExpiry(0);
+        }
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [discordOTPExpiry]);
 
   // Services settings
   const [enabledServices, setEnabledServices] = useState<Record<string, boolean>>(() => {
@@ -258,6 +298,30 @@ export function SettingsButton() {
   });
 
   const currentUser = getCurrentUser();
+
+  // Check if Discord is linked on mount
+  useEffect(() => {
+    if (currentUser?.hashKey) {
+      // Check from database
+      discordOTPDB.getOTP(currentUser.hashKey).then(async (otpData) => {
+        if (otpData) {
+          setDiscordOTP(otpData.otp_code);
+          setDiscordOTPExpiry(new Date(otpData.expires_at).getTime());
+        }
+
+        // Check if Discord is linked
+        const { data } = await supabase
+          .from('users')
+          .select('discord_linked')
+          .eq('hash_key', currentUser.hashKey)
+          .maybeSingle();
+
+        if (data) {
+          setIsDiscordLinked(data.discord_linked || false);
+        }
+      });
+    }
+  }, [currentUser?.hashKey]);
 
   // Inject custom styles for scrollbar hiding
   useEffect(() => {
@@ -748,6 +812,7 @@ export function SettingsButton() {
                       <div className={`text-xs opacity-70 mt-1 ${
                         theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                       }`}>
+                        {activeSection === 'discord' && (language === 'ar' ? 'اربط حسابك بديسكورد باستخدام رمز OTP' : 'Link your Discord account using OTP code')}
                         {activeSection === 'presets' && texts.presetsDesc}
                         {activeSection === 'profile' && texts.profileDesc}
                         {activeSection === 'referral' && texts.referralDesc}
@@ -788,6 +853,204 @@ export function SettingsButton() {
                 </div>
 
                 <div className="px-4 md:px-8 py-4 md:py-6 overflow-y-auto flex-1" style={{ height: 'calc(85vh - 120px)', maxHeight: 'calc(85vh - 120px)' }}>
+                  {activeSection === 'discord' && (
+                    <div className="space-y-6">
+                      {/* Discord Linking Section */}
+                      <div 
+                        className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
+                        style={{
+                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
+                          border: `1px solid ${customTheme.colors.border}20`,
+                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                        }}
+                      >
+                        <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20"
+                          style={{
+                            background: `radial-gradient(circle, ${customTheme.colors.primary}, transparent)`
+                          }}
+                        />
+                        
+                        <div className="relative">
+                          <div className="flex items-center space-x-reverse space-x-3 mb-4">
+                            <div 
+                              className="w-8 h-8 rounded-xl flex items-center justify-center"
+                              style={{
+                                background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
+                                boxShadow: `0 4px 16px ${customTheme.colors.primary}40`
+                              }}
+                            >
+                              <span className="text-white text-sm">🎮</span>
+                            </div>
+                            <label className={`text-sm font-black uppercase tracking-wider ${
+                              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                            }`}>
+                              {language === 'ar' ? 'ربط Discord' : 'Discord Linking'}
+                            </label>
+                          </div>
+
+                          {/* Link Status */}
+                          <div className={`mb-6 p-4 rounded-2xl ${
+                            isDiscordLinked 
+                              ? 'bg-green-500/10 border border-green-500/30' 
+                              : 'bg-gray-500/10 border border-gray-500/30'
+                          }`}>
+                            <div className="flex items-center gap-3">
+                              <div className={`w-3 h-3 rounded-full ${isDiscordLinked ? 'bg-green-500' : 'bg-gray-500'}`} />
+                              <span className={`text-sm font-medium ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                                {isDiscordLinked 
+                                  ? (language === 'ar' ? '✓ الحساب مربوط' : '✓ Account Linked') 
+                                  : (language === 'ar' ? 'الحساب غير مربوط' : 'Account Not Linked')
+                                }
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Hash Key Display */}
+                          <div className="mb-6">
+                            <label className={`text-xs font-medium mb-2 block ${
+                              theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                            }`}>
+                              {language === 'ar' ? 'مفتاح Hash الخاص بك:' : 'Your Hash Key:'}
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={currentUser?.hashKey || ''}
+                                readOnly
+                                className="w-full px-4 py-3 rounded-xl font-mono text-sm"
+                                style={{
+                                  backgroundColor: customTheme.colors.surface + '40',
+                                  color: customTheme.colors.text,
+                                  border: `2px solid ${customTheme.colors.border}30`
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* OTP Generation */}
+                          {!isDiscordLinked && (
+                            <div className="space-y-4">
+                              <button
+                                onClick={generateDiscordOTP}
+                                disabled={discordOTP !== ''}
+                                className={`w-full px-6 py-3 rounded-xl font-medium transition-all ${
+                                  discordOTP 
+                                    ? 'opacity-50 cursor-not-allowed' 
+                                    : 'hover:scale-105 active:scale-95'
+                                }`}
+                                style={{
+                                  background: discordOTP 
+                                    ? 'transparent' 
+                                    : `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
+                                  color: discordOTP ? customTheme.colors.text : '#ffffff',
+                                  border: discordOTP ? `2px solid ${customTheme.colors.border}30` : 'none',
+                                  boxShadow: discordOTP ? 'none' : `0 8px 32px ${customTheme.colors.primary}40`
+                                }}
+                              >
+                                {language === 'ar' 
+                                  ? (discordOTP ? 'تم توليد الرمز' : 'توليد رمز OTP') 
+                                  : (discordOTP ? 'OTP Generated' : 'Generate OTP Code')
+                                }
+                              </button>
+
+                              {discordOTP && (
+                                <div className="space-y-3">
+                                  <div className={`text-center p-6 rounded-2xl ${
+                                    discordOTPTimeLeft < 60 
+                                      ? 'bg-red-500/10 border border-red-500/30' 
+                                      : 'bg-blue-500/10 border border-blue-500/30'
+                                  }`}>
+                                    <div className={`text-4xl font-black font-mono tracking-wider mb-2 ${
+                                      discordOTPTimeLeft < 60 ? 'text-red-500' : 'text-blue-500'
+                                    }`}>
+                                      {discordOTP}
+                                    </div>
+                                    <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                                      {language === 'ar' 
+                                        ? `ينتهي خلال ${Math.floor(discordOTPTimeLeft / 60)}:${(discordOTPTimeLeft % 60).toString().padStart(2, '0')}`
+                                        : `Expires in ${Math.floor(discordOTPTimeLeft / 60)}:${(discordOTPTimeLeft % 60).toString().padStart(2, '0')}`
+                                      }
+                                    </div>
+                                  </div>
+
+                                  <div className={`text-xs text-center ${theme === 'light' ? 'text-gray-500' : 'text-gray-500'}`}>
+                                    {language === 'ar' 
+                                      ? 'استخدم هذا الرمز في بوت Discord لربط حسابك'
+                                      : 'Use this code in the Discord bot to link your account'
+                                    }
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Unlink Button */}
+                          {isDiscordLinked && (
+                            <button
+                              onClick={async () => {
+                                if (currentUser?.hashKey) {
+                                  const { error } = await supabase
+                                    .from('users')
+                                    .update({ discord_linked: false })
+                                    .eq('hash_key', currentUser.hashKey);
+
+                                  if (!error) {
+                                    setIsDiscordLinked(false);
+                                  }
+                                }
+                              }}
+                              className="w-full px-6 py-3 rounded-xl font-medium bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 transition-all"
+                            >
+                              {language === 'ar' ? 'فك الربط' : 'Unlink Account'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Instructions */}
+                      <div 
+                        className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
+                        style={{
+                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
+                          border: `1px solid ${customTheme.colors.border}20`,
+                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                        }}
+                      >
+                        <div className="absolute top-0 left-0 w-24 h-24 rounded-full blur-2xl opacity-20"
+                          style={{
+                            background: `radial-gradient(circle, ${customTheme.colors.accent}, transparent)`
+                          }}
+                        />
+                        
+                        <div className="relative">
+                          <h4 className={`text-sm font-black uppercase tracking-wider mb-4 ${
+                            theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                          }`}>
+                            {language === 'ar' ? 'تعليمات الربط' : 'Linking Instructions'}
+                          </h4>
+                          <ol className={`space-y-3 text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                            <li className="flex gap-3">
+                              <span className="font-bold text-blue-500">1.</span>
+                              <span>{language === 'ar' ? 'انسخ مفتاح Hash الخاص بك من الأعلى' : 'Copy your Hash Key from above'}</span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="font-bold text-blue-500">2.</span>
+                              <span>{language === 'ar' ? 'اضغط على زر "توليد رمز OTP" للحصول على رمز صالح لمدة 5 دقائق' : 'Click "Generate OTP Code" to get a code valid for 5 minutes'}</span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="font-bold text-blue-500">3.</span>
+                              <span>{language === 'ar' ? 'استخدم الأمر في بوت Discord: /link [hash_key] [otp_code]' : 'Use the command in Discord bot: /link [hash_key] [otp_code]'}</span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span className="font-bold text-blue-500">4.</span>
+                              <span>{language === 'ar' ? 'سيتم ربط حسابك تلقائياً' : 'Your account will be linked automatically'}</span>
+                            </li>
+                          </ol>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {activeSection === 'profile' && (
                     <div className="space-y-6">
                       {/* Username Section */}

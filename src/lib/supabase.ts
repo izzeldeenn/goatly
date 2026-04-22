@@ -1252,6 +1252,138 @@ export class RoomDB {
   }
 }
 
+// Discord OTP interface for database (snake_case - matches Supabase)
+export interface DiscordOTP {
+  id?: string;
+  user_hash_key: string;
+  otp_code: string;
+  expires_at: string;
+  used: boolean;
+  created_at: string;
+}
+
+// Discord OTP interface for frontend (camelCase)
+export interface DiscordOTPFrontend {
+  id?: string;
+  userHashKey: string;
+  otpCode: string;
+  expiresAt: string;
+  used: boolean;
+  createdAt: string;
+}
+
+// Discord OTP Database Operations
+class DiscordOTPDB {
+  private static instance: DiscordOTPDB;
+
+  private constructor() {}
+
+  static getInstance(): DiscordOTPDB {
+    if (!DiscordOTPDB.instance) {
+      DiscordOTPDB.instance = new DiscordOTPDB();
+    }
+    return DiscordOTPDB.instance;
+  }
+
+  // Generate and store OTP for a user
+  async generateOTP(userHashKey: string): Promise<string | null> {
+    try {
+      // Generate 6-digit OTP
+      const seed = userHashKey + Date.now();
+      const otp = Math.floor(Math.abs(parseInt(seed.slice(0, 10), 36))) % 1000000;
+      const otpString = otp.toString().padStart(6, '0');
+
+      // Calculate expiry time (5 minutes from now)
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+      // Use upsert to insert or replace existing OTP
+      const { error } = await supabase
+        .from('discord_otps')
+        .upsert({
+          user_hash_key: userHashKey,
+          otp_code: otpString,
+          expires_at: expiresAt,
+          used: false
+        }, {
+          onConflict: 'user_hash_key'
+        });
+
+      if (error) throw error;
+
+      return otpString;
+    } catch (error: any) {
+      console.error('Error generating Discord OTP:', error?.message || error, error?.details, error?.hint, error?.code);
+      return null;
+    }
+  }
+
+  // Verify OTP code for a user
+  async verifyOTP(userHashKey: string, otpCode: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('discord_otps')
+        .select('*')
+        .eq('user_hash_key', userHashKey)
+        .eq('otp_code', otpCode)
+        .eq('used', false)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        return false; // Invalid or expired OTP
+      }
+
+      // Mark OTP as used
+      await supabase
+        .from('discord_otps')
+        .update({ used: true })
+        .eq('id', data.id);
+
+      return true;
+    } catch (error: any) {
+      console.error('Error verifying Discord OTP:', error?.message || error, error?.details, error?.hint, error?.code);
+      return false;
+    }
+  }
+
+  // Get OTP for a user (for display purposes)
+  async getOTP(userHashKey: string): Promise<DiscordOTP | null> {
+    try {
+      const { data, error } = await supabase
+        .from('discord_otps')
+        .select('*')
+        .eq('user_hash_key', userHashKey)
+        .eq('used', false)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error: any) {
+      console.error('Error getting Discord OTP:', error?.message || error, error?.details, error?.hint, error?.code);
+      return null;
+    }
+  }
+
+  // Clean up expired OTPs
+  async cleanupExpired(): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('discord_otps')
+        .delete()
+        .lt('expires_at', new Date().toISOString());
+
+      if (error) throw error;
+      return true;
+    } catch (error: any) {
+      console.error('Error cleaning up expired Discord OTPs:', error?.message || error, error?.details, error?.hint, error?.code);
+      return false;
+    }
+  }
+}
+
 // Export singleton instances
 export const userDB = UserAccountDB.getInstance();
 export const resetTokenDB = ResetTokenDB.getInstance();
@@ -1260,6 +1392,7 @@ export const challengeSessionDB = ChallengeSessionDB.getInstance();
 export const waitingListDB = WaitingListDB.getInstance();
 export const referralDB = ReferralDB.getInstance();
 export const roomDB = RoomDB.getInstance();
+export const discordOTPDB = DiscordOTPDB.getInstance();
 
 // Check if Supabase is available
 export const isSupabaseAvailable = async (): Promise<boolean> => {

@@ -171,6 +171,17 @@ function LandingPageContent() {
                   <option value="ar">العربية</option>
                 </select>
                 <ThemeToggle />
+                <a
+                  href="/focus"
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1 ${
+                    theme === 'light'
+                      ? 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  <span>{texts.startFreeStudy}</span>
+                  <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                </a>
               </div>
               
               {/* Mobile Menu Button */}
@@ -195,7 +206,7 @@ function LandingPageContent() {
           
           {/* Mobile Menu */}
           <div className={`md:hidden transition-all duration-300 ${
-            isMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+            isMenuOpen ? 'max-h-90 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
           }`}>
             <div className={`px-4 py-4 border-t ${
               theme === 'light' ? 'border-gray-200' : 'border-gray-800'
@@ -271,6 +282,18 @@ function LandingPageContent() {
                   </select>
                   <ThemeToggle />
                 </div>
+                <a
+                  href="/focus"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`px-4 py-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                    theme === 'light'
+                      ? 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  <span>{texts.startFreeStudy}</span>
+                  <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                </a>
               </div>
             </div>
           </div>
@@ -331,7 +354,10 @@ function LandingPageContent() {
                       <span className="transition-transform group-hover:translate-x-1">→</span>
                     </span>
                   </a>
-                  <button
+                  <a
+                    href="https://www.youtube.com/@goatly-space"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className={`px-8 py-4 rounded-lg font-bold text-lg border-2 transition-all transform hover:scale-105 flex items-center justify-center ${
                       theme === 'light'
                         ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -339,7 +365,7 @@ function LandingPageContent() {
                     }`}
                   >
                     {texts.watchDemo}
-                  </button>
+                  </a>
                 </div>
               </div>
               

@@ -26,6 +26,7 @@ import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { PresetSelector } from '@/components/settings/PresetSelector';
 import { LocalBackgroundSelector } from '@/components/backgrounds/LocalBackgroundSelector';
 import { ReferralCard } from '@/components/referral/ReferralCard';
+import { QuickActionsModal } from '@/components/settings/QuickActionsModal';
 import { landingTexts } from '@/constants/landingTexts';
 import { discordOTPDB, supabase } from '@/lib/supabase';
 
@@ -56,10 +57,9 @@ export function SettingsButton() {
 
   // Settings sections configuration
   const getSettingsSections = () => [
-    { id: 'discord', name: 'Discord', icon: '🎮' },
     { id: 'presets', name: texts.presets, icon: '🎨' },
     { id: 'profile', name: texts.profile, icon: '👤' },
-    { id: 'referral', name: texts.referral, icon: '🎁' },
+    { id: 'country', name: language === 'ar' ? 'الدولة' : 'Country', icon: '🌍' },
     { id: 'appearance', name: texts.appearance, icon: '🎨' },
     { id: 'themes', name: texts.themes, icon: '🎭' },
     { id: 'backgrounds', name: texts.backgrounds, icon: '🖼️' },
@@ -69,7 +69,6 @@ export function SettingsButton() {
     { id: 'timer', name: texts.timer, icon: '⏱️' },
     { id: 'countdown', name: texts.countdown, icon: '⏳' },
     { id: 'pomodoro', name: texts.pomodoro, icon: '🍅' },
-    { id: 'account', name: texts.account, icon: '🔐' },
   ];
 
   // Ranking display modes
@@ -80,6 +79,7 @@ export function SettingsButton() {
     { id: 'top', name: texts.topPopup, icon: '⬇️', description: texts.topPopupDesc },
   ];
   const [showSettings, setShowSettings] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'upgrade'>('login');
   const [showAccountSwitcher, setShowAccountSwitcher] = useState(false);
@@ -110,44 +110,6 @@ export function SettingsButton() {
   const [avatarPage, setAvatarPage] = useState(1);
   const [avatarSearch, setAvatarSearch] = useState('');
   const avatarsPerPage = 20;
-
-  // Discord OTP state
-  const [discordOTP, setDiscordOTP] = useState('');
-  const [discordOTPExpiry, setDiscordOTPExpiry] = useState<number>(0);
-  const [discordOTPTimeLeft, setDiscordOTPTimeLeft] = useState(0);
-  const [isDiscordLinked, setIsDiscordLinked] = useState(false);
-
-  // Generate OTP valid for 5 minutes
-  const generateDiscordOTP = async () => {
-    const user = getCurrentUser();
-    if (!user?.hashKey) return;
-
-    // Generate OTP using database
-    const otpCode = await discordOTPDB.generateOTP(user.hashKey);
-    if (otpCode) {
-      setDiscordOTP(otpCode);
-      setDiscordOTPExpiry(Date.now() + 5 * 60 * 1000); // 5 minutes from now
-    }
-  };
-
-  // Update OTP countdown
-  useEffect(() => {
-    const updateCountdown = () => {
-      if (discordOTPExpiry > 0) {
-        const timeLeft = Math.max(0, Math.floor((discordOTPExpiry - Date.now()) / 1000));
-        setDiscordOTPTimeLeft(timeLeft);
-
-        if (timeLeft === 0) {
-          setDiscordOTP('');
-          setDiscordOTPExpiry(0);
-        }
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, [discordOTPExpiry]);
 
   // Services settings
   const [enabledServices, setEnabledServices] = useState<Record<string, boolean>>(() => {
@@ -298,30 +260,6 @@ export function SettingsButton() {
   });
 
   const currentUser = getCurrentUser();
-
-  // Check if Discord is linked on mount
-  useEffect(() => {
-    if (currentUser?.hashKey) {
-      // Check from database
-      discordOTPDB.getOTP(currentUser.hashKey).then(async (otpData) => {
-        if (otpData) {
-          setDiscordOTP(otpData.otp_code);
-          setDiscordOTPExpiry(new Date(otpData.expires_at).getTime());
-        }
-
-        // Check if Discord is linked
-        const { data } = await supabase
-          .from('users')
-          .select('discord_linked')
-          .eq('hash_key', currentUser.hashKey)
-          .maybeSingle();
-
-        if (data) {
-          setIsDiscordLinked(data.discord_linked || false);
-        }
-      });
-    }
-  }, [currentUser?.hashKey]);
 
   // Inject custom styles for scrollbar hiding
   useEffect(() => {
@@ -582,25 +520,47 @@ export function SettingsButton() {
 
   return (
     <>
-      <button
-        data-settings-button="true"
-        onClick={handleLoadSettings}
-        className="p-2 rounded-xl transition-all duration-200 hover:scale-110"
-        style={{
-          backgroundColor: customTheme.colors.surface,
-          color: customTheme.colors.text
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = customTheme.colors.primary;
-          e.currentTarget.style.color = '#ffffff';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = customTheme.colors.surface;
-          e.currentTarget.style.color = customTheme.colors.text;
-        }}
-      >
-        ⚙️
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowQuickActions(true)}
+          className="p-2 rounded-xl transition-all duration-200 hover:scale-110"
+          style={{
+            backgroundColor: customTheme.colors.surface,
+            color: customTheme.colors.text
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = customTheme.colors.primary;
+            e.currentTarget.style.color = '#ffffff';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = customTheme.colors.surface;
+            e.currentTarget.style.color = customTheme.colors.text;
+          }}
+        >
+          ⚡
+        </button>
+        <button
+          data-settings-button="true"
+          onClick={handleLoadSettings}
+          className="p-2 rounded-xl transition-all duration-200 hover:scale-110"
+          style={{
+            backgroundColor: customTheme.colors.surface,
+            color: customTheme.colors.text
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = customTheme.colors.primary;
+            e.currentTarget.style.color = '#ffffff';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = customTheme.colors.surface;
+            e.currentTarget.style.color = customTheme.colors.text;
+          }}
+        >
+          ⚙️
+        </button>
+      </div>
+
+      <QuickActionsModal isOpen={showQuickActions} onClose={() => setShowQuickActions(false)} />
 
       {showSettings && (
         <>
@@ -812,10 +772,9 @@ export function SettingsButton() {
                       <div className={`text-xs opacity-70 mt-1 ${
                         theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                       }`}>
-                        {activeSection === 'discord' && (language === 'ar' ? 'اربط حسابك بديسكورد باستخدام رمز OTP' : 'Link your Discord account using OTP code')}
                         {activeSection === 'presets' && texts.presetsDesc}
                         {activeSection === 'profile' && texts.profileDesc}
-                        {activeSection === 'referral' && texts.referralDesc}
+                        {activeSection === 'country' && (language === 'ar' ? 'عرض دولتك ومعلومات جهازك' : 'View your country and device information')}
                         {activeSection === 'appearance' && texts.appearanceDesc}
                         {activeSection === 'themes' && texts.themesDesc}
                         {activeSection === 'backgrounds' && texts.backgroundsDesc}
@@ -825,7 +784,6 @@ export function SettingsButton() {
                         {activeSection === 'countdown' && texts.countdownDesc}
                         {activeSection === 'pomodoro' && texts.pomodoroDesc}
                         {activeSection === 'unifiedTimer' && texts.unifiedTimerDesc}
-                        {activeSection === 'account' && texts.accountDesc}
                       </div>
                     </div>
                     
@@ -853,206 +811,151 @@ export function SettingsButton() {
                 </div>
 
                 <div className="px-4 md:px-8 py-4 md:py-6 overflow-y-auto flex-1" style={{ height: 'calc(85vh - 120px)', maxHeight: 'calc(85vh - 120px)' }}>
-                  {activeSection === 'discord' && (
+                  {activeSection === 'profile' && (
                     <div className="space-y-6">
-                      {/* Discord Linking Section */}
+                      {/* Account Section - Moved to top */}
                       <div 
                         className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
                         style={{
-                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                          border: `1px solid ${customTheme.colors.border}20`,
-                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                          background: `linear-gradient(135deg, ${customTheme.colors.primary}15, ${customTheme.colors.accent}10)`,
+                          border: `2px solid ${customTheme.colors.primary}30`,
+                          boxShadow: `0 12px 48px ${customTheme.colors.primary}25`
                         }}
                       >
-                        <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20"
+                        <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-30"
                           style={{
                             background: `radial-gradient(circle, ${customTheme.colors.primary}, transparent)`
                           }}
                         />
-                        
-                        <div className="relative">
-                          <div className="flex items-center space-x-reverse space-x-3 mb-4">
-                            <div 
-                              className="w-8 h-8 rounded-xl flex items-center justify-center"
-                              style={{
-                                background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
-                                boxShadow: `0 4px 16px ${customTheme.colors.primary}40`
-                              }}
-                            >
-                              <span className="text-white text-sm">🎮</span>
-                            </div>
-                            <label className={`text-sm font-black uppercase tracking-wider ${
-                              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                            }`}>
-                              {language === 'ar' ? 'ربط Discord' : 'Discord Linking'}
-                            </label>
-                          </div>
-
-                          {/* Link Status */}
-                          <div className={`mb-6 p-4 rounded-2xl ${
-                            isDiscordLinked 
-                              ? 'bg-green-500/10 border border-green-500/30' 
-                              : 'bg-gray-500/10 border border-gray-500/30'
-                          }`}>
-                            <div className="flex items-center gap-3">
-                              <div className={`w-3 h-3 rounded-full ${isDiscordLinked ? 'bg-green-500' : 'bg-gray-500'}`} />
-                              <span className={`text-sm font-medium ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                                {isDiscordLinked 
-                                  ? (language === 'ar' ? '✓ الحساب مربوط' : '✓ Account Linked') 
-                                  : (language === 'ar' ? 'الحساب غير مربوط' : 'Account Not Linked')
-                                }
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Hash Key Display */}
-                          <div className="mb-6">
-                            <label className={`text-xs font-medium mb-2 block ${
-                              theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-                            }`}>
-                              {language === 'ar' ? 'مفتاح Hash الخاص بك:' : 'Your Hash Key:'}
-                            </label>
-                            <div className="relative">
-                              <input
-                                type="text"
-                                value={currentUser?.hashKey || ''}
-                                readOnly
-                                className="w-full px-4 py-3 rounded-xl font-mono text-sm"
-                                style={{
-                                  backgroundColor: customTheme.colors.surface + '40',
-                                  color: customTheme.colors.text,
-                                  border: `2px solid ${customTheme.colors.border}30`
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* OTP Generation */}
-                          {!isDiscordLinked && (
-                            <div className="space-y-4">
-                              <button
-                                onClick={generateDiscordOTP}
-                                disabled={discordOTP !== ''}
-                                className={`w-full px-6 py-3 rounded-xl font-medium transition-all ${
-                                  discordOTP 
-                                    ? 'opacity-50 cursor-not-allowed' 
-                                    : 'hover:scale-105 active:scale-95'
-                                }`}
-                                style={{
-                                  background: discordOTP 
-                                    ? 'transparent' 
-                                    : `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
-                                  color: discordOTP ? customTheme.colors.text : '#ffffff',
-                                  border: discordOTP ? `2px solid ${customTheme.colors.border}30` : 'none',
-                                  boxShadow: discordOTP ? 'none' : `0 8px 32px ${customTheme.colors.primary}40`
-                                }}
-                              >
-                                {language === 'ar' 
-                                  ? (discordOTP ? 'تم توليد الرمز' : 'توليد رمز OTP') 
-                                  : (discordOTP ? 'OTP Generated' : 'Generate OTP Code')
-                                }
-                              </button>
-
-                              {discordOTP && (
-                                <div className="space-y-3">
-                                  <div className={`text-center p-6 rounded-2xl ${
-                                    discordOTPTimeLeft < 60 
-                                      ? 'bg-red-500/10 border border-red-500/30' 
-                                      : 'bg-blue-500/10 border border-blue-500/30'
-                                  }`}>
-                                    <div className={`text-4xl font-black font-mono tracking-wider mb-2 ${
-                                      discordOTPTimeLeft < 60 ? 'text-red-500' : 'text-blue-500'
-                                    }`}>
-                                      {discordOTP}
-                                    </div>
-                                    <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                                      {language === 'ar' 
-                                        ? `ينتهي خلال ${Math.floor(discordOTPTimeLeft / 60)}:${(discordOTPTimeLeft % 60).toString().padStart(2, '0')}`
-                                        : `Expires in ${Math.floor(discordOTPTimeLeft / 60)}:${(discordOTPTimeLeft % 60).toString().padStart(2, '0')}`
-                                      }
-                                    </div>
-                                  </div>
-
-                                  <div className={`text-xs text-center ${theme === 'light' ? 'text-gray-500' : 'text-gray-500'}`}>
-                                    {language === 'ar' 
-                                      ? 'استخدم هذا الرمز في بوت Discord لربط حسابك'
-                                      : 'Use this code in the Discord bot to link your account'
-                                    }
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Unlink Button */}
-                          {isDiscordLinked && (
-                            <button
-                              onClick={async () => {
-                                if (currentUser?.hashKey) {
-                                  const { error } = await supabase
-                                    .from('users')
-                                    .update({ discord_linked: false })
-                                    .eq('hash_key', currentUser.hashKey);
-
-                                  if (!error) {
-                                    setIsDiscordLinked(false);
-                                  }
-                                }
-                              }}
-                              className="w-full px-6 py-3 rounded-xl font-medium bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 transition-all"
-                            >
-                              {language === 'ar' ? 'فك الربط' : 'Unlink Account'}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Instructions */}
-                      <div 
-                        className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
-                        style={{
-                          background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                          border: `1px solid ${customTheme.colors.border}20`,
-                          boxShadow: `0 8px 32px ${customTheme.colors.border}15`
-                        }}
-                      >
-                        <div className="absolute top-0 left-0 w-24 h-24 rounded-full blur-2xl opacity-20"
+                        <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full blur-2xl opacity-20"
                           style={{
                             background: `radial-gradient(circle, ${customTheme.colors.accent}, transparent)`
                           }}
                         />
                         
                         <div className="relative">
-                          <h4 className={`text-sm font-black uppercase tracking-wider mb-4 ${
-                            theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                          }`}>
-                            {language === 'ar' ? 'تعليمات الربط' : 'Linking Instructions'}
-                          </h4>
-                          <ol className={`space-y-3 text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                            <li className="flex gap-3">
-                              <span className="font-bold text-blue-500">1.</span>
-                              <span>{language === 'ar' ? 'انسخ مفتاح Hash الخاص بك من الأعلى' : 'Copy your Hash Key from above'}</span>
-                            </li>
-                            <li className="flex gap-3">
-                              <span className="font-bold text-blue-500">2.</span>
-                              <span>{language === 'ar' ? 'اضغط على زر "توليد رمز OTP" للحصول على رمز صالح لمدة 5 دقائق' : 'Click "Generate OTP Code" to get a code valid for 5 minutes'}</span>
-                            </li>
-                            <li className="flex gap-3">
-                              <span className="font-bold text-blue-500">3.</span>
-                              <span>{language === 'ar' ? 'استخدم الأمر في بوت Discord: /link [hash_key] [otp_code]' : 'Use the command in Discord bot: /link [hash_key] [otp_code]'}</span>
-                            </li>
-                            <li className="flex gap-3">
-                              <span className="font-bold text-blue-500">4.</span>
-                              <span>{language === 'ar' ? 'سيتم ربط حسابك تلقائياً' : 'Your account will be linked automatically'}</span>
-                            </li>
-                          </ol>
+                          <div className="flex items-center space-x-reverse space-x-4 mb-6">
+                            <div 
+                              className="w-16 h-16 rounded-2xl flex items-center justify-center relative overflow-hidden"
+                              style={{
+                                background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
+                                boxShadow: `0 8px 32px ${customTheme.colors.primary}50`
+                              }}
+                            >
+                              {currentUser?.avatar ? (
+                                <img src={currentUser.avatar} alt={currentUser.username} className="w-full h-full object-cover rounded-2xl" />
+                              ) : (
+                                <span className="text-white text-2xl">{currentUser?.username ? currentUser.username.charAt(0).toUpperCase() : '👤'}</span>
+                              )}
+                              <div 
+                                className="absolute inset-0 rounded-2xl"
+                                style={{
+                                  background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%)',
+                                  animation: 'shimmer 3s infinite'
+                                }}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <div className={`text-xl font-black mb-1 ${
+                                theme === 'light' ? 'text-gray-900' : 'text-gray-50'
+                              }`}>
+                                {currentUser?.username || texts.user}
+                              </div>
+                              <div className={`text-sm opacity-80 ${
+                                theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                              }`}>
+                                {isLoggedIn ? currentUser?.email : texts.guestAccount}
+                              </div>
+                              <div className={`text-xs mt-1 ${
+                                theme === 'light' ? 'text-gray-500' : 'text-gray-500'
+                              }`}>
+                                {coins} {texts.coins} · Lv {level}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3">
+                            {!isLoggedIn ? (
+                              <button
+                                onClick={() => {
+                                  setAuthModalMode('login');
+                                  setShowAuthModal(true);
+                                }}
+                                className="px-5 py-3 rounded-2xl font-black transition-all duration-300 text-sm hover:scale-105 relative overflow-hidden group"
+                                style={{
+                                  background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
+                                  color: '#ffffff',
+                                  boxShadow: `0 8px 24px ${customTheme.colors.primary}40`
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = 'scale(1.05)';
+                                  e.currentTarget.style.boxShadow = `0 12px 32px ${customTheme.colors.primary}50`;
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                  e.currentTarget.style.boxShadow = `0 8px 24px ${customTheme.colors.primary}40`;
+                                }}
+                              >
+                                <span className="relative z-10">{texts.login}</span>
+                                <div 
+                                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                  style={{
+                                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)'
+                                  }}
+                                />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setShowAccountSwitcher(true)}
+                                className="px-5 py-3 rounded-2xl font-black transition-all duration-300 text-sm hover:scale-105"
+                                style={{
+                                  background: `linear-gradient(135deg, ${customTheme.colors.surface}, ${customTheme.colors.background})`,
+                                  color: customTheme.colors.text,
+                                  border: `1px solid ${customTheme.colors.border}40`,
+                                  boxShadow: `0 4px 16px ${customTheme.colors.border}20`
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = 'scale(1.05)';
+                                  e.currentTarget.style.boxShadow = `0 8px 24px ${customTheme.colors.border}30`;
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                  e.currentTarget.style.boxShadow = `0 4px 16px ${customTheme.colors.border}20`;
+                                }}
+                              >
+                                {t.switchAccount}
+                              </button>
+                            )}
+                            
+                            {!isLoggedIn && (
+                              <button
+                                onClick={() => {
+                                  setAuthModalMode('upgrade');
+                                  setShowAuthModal(true);
+                                }}
+                                className="px-5 py-3 rounded-2xl font-black transition-all duration-300 text-sm hover:scale-105"
+                                style={{
+                                  background: `linear-gradient(135deg, ${customTheme.colors.surface}, ${customTheme.colors.background})`,
+                                  color: customTheme.colors.text,
+                                  border: `1px solid ${customTheme.colors.border}40`,
+                                  boxShadow: `0 4px 16px ${customTheme.colors.border}20`
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = 'scale(1.05)';
+                                  e.currentTarget.style.boxShadow = `0 8px 24px ${customTheme.colors.border}30`;
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                  e.currentTarget.style.boxShadow = `0 4px 16px ${customTheme.colors.border}20`;
+                                }}
+                              >
+                                {t.upgradeAccount}
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
 
-                  {activeSection === 'profile' && (
-                    <div className="space-y-6">
                       {/* Username Section */}
                       <div 
                         className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
@@ -1372,12 +1275,6 @@ export function SettingsButton() {
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-
-                  {activeSection === 'referral' && (
-                    <div className="space-y-6">
-                      <ReferralCard />
                     </div>
                   )}
 
@@ -2804,7 +2701,7 @@ export function SettingsButton() {
                     </div>
                   )}
 
-                  {activeSection === 'account' && (
+                  {activeSection === 'country' && (
                     <div className="space-y-6">
                       <div 
                         className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
@@ -2829,171 +2726,100 @@ export function SettingsButton() {
                                 boxShadow: `0 4px 16px ${customTheme.colors.primary}40`
                               }}
                             >
-                              <span className="text-white text-sm">🔐</span>
+                              <span className="text-white text-sm">🌍</span>
                             </div>
                             <label className={`text-sm font-black uppercase tracking-wider ${
                               theme === 'light' ? 'text-gray-700' : 'text-gray-300'
                             }`}>
-                              {texts.account}
+                              {language === 'ar' ? 'موقعك' : 'Your Location'}
                             </label>
                           </div>
-                          
+
                           <div className="space-y-4">
-                            {isLoggedIn ? (
-                              <div 
-                                className="p-5 rounded-2xl backdrop-blur-sm relative overflow-hidden"
-                                style={{ 
-                                  background: `linear-gradient(135deg, ${customTheme.colors.primary}20, ${customTheme.colors.surface}40)`,
-                                  border: `1px solid ${customTheme.colors.primary}30`,
-                                  boxShadow: `0 8px 32px ${customTheme.colors.primary}20`
-                                }}>
-                                <div className="absolute top-0 right-0 w-20 h-20 rounded-full blur-xl opacity-30"
+                            <div 
+                              className="p-6 rounded-2xl backdrop-blur-sm relative overflow-hidden"
+                              style={{ 
+                                background: `linear-gradient(135deg, ${customTheme.colors.primary}20, ${customTheme.colors.surface}40)`,
+                                border: `1px solid ${customTheme.colors.primary}30`,
+                                boxShadow: `0 8px 32px ${customTheme.colors.primary}20`
+                              }}>
+                              <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-xl opacity-30"
+                                style={{
+                                  background: `radial-gradient(circle, ${customTheme.colors.primary}, transparent)`
+                                }}
+                              />
+                              
+                              <div className="flex items-center space-x-reverse space-x-4 relative">
+                                <div 
+                                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl relative overflow-hidden"
                                   style={{
-                                    background: `radial-gradient(circle, ${customTheme.colors.primary}, transparent)`
+                                    background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
+                                    boxShadow: `0 8px 32px ${customTheme.colors.primary}40`
                                   }}
-                                />
-                                
-                                <div className="flex items-center space-x-reverse space-x-4 relative">
-                                  <div 
-                                    className="w-14 h-14 rounded-2xl flex items-center justify-center relative overflow-hidden"
-                                    style={{
-                                      background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
-                                      boxShadow: `0 8px 32px ${customTheme.colors.primary}40`
-                                    }}
-                                  >
-                                    <span className="text-white text-xl">👤</span>
-                                    <div 
-                                      className="absolute inset-0 rounded-2xl"
-                                      style={{
-                                        background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%)',
-                                        animation: 'shimmer 3s infinite'
-                                      }}
-                                    />
+                                >
+                                  🌍
+                                </div>
+                                <div className="flex-1">
+                                  <div className={`text-lg font-black mb-1 ${
+                                    theme === 'light' ? 'text-gray-900' : 'text-gray-50'
+                                  }`}>
+                                    {currentUser?.country || 'Unknown'}
                                   </div>
-                                  <div>
-                                    <div className={`text-base font-black ${
-                                      theme === 'light' ? 'text-gray-900' : 'text-gray-50'
-                                    }`}>
-                                      {currentUser?.username || texts.user}
-                                    </div>
-                                    <div className={`text-sm opacity-80 ${
-                                      theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-                                    }`}>
-                                      {currentUser?.email || 'user@example.com'}
-                                    </div>
+                                  <div className={`text-sm opacity-80 ${
+                                    theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                                  }`}>
+                                    {language === 'ar' ? 'الدولة المحتسبة من إعدادات المتصفح' : 'Country detected from browser settings'}
                                   </div>
                                 </div>
                               </div>
-                            ) : (
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
                               <div 
-                                className="p-5 rounded-2xl backdrop-blur-sm"
+                                className="p-4 rounded-2xl backdrop-blur-sm"
                                 style={{ 
                                   background: `linear-gradient(135deg, ${customTheme.colors.surface}40, ${customTheme.colors.background}20)`,
                                   border: `1px solid ${customTheme.colors.border}30`,
                                   boxShadow: `0 4px 16px ${customTheme.colors.border}15`
                                 }}>
-                                <div className="flex items-center space-x-reverse space-x-4">
-                                  <div 
-                                    className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                                    style={{
-                                      background: `linear-gradient(135deg, ${customTheme.colors.border}, ${customTheme.colors.surface})`,
-                                      boxShadow: `0 4px 16px ${customTheme.colors.border}30`
-                                    }}
-                                  >
-                                    <span className="text-lg">👤</span>
-                                  </div>
-                                  <div>
-                                    <div className={`text-base font-medium ${
-                                      theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                                    }`}>
-                                      {texts.guestAccount}
-                                    </div>
-                                    <div className={`text-sm opacity-70 ${
-                                      theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                                    }`}>
-                                      {texts.upgradeAccount}
-                                    </div>
-                                  </div>
+                                <div className={`text-xs font-medium mb-1 ${
+                                  theme === 'light' ? 'text-gray-500' : 'text-gray-400'
+                                }`}>
+                                  {language === 'ar' ? 'معرف الجهاز' : 'Device ID'}
+                                </div>
+                                <div className={`text-sm font-mono truncate ${
+                                  theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                                }`}>
+                                  {currentUser?.deviceId?.substring(0, 12) || 'N/A'}...
                                 </div>
                               </div>
-                            )}
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                              {!isLoggedIn ? (
-                                <button
-                                  onClick={() => {
-                                    setAuthModalMode('login');
-                                    setShowAuthModal(true);
-                                  }}
-                                  className="px-5 py-4 rounded-2xl font-black transition-all duration-300 text-sm hover:scale-105 relative overflow-hidden group"
-                                  style={{
-                                    background: `linear-gradient(135deg, ${customTheme.colors.primary}, ${customTheme.colors.accent})`,
-                                    color: '#ffffff',
-                                    boxShadow: `0 12px 48px ${customTheme.colors.primary}40`
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'scale(1.05)';
-                                    e.currentTarget.style.boxShadow = `0 16px 64px ${customTheme.colors.primary}50`;
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'scale(1)';
-                                    e.currentTarget.style.boxShadow = `0 12px 48px ${customTheme.colors.primary}40`;
-                                  }}
-                                >
-                                  <span className="relative z-10">{texts.login}</span>
-                                  <div 
-                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                    style={{
-                                      background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)'
-                                    }}
-                                  />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => setShowAccountSwitcher(true)}
-                                  className="px-5 py-4 rounded-2xl font-black transition-all duration-300 text-sm hover:scale-105"
-                                  style={{
-                                    background: `linear-gradient(135deg, ${customTheme.colors.surface}, ${customTheme.colors.background})`,
-                                    color: customTheme.colors.text,
-                                    boxShadow: `0 8px 32px ${customTheme.colors.border}30`
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'scale(1.05)';
-                                    e.currentTarget.style.boxShadow = `0 12px 48px ${customTheme.colors.border}40`;
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'scale(1)';
-                                    e.currentTarget.style.boxShadow = `0 8px 32px ${customTheme.colors.border}30`;
-                                  }}
-                                >
-                                  {t.switchAccount}
-                                </button>
-                              )}
-                              
-                              {!isLoggedIn && (
-                                <button
-                                  onClick={() => {
-                                    setAuthModalMode('upgrade');
-                                    setShowAuthModal(true);
-                                  }}
-                                  className="px-5 py-4 rounded-2xl font-black transition-all duration-300 text-sm hover:scale-105"
-                                  style={{
-                                    background: `linear-gradient(135deg, ${customTheme.colors.surface}, ${customTheme.colors.background})`,
-                                    color: customTheme.colors.text,
-                                    boxShadow: `0 8px 32px ${customTheme.colors.border}30`
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'scale(1.05)';
-                                    e.currentTarget.style.boxShadow = `0 12px 48px ${customTheme.colors.border}40`;
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'scale(1)';
-                                    e.currentTarget.style.boxShadow = `0 8px 32px ${customTheme.colors.border}30`;
-                                  }}
-                                >
-                                  {t.upgradeAccount}
-                                </button>
-                              )}
+                              <div 
+                                className="p-4 rounded-2xl backdrop-blur-sm"
+                                style={{ 
+                                  background: `linear-gradient(135deg, ${customTheme.colors.surface}40, ${customTheme.colors.background}20)`,
+                                  border: `1px solid ${customTheme.colors.border}30`,
+                                  boxShadow: `0 4px 16px ${customTheme.colors.border}15`
+                                }}>
+                                <div className={`text-xs font-medium mb-1 ${
+                                  theme === 'light' ? 'text-gray-500' : 'text-gray-400'
+                                }`}>
+                                  {language === 'ar' ? 'معرف المتصفح' : 'Browser ID'}
+                                </div>
+                                <div className={`text-sm font-mono truncate ${
+                                  theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                                }`}>
+                                  {currentUser?.browserId?.substring(0, 12) || 'N/A'}...
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className={`text-xs text-center ${
+                              theme === 'light' ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
+                              {language === 'ar' 
+                                ? 'يتم استخدام هذه المعلومات لتحسين تجربتك وربط حسابك بجهازك ومتصفحك'
+                                : 'This information is used to improve your experience and link your account to your device and browser'
+                              }
                             </div>
                           </div>
                         </div>

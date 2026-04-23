@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import { getAccountId, getAccountInfo } from '@/utils/deviceId';
+import { getAccountId, getAccountInfo, detectCountry, getDeviceId, getBrowserId } from '@/utils/deviceId';
 import { formatStudyTime } from '@/utils/timeFormat';
 import { userDB, resetTokenDB, referralDB, isSupabaseAvailable, UserAccount, UserAccountFrontend } from '@/lib/supabase';
 import { dailyActivityDB, DailyActivityFrontend } from '@/lib/dailyActivity';
@@ -18,6 +18,9 @@ const convertToUserAccountFrontend = (dbUser: UserAccount): UserAccountFrontend 
   avatar: dbUser.avatar,
   score: dbUser.score,
   referralCode: dbUser.referral_code,
+  country: dbUser.country,
+  browserId: dbUser.browser_id,
+  deviceId: dbUser.device_id,
   createdAt: dbUser.created_at,
   lastActive: dbUser.last_active
 });
@@ -32,6 +35,9 @@ const convertToUserAccount = (user: UserAccountFrontend): UserAccount => ({
   avatar: user.avatar,
   score: user.score,
   referral_code: user.referralCode,
+  country: user.country,
+  browser_id: user.browserId,
+  device_id: user.deviceId,
   created_at: user.createdAt,
   last_active: user.lastActive
 });
@@ -136,6 +142,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 hashKey: dbUser.hash_key,
                 avatar: dbUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar77',
                 score: dbUser.score,
+                country: dbUser.country,
+                browserId: dbUser.browser_id,
+                deviceId: dbUser.device_id,
                 createdAt: dbUser.created_at,
                 lastActive: dbUser.last_active
               }));
@@ -227,6 +236,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
               hashKey: dbUser.hash_key,
               avatar: dbUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar77',
               score: dbUser.score,
+              country: dbUser.country,
+              browserId: dbUser.browser_id,
+              deviceId: dbUser.device_id,
               createdAt: dbUser.created_at,
               lastActive: dbUser.last_active
             }));
@@ -254,6 +266,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const createCurrentAccount = async () => {
     const accountInfo = getAccountInfo();
+    const country = detectCountry();
+    const deviceId = getDeviceId();
+    const browserId = getBrowserId();
     
     // Restore username, email, and avatar from localStorage if available
     let savedUsername = accountInfo.username;
@@ -286,6 +301,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
       hashKey: accountInfo.hashKey,
       avatar: savedAvatar,
       score: 0,
+      country: country,
+      browserId: browserId,
+      deviceId: deviceId,
       createdAt: accountInfo.createdAt,
       lastActive: accountInfo.lastLogin
     };
@@ -308,6 +326,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
           hash_key: userAccount.hashKey,
           avatar: userAccount.avatar,
           score: userAccount.score,
+          country: userAccount.country,
+          browser_id: userAccount.browserId,
+          device_id: userAccount.deviceId,
           created_at: userAccount.createdAt,
           last_active: userAccount.lastActive
         });
@@ -326,6 +347,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
           hash_key: userAccount.hashKey,
           avatar: userAccount.avatar,
           score: userAccount.score,
+          country: userAccount.country,
+          browser_id: userAccount.browserId,
+          device_id: userAccount.deviceId,
           created_at: userAccount.createdAt,
           last_active: userAccount.lastActive
         });
@@ -682,6 +706,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
         avatar: avatarUrl, // Generate DiceBear avatar with random number
         score: currentUser.score, // Keep existing score
         referral_code: referralCode, // Add referral code
+        country: currentUser.country || detectCountry(), // Add or update country
+        browser_id: currentUser.browserId || getBrowserId(), // Add or update browser ID
+        device_id: currentUser.deviceId || getDeviceId(), // Add or update device ID
         created_at: currentUser.createdAt, // Keep original creation date
         last_active: new Date().toISOString(), // Update last active
         hash_key: currentUser.hashKey // Keep existing hash key

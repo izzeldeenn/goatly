@@ -36,6 +36,9 @@ export interface UserAccount {
   avatar?: string;
   score: number;
   referral_code?: string;
+  country?: string; // User's country
+  browser_id?: string; // Unique browser identifier
+  device_id?: string; // Unique device identifier
   created_at: string;
   last_active: string;
 }
@@ -50,6 +53,9 @@ export interface UserAccountFrontend {
   avatar?: string;
   score: number;
   referralCode?: string;
+  country?: string; // User's country
+  browserId?: string; // Unique browser identifier
+  deviceId?: string; // Unique device identifier
   createdAt: string;
   lastActive: string;
 }
@@ -222,7 +228,7 @@ export class UserAccountDB {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key')
+        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key, country, browser_id, device_id')
         .order('last_active', { ascending: false }) // Sort by last_active instead of score
 
       if (error) throw error;
@@ -237,7 +243,7 @@ export class UserAccountDB {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key')
+        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key, country, browser_id, device_id')
         .eq('account_id', accountId)
         .maybeSingle();
 
@@ -253,7 +259,7 @@ export class UserAccountDB {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key')
+        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key, country, browser_id, device_id')
         .eq('id', id)
         .maybeSingle();
 
@@ -271,7 +277,7 @@ export class UserAccountDB {
         .from('users')
         .select('*')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;

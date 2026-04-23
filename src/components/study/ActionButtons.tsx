@@ -20,6 +20,12 @@ export function ActionButtons() {
   const [canClaimDailyGift, setCanClaimDailyGift] = useState(false);
   const [showGiftAnimation, setShowGiftAnimation] = useState(false);
   const [giftReward, setGiftReward] = useState(0);
+  const [enabledServices, setEnabledServices] = useState<Record<string, boolean>>({
+    store: true,
+    challenge: true,
+    rooms: true,
+    notes: true
+  });
 
   // Load slides from localStorage for indicator
   useEffect(() => {
@@ -63,6 +69,50 @@ export function ActionButtons() {
         setCanClaimDailyGift(false);
       }
     }
+  }, []);
+
+  // Load enabled services from localStorage and listen for updates
+  useEffect(() => {
+    const loadEnabledServices = () => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('enabled_services');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setEnabledServices(prev => ({
+              ...prev,
+              store: parsed.store ?? true,
+              challenge: parsed.challenge ?? true,
+              rooms: parsed.rooms ?? true,
+              notes: parsed.notes ?? true
+            }));
+          } catch (error) {
+            console.error('Failed to load enabled services:', error);
+          }
+        }
+      }
+    };
+
+    // Load initially
+    loadEnabledServices();
+
+    // Listen for custom event
+    const handleServicesUpdated = (e: CustomEvent) => {
+      const updated = e.detail;
+      setEnabledServices(prev => ({
+        ...prev,
+        store: updated.store ?? prev.store,
+        challenge: updated.challenge ?? prev.challenge,
+        rooms: updated.rooms ?? prev.rooms,
+        notes: updated.notes ?? prev.notes
+      }));
+    };
+
+    window.addEventListener('servicesUpdated', handleServicesUpdated as EventListener);
+
+    return () => {
+      window.removeEventListener('servicesUpdated', handleServicesUpdated as EventListener);
+    };
   }, []);
 
   // Claim daily gift
@@ -115,7 +165,7 @@ export function ActionButtons() {
     >
       <div className="relative flex items-center justify-center">
         <span className="text-2xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
-          🛒
+          🏪
         </span>
         <div 
           className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-300"
@@ -285,10 +335,10 @@ export function ActionButtons() {
   return (
     <div className="flex flex-col gap-3">
       {renderDailyGiftButton()}
-      {renderRoomsButton()}
-      {renderStoreButton()}
-      {renderRealTimeChallengeButton()}
-      {renderNotesButton()}
+      {enabledServices.rooms && renderRoomsButton()}
+      {enabledServices.store && renderStoreButton()}
+      {enabledServices.challenge && renderRealTimeChallengeButton()}
+      {enabledServices.notes && renderNotesButton()}
       <Store
         isOpen={showStore}
         onClose={() => setShowStore(false)}

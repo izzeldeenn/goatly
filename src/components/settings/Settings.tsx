@@ -132,7 +132,11 @@ export function SettingsButton() {
       countdown: true,
       youtube: true,
       dashboard: true,
-      pdf: true
+      pdf: true,
+      store: true,
+      challenge: true,
+      rooms: true,
+      notes: true
     };
   });
 
@@ -142,7 +146,11 @@ export function SettingsButton() {
     { id: 'countdown', name: texts.countdownService, icon: '⏳' },
     { id: 'youtube', name: texts.youtubeService, icon: '🎬' },
     { id: 'dashboard', name: texts.dashboardService, icon: '📈' },
-    { id: 'pdf', name: texts.pdfService, icon: '📚' }
+    { id: 'pdf', name: texts.pdfService, icon: '📚' },
+    { id: 'store', name: language === 'ar' ? 'المتجر' : 'Store', icon: '🏪' },
+    { id: 'challenge', name: language === 'ar' ? 'التحدي' : 'Challenge', icon: '⚔️' },
+    { id: 'rooms', name: language === 'ar' ? 'الغرف' : 'Rooms', icon: '👥' },
+    { id: 'notes', name: language === 'ar' ? 'الملاحظات' : 'Notes', icon: '📝' }
   ];
 
   const toggleService = (serviceId: string) => {

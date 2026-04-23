@@ -20,6 +20,10 @@ interface PremiumContextType {
   isLoading: boolean;
   subscribeMonthly: () => Promise<boolean>;
   subscribeYearly: () => Promise<boolean>;
+  subscribeMonthlyWithCoins: (coins: number) => Promise<boolean>;
+  subscribeYearlyWithCoins: (coins: number) => Promise<boolean>;
+  subscribeMonthlyWithPayment: () => Promise<boolean>;
+  subscribeYearlyWithPayment: () => Promise<boolean>;
   cancelSubscription: () => Promise<boolean>;
   checkSubscription: () => Promise<void>;
 }
@@ -194,6 +198,28 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const subscribeMonthlyWithCoins = async (coins: number): Promise<boolean> => {
+    // This function assumes coins are already deducted by the caller
+    return await subscribeMonthly();
+  };
+
+  const subscribeYearlyWithCoins = async (coins: number): Promise<boolean> => {
+    // This function assumes coins are already deducted by the caller
+    return await subscribeYearly();
+  };
+
+  const subscribeMonthlyWithPayment = async (): Promise<boolean> => {
+    // TODO: Implement payment integration (Stripe, etc.)
+    alert('Payment integration coming soon!');
+    return false;
+  };
+
+  const subscribeYearlyWithPayment = async (): Promise<boolean> => {
+    // TODO: Implement payment integration (Stripe, etc.)
+    alert('Payment integration coming soon!');
+    return false;
+  };
+
   useEffect(() => {
     checkSubscription();
   }, []);
@@ -208,6 +234,10 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
         isLoading,
         subscribeMonthly,
         subscribeYearly,
+        subscribeMonthlyWithCoins,
+        subscribeYearlyWithCoins,
+        subscribeMonthlyWithPayment,
+        subscribeYearlyWithPayment,
         cancelSubscription,
         checkSubscription,
       }}

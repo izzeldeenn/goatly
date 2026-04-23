@@ -17,7 +17,7 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
   const { theme } = useTheme();
   const { language } = useLanguage();
   const customTheme = useCustomThemeClasses();
-  const { subscription, isPremium, subscribeMonthly, subscribeYearly, checkSubscription } = usePremium();
+  const { subscription, isPremium, subscribeMonthly, subscribeYearly, subscribeMonthlyWithCoins, subscribeYearlyWithCoins, subscribeMonthlyWithPayment, subscribeYearlyWithPayment, checkSubscription } = usePremium();
   const { coins, removeCoins } = usePoints();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -25,7 +25,7 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
   const MONTHLY_COINS = 3000;
   const YEARLY_COINS = 10000;
 
-  const handleSubscribeMonthly = async () => {
+  const handleSubscribeMonthlyWithCoins = async () => {
     if (coins < MONTHLY_COINS) {
       alert(language === 'ar' ? 'ليس لديك عملات كافية' : 'Not enough coins');
       return;
@@ -34,7 +34,7 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
     setIsProcessing(true);
     removeCoins(MONTHLY_COINS);
     
-    const subSuccess = await subscribeMonthly();
+    const subSuccess = await subscribeMonthlyWithCoins(MONTHLY_COINS);
     if (subSuccess) {
       await checkSubscription();
       onClose();
@@ -47,7 +47,7 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
     setIsProcessing(false);
   };
 
-  const handleSubscribeYearly = async () => {
+  const handleSubscribeYearlyWithCoins = async () => {
     if (coins < YEARLY_COINS) {
       alert(language === 'ar' ? 'ليس لديك عملات كافية' : 'Not enough coins');
       return;
@@ -56,7 +56,7 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
     setIsProcessing(true);
     removeCoins(YEARLY_COINS);
     
-    const subSuccess = await subscribeYearly();
+    const subSuccess = await subscribeYearlyWithCoins(YEARLY_COINS);
     if (subSuccess) {
       await checkSubscription();
       onClose();
@@ -66,6 +66,26 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
       alert(language === 'ar' ? 'فشل الاشتراك' : 'Subscription failed');
     }
     
+    setIsProcessing(false);
+  };
+
+  const handleSubscribeMonthlyWithPayment = async () => {
+    setIsProcessing(true);
+    const subSuccess = await subscribeMonthlyWithPayment();
+    if (subSuccess) {
+      await checkSubscription();
+      onClose();
+    }
+    setIsProcessing(false);
+  };
+
+  const handleSubscribeYearlyWithPayment = async () => {
+    setIsProcessing(true);
+    const subSuccess = await subscribeYearlyWithPayment();
+    if (subSuccess) {
+      await checkSubscription();
+      onClose();
+    }
     setIsProcessing(false);
   };
 
@@ -207,58 +227,82 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Free Plan */}
                 <div 
-                  className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
+                  className="relative overflow-hidden rounded-3xl p-8 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
                   style={{
-                    background: `linear-gradient(135deg, ${customTheme.colors.surface}60, ${customTheme.colors.background}20)`,
-                    border: `1px solid ${customTheme.colors.border}20`,
-                    boxShadow: `0 8px 32px ${customTheme.colors.border}15`
+                    background: `linear-gradient(145deg, ${customTheme.colors.surface}80, ${customTheme.colors.background}40)`,
+                    border: `2px solid ${customTheme.colors.border}30`,
+                    boxShadow: `0 12px 40px ${customTheme.colors.border}20`
                   }}
                 >
-                  <div className="absolute top-0 left-0 w-32 h-32 rounded-full blur-2xl opacity-20"
+                  <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-30"
                     style={{
-                      background: `radial-gradient(circle, ${customTheme.colors.border}, transparent)`
+                      background: `radial-gradient(circle, ${customTheme.colors.border}60, transparent)`
+                    }}
+                  />
+                  <div className="absolute -bottom-16 -left-16 w-40 h-40 rounded-full blur-3xl opacity-20"
+                    style={{
+                      background: `radial-gradient(circle, ${customTheme.colors.primary}40, transparent)`
                     }}
                   />
                   
                   <div className="relative">
-                    <div className="flex items-center space-x-reverse space-x-3 mb-4">
+                    <div className="flex items-center space-x-reverse space-x-3 mb-6">
                       <div 
-                        className="w-10 h-10 rounded-xl flex items-center justify-center"
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform hover:scale-110"
                         style={{
                           background: `linear-gradient(135deg, ${customTheme.colors.border}, ${customTheme.colors.surface})`,
-                          boxShadow: `0 4px 16px ${customTheme.colors.border}40`
+                          boxShadow: `0 8px 24px ${customTheme.colors.border}50`
                         }}
                       >
-                        <span className="text-white text-lg">🆓</span>
+                        <span className="text-2xl">🆓</span>
                       </div>
-                      <label className={`text-sm font-black uppercase tracking-wider ${
-                        theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                      }`}>
-                        {language === 'ar' ? 'مجاني' : 'Free'}
-                      </label>
+                      <div>
+                        <label className={`text-sm font-black uppercase tracking-widest ${
+                          theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                        }`}>
+                          {language === 'ar' ? 'مجاني' : 'Free'}
+                        </label>
+                        <p className={`text-xs mt-1 ${
+                          theme === 'light' ? 'text-gray-500' : 'text-gray-500'
+                        }`}>
+                          {language === 'ar' ? 'ابدأ مجاناً' : 'Start for free'}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className={`text-3xl font-black mb-2 ${
+                    <div className={`text-5xl font-black mb-2 ${
                       theme === 'light' ? 'text-gray-900' : 'text-gray-50'
                     }`}>
                       $0
                     </div>
-                    <p className={`text-xs mb-4 ${
+                    <p className={`text-sm mb-6 font-medium ${
                       theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                     }`}>
                       {language === 'ar' ? 'للأبد' : 'Forever'}
                     </p>
 
-                    <ul className={`space-y-2 text-sm ${
-                      theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                    <div className={`w-full h-px mb-6 ${
+                      theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'
+                    }`} />
+
+                    <ul className={`space-y-3 ${
+                      theme === 'light' ? 'text-gray-700' : 'text-gray-300'
                     }`}>
-                      <li className="flex items-center gap-2">
-                        <span>✓</span>
-                        {language === 'ar' ? 'الميزات الأساسية' : 'Basic features'}
+                      <li className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                          theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'
+                        }`}>
+                          <span className="text-sm">✓</span>
+                        </div>
+                        <span className="font-medium">{language === 'ar' ? 'الميزات الأساسية' : 'Basic features'}</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span>✓</span>
-                        {language === 'ar' ? 'الوصول المحدود' : 'Limited access'}
+                      <li className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                          theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'
+                        }`}>
+                          <span className="text-sm">✓</span>
+                        </div>
+                        <span className="font-medium">{language === 'ar' ? 'الوصول المحدود' : 'Limited access'}</span>
                       </li>
                     </ul>
                   </div>
@@ -266,91 +310,148 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
 
                 {/* Monthly Plan */}
                 <div 
-                  className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl"
+                  className="relative overflow-hidden rounded-3xl p-8 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
                   style={{
-                    background: `linear-gradient(135deg, #5865F220, #7289DA10)`,
-                    border: `2px solid #5865F230`,
-                    boxShadow: `0 8px 32px #5865F215`
+                    background: `linear-gradient(145deg, #5865F230, #7289DA15)`,
+                    border: `2px solid #5865F240`,
+                    boxShadow: `0 12px 40px #5865F225`
                   }}
                 >
-                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20"
+                  <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-40"
                     style={{
                       background: `radial-gradient(circle, #5865F2, transparent)`
                     }}
                   />
+                  <div className="absolute -bottom-16 -left-16 w-40 h-40 rounded-full blur-3xl opacity-30"
+                    style={{
+                      background: `radial-gradient(circle, #7289DA, transparent)`
+                    }}
+                  />
                   
                   <div className="relative">
-                    <div className="flex items-center space-x-reverse space-x-3 mb-4">
+                    <div className="flex items-center space-x-reverse space-x-3 mb-6">
                       <div 
-                        className="w-10 h-10 rounded-xl flex items-center justify-center"
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform hover:scale-110"
                         style={{
                           background: `linear-gradient(135deg, #5865F2, #7289DA)`,
-                          boxShadow: `0 4px 16px #5865F240`
+                          boxShadow: `0 8px 24px #5865F250`
                         }}
                       >
-                        <span className="text-white text-lg">⚡</span>
+                        <span className="text-2xl">⚡</span>
                       </div>
-                      <label className={`text-sm font-black uppercase tracking-wider ${
-                        theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                      }`}>
-                        {language === 'ar' ? 'شهري' : 'Monthly'}
-                      </label>
+                      <div>
+                        <label className={`text-sm font-black uppercase tracking-widest ${
+                          theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                        }`}>
+                          {language === 'ar' ? 'شهري' : 'Monthly'}
+                        </label>
+                        <p className={`text-xs mt-1 ${
+                          theme === 'light' ? 'text-gray-500' : 'text-gray-500'
+                        }`}>
+                          {language === 'ar' ? 'الأكثر شعبية' : 'Most popular'}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className={`text-3xl font-black mb-2 ${
+                    <div className={`text-5xl font-black mb-2 ${
                       theme === 'light' ? 'text-gray-900' : 'text-gray-50'
                     }`}>
                       $5
                     </div>
-                    <p className={`text-xs mb-4 ${
+                    <p className={`text-sm mb-6 font-medium ${
                       theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                     }`}>
                       {language === 'ar' ? 'شهرياً' : '/month'}
                     </p>
 
-                    <div className={`text-sm mb-4 p-2 rounded-lg ${
-                      theme === 'light' ? 'bg-gray-100' : 'bg-gray-800'
+                    <div className={`w-full h-px mb-6 ${
+                      theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'
+                    }`} />
+
+                    <div className={`text-sm mb-4 p-3 rounded-xl font-medium ${
+                      theme === 'light' ? 'bg-blue-50 text-blue-700' : 'bg-blue-900/30 text-blue-300'
                     }`}>
                       {language === 'ar' ? 'أو' : 'or'} {MONTHLY_COINS} {language === 'ar' ? 'عملة' : 'coins'}
                     </div>
 
-                    <button
-                      onClick={handleSubscribeMonthly}
-                      disabled={isProcessing || coins < MONTHLY_COINS}
-                      className={`w-full px-6 py-3 rounded-xl font-medium transition-all ${
-                        isProcessing || coins < MONTHLY_COINS
-                          ? 'opacity-50 cursor-not-allowed' 
-                          : 'hover:scale-105 active:scale-95'
-                      }`}
-                      style={{
-                        background: isProcessing || coins < MONTHLY_COINS
-                          ? 'transparent' 
-                          : `linear-gradient(135deg, #5865F2, #7289DA)`,
-                        color: isProcessing || coins < MONTHLY_COINS ? customTheme.colors.text : '#ffffff',
-                        border: isProcessing || coins < MONTHLY_COINS ? `2px solid ${customTheme.colors.border}30` : 'none',
-                        boxShadow: isProcessing || coins < MONTHLY_COINS ? 'none' : `0 8px 32px #5865F240`
-                      }}
-                    >
-                      {isProcessing 
-                        ? (language === 'ar' ? 'جاري المعالجة...' : 'Processing...')
-                        : (language === 'ar' ? 'اشتراك شهري' : 'Subscribe Monthly')
-                      }
-                    </button>
+                    <div className="space-y-3">
+                      <button
+                        onClick={handleSubscribeMonthlyWithCoins}
+                        disabled={isProcessing || coins < MONTHLY_COINS}
+                        className={`w-full px-6 py-4 rounded-2xl font-bold transition-all ${
+                          isProcessing || coins < MONTHLY_COINS
+                            ? 'opacity-50 cursor-not-allowed' 
+                            : 'hover:scale-105 active:scale-95'
+                        }`}
+                        style={{
+                          background: isProcessing || coins < MONTHLY_COINS
+                            ? 'transparent' 
+                            : `linear-gradient(135deg, #5865F2, #7289DA)`,
+                          color: isProcessing || coins < MONTHLY_COINS ? customTheme.colors.text : '#ffffff',
+                          border: isProcessing || coins < MONTHLY_COINS ? `2px solid ${customTheme.colors.border}30` : 'none',
+                          boxShadow: isProcessing || coins < MONTHLY_COINS ? 'none' : `0 8px 32px #5865F240`
+                        }}
+                      >
+                        {isProcessing 
+                          ? (language === 'ar' ? 'جاري المعالجة...' : 'Processing...')
+                          : (language === 'ar' ? `اشتراك بالنقاط (${MONTHLY_COINS})` : `Subscribe with Coins (${MONTHLY_COINS})`)
+                        }
+                      </button>
 
-                    <ul className={`space-y-2 text-sm mt-4 ${
-                      theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                      <button
+                        onClick={handleSubscribeMonthlyWithPayment}
+                        disabled={isProcessing}
+                        className={`w-full px-6 py-4 rounded-2xl font-bold transition-all ${
+                          isProcessing
+                            ? 'opacity-50 cursor-not-allowed' 
+                            : 'hover:scale-105 active:scale-95'
+                        }`}
+                        style={{
+                          background: isProcessing
+                            ? 'transparent' 
+                            : `linear-gradient(135deg, #10B981, #059669)`,
+                          color: isProcessing ? customTheme.colors.text : '#ffffff',
+                          border: isProcessing ? `2px solid ${customTheme.colors.border}30` : 'none',
+                          boxShadow: isProcessing ? 'none' : `0 8px 32px #10B98140`
+                        }}
+                      >
+                        {isProcessing 
+                          ? (language === 'ar' ? 'جاري المعالجة...' : 'Processing...')
+                          : (language === 'ar' ? 'اشتراك بالدفع ($5)' : 'Subscribe with Payment ($5)')
+                        }
+                      </button>
+                    </div>
+
+                    <div className={`w-full h-px my-6 ${
+                      theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'
+                    }`} />
+
+                    <ul className={`space-y-3 ${
+                      theme === 'light' ? 'text-gray-700' : 'text-gray-300'
                     }`}>
-                      <li className="flex items-center gap-2">
-                        <span>✓</span>
-                        {language === 'ar' ? 'جميع الميزات المجانية' : 'All free features'}
+                      <li className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                          theme === 'light' ? 'bg-blue-100 text-blue-600' : 'bg-blue-900/30 text-blue-400'
+                        }`}>
+                          <span className="text-sm">✓</span>
+                        </div>
+                        <span className="font-medium">{language === 'ar' ? 'جميع الميزات المجانية' : 'All free features'}</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span>✓</span>
-                        {language === 'ar' ? 'الميزات البريميوم' : 'Premium features'}
+                      <li className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                          theme === 'light' ? 'bg-blue-100 text-blue-600' : 'bg-blue-900/30 text-blue-400'
+                        }`}>
+                          <span className="text-sm">✓</span>
+                        </div>
+                        <span className="font-medium">{language === 'ar' ? 'الميزات البريميوم' : 'Premium features'}</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span>✓</span>
-                        {language === 'ar' ? 'دعم أولوية' : 'Priority support'}
+                      <li className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                          theme === 'light' ? 'bg-blue-100 text-blue-600' : 'bg-blue-900/30 text-blue-400'
+                        }`}>
+                          <span className="text-sm">✓</span>
+                        </div>
+                        <span className="font-medium">{language === 'ar' ? 'دعم أولوية' : 'Priority support'}</span>
                       </li>
                     </ul>
                   </div>
@@ -358,102 +459,158 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
 
                 {/* Yearly Plan */}
                 <div 
-                  className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl md:col-span-2"
+                  className="relative overflow-hidden rounded-3xl p-8 backdrop-blur-xl md:col-span-2 transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl"
                   style={{
-                    background: `linear-gradient(135deg, #FFD70020, #FFA50010)`,
-                    border: `2px solid #FFD70030`,
-                    boxShadow: `0 8px 32px #FFD70015`
+                    background: `linear-gradient(145deg, #FFD70030, #FFA50015)`,
+                    border: `2px solid #FFD70040`,
+                    boxShadow: `0 12px 40px #FFD70025`
                   }}
                 >
-                  <div className="absolute top-0 left-0 w-32 h-32 rounded-full blur-2xl opacity-20"
+                  <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full blur-3xl opacity-40"
                     style={{
                       background: `radial-gradient(circle, #FFD700, transparent)`
                     }}
                   />
+                  <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full blur-3xl opacity-30"
+                    style={{
+                      background: `radial-gradient(circle, #FFA500, transparent)`
+                    }}
+                  />
                   
-                  <div className="relative flex items-center justify-between">
+                  <div className="relative flex items-center justify-between gap-8">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-reverse space-x-3 mb-4">
+                      <div className="flex items-center space-x-reverse space-x-3 mb-6">
                         <div 
-                          className="w-10 h-10 rounded-xl flex items-center justify-center"
+                          className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform hover:scale-110"
                           style={{
                             background: `linear-gradient(135deg, #FFD700, #FFA500)`,
-                            boxShadow: `0 4px 16px #FFD70040`
+                            boxShadow: `0 8px 24px #FFD70050`
                           }}
                         >
-                          <span className="text-white text-lg">👑</span>
+                          <span className="text-2xl">👑</span>
                         </div>
-                        <label className={`text-sm font-black uppercase tracking-wider ${
-                          theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-                        }`}>
-                          {language === 'ar' ? 'سنوي' : 'Yearly'}
-                        </label>
-                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                          theme === 'light' ? 'bg-green-100 text-green-700' : 'bg-green-900 text-green-300'
-                        }`}>
-                          {language === 'ar' ? 'وفر 33%' : 'Save 33%'}
-                        </span>
+                        <div>
+                          <label className={`text-sm font-black uppercase tracking-widest ${
+                            theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                          }`}>
+                            {language === 'ar' ? 'سنوي' : 'Yearly'}
+                          </label>
+                          <span className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold ${
+                            theme === 'light' ? 'bg-amber-100 text-amber-700' : 'bg-amber-900/30 text-amber-300'
+                          }`}>
+                            {language === 'ar' ? 'وفر 33%' : 'Save 33%'}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className={`text-3xl font-black mb-2 ${
+                      <div className={`text-5xl font-black mb-2 ${
                         theme === 'light' ? 'text-gray-900' : 'text-gray-50'
                       }`}>
                         $40
                       </div>
-                      <p className={`text-xs mb-4 ${
+                      <p className={`text-sm mb-6 font-medium ${
                         theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                       }`}>
                         {language === 'ar' ? 'سنوياً' : '/year'}
                       </p>
 
-                      <div className={`text-sm mb-4 p-2 rounded-lg ${
-                        theme === 'light' ? 'bg-gray-100' : 'bg-gray-800'
+                      <div className={`w-full h-px mb-6 ${
+                        theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'
+                      }`} />
+
+                      <div className={`text-sm mb-4 p-3 rounded-xl font-medium ${
+                        theme === 'light' ? 'bg-amber-50 text-amber-700' : 'bg-amber-900/30 text-amber-300'
                       }`}>
                         {language === 'ar' ? 'أو' : 'or'} {YEARLY_COINS} {language === 'ar' ? 'عملة' : 'coins'}
                       </div>
 
-                      <button
-                        onClick={handleSubscribeYearly}
-                        disabled={isProcessing || coins < YEARLY_COINS}
-                        className={`w-full px-6 py-3 rounded-xl font-medium transition-all ${
-                          isProcessing || coins < YEARLY_COINS
-                            ? 'opacity-50 cursor-not-allowed' 
-                            : 'hover:scale-105 active:scale-95'
-                        }`}
-                        style={{
-                          background: isProcessing || coins < YEARLY_COINS
-                            ? 'transparent' 
-                            : `linear-gradient(135deg, #FFD700, #FFA500)`,
-                          color: isProcessing || coins < YEARLY_COINS ? customTheme.colors.text : '#ffffff',
-                          border: isProcessing || coins < YEARLY_COINS ? `2px solid ${customTheme.colors.border}30` : 'none',
-                          boxShadow: isProcessing || coins < YEARLY_COINS ? 'none' : `0 8px 32px #FFD70040`
-                        }}
-                      >
-                        {isProcessing 
-                          ? (language === 'ar' ? 'جاري المعالجة...' : 'Processing...')
-                          : (language === 'ar' ? 'اشتراك سنوي' : 'Subscribe Yearly')
-                        }
-                      </button>
+                      <div className="space-y-3">
+                        <button
+                          onClick={handleSubscribeYearlyWithCoins}
+                          disabled={isProcessing || coins < YEARLY_COINS}
+                          className={`w-full px-6 py-4 rounded-2xl font-bold transition-all ${
+                            isProcessing || coins < YEARLY_COINS
+                              ? 'opacity-50 cursor-not-allowed' 
+                              : 'hover:scale-105 active:scale-95'
+                          }`}
+                          style={{
+                            background: isProcessing || coins < YEARLY_COINS
+                              ? 'transparent' 
+                              : `linear-gradient(135deg, #FFD700, #FFA500)`,
+                            color: isProcessing || coins < YEARLY_COINS ? customTheme.colors.text : '#ffffff',
+                            border: isProcessing || coins < YEARLY_COINS ? `2px solid ${customTheme.colors.border}30` : 'none',
+                            boxShadow: isProcessing || coins < YEARLY_COINS ? 'none' : `0 8px 32px #FFD70040`
+                          }}
+                        >
+                          {isProcessing 
+                            ? (language === 'ar' ? 'جاري المعالجة...' : 'Processing...')
+                            : (language === 'ar' ? `اشتراك بالنقاط (${YEARLY_COINS})` : `Subscribe with Coins (${YEARLY_COINS})`)
+                          }
+                        </button>
+
+                        <button
+                          onClick={handleSubscribeYearlyWithPayment}
+                          disabled={isProcessing}
+                          className={`w-full px-6 py-4 rounded-2xl font-bold transition-all ${
+                            isProcessing
+                              ? 'opacity-50 cursor-not-allowed' 
+                              : 'hover:scale-105 active:scale-95'
+                          }`}
+                          style={{
+                            background: isProcessing
+                              ? 'transparent' 
+                              : `linear-gradient(135deg, #10B981, #059669)`,
+                            color: isProcessing ? customTheme.colors.text : '#ffffff',
+                            border: isProcessing ? `2px solid ${customTheme.colors.border}30` : 'none',
+                            boxShadow: isProcessing ? 'none' : `0 8px 32px #10B98140`
+                          }}
+                        >
+                          {isProcessing 
+                            ? (language === 'ar' ? 'جاري المعالجة...' : 'Processing...')
+                            : (language === 'ar' ? 'اشتراك بالدفع ($40)' : 'Subscribe with Payment ($40)')
+                          }
+                        </button>
+                      </div>
                     </div>
 
-                    <ul className={`space-y-2 text-sm ml-8 ${
-                      theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                    <div className={`w-px ${
+                      theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'
+                    }`} />
+
+                    <ul className={`space-y-3 flex-1 ${
+                      theme === 'light' ? 'text-gray-700' : 'text-gray-300'
                     }`}>
-                      <li className="flex items-center gap-2">
-                        <span>✓</span>
-                        {language === 'ar' ? 'جميع ميزات الشهري' : 'All monthly features'}
+                      <li className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                          theme === 'light' ? 'bg-amber-100 text-amber-600' : 'bg-amber-900/30 text-amber-400'
+                        }`}>
+                          <span className="text-sm">✓</span>
+                        </div>
+                        <span className="font-medium">{language === 'ar' ? 'جميع ميزات الشهري' : 'All monthly features'}</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span>✓</span>
-                        {language === 'ar' ? 'توفير 33%' : 'Save 33%'}
+                      <li className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                          theme === 'light' ? 'bg-amber-100 text-amber-600' : 'bg-amber-900/30 text-amber-400'
+                        }`}>
+                          <span className="text-sm">✓</span>
+                        </div>
+                        <span className="font-medium">{language === 'ar' ? 'توفير 33%' : 'Save 33%'}</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span>✓</span>
-                        {language === 'ar' ? 'ميزات حصرية' : 'Exclusive features'}
+                      <li className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                          theme === 'light' ? 'bg-amber-100 text-amber-600' : 'bg-amber-900/30 text-amber-400'
+                        }`}>
+                          <span className="text-sm">✓</span>
+                        </div>
+                        <span className="font-medium">{language === 'ar' ? 'ميزات حصرية' : 'Exclusive features'}</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span>✓</span>
-                        {language === 'ar' ? 'دعم VIP' : 'VIP support'}
+                      <li className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                          theme === 'light' ? 'bg-amber-100 text-amber-600' : 'bg-amber-900/30 text-amber-400'
+                        }`}>
+                          <span className="text-sm">✓</span>
+                        </div>
+                        <span className="font-medium">{language === 'ar' ? 'دعم VIP' : 'VIP support'}</span>
                       </li>
                     </ul>
                   </div>

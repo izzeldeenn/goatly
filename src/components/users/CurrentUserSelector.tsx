@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { usePoints } from '@/contexts/PointsContext';
+import { useCoins } from '@/contexts/CoinsContext';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -29,7 +29,7 @@ const AVATARS = [
 
 export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
   const { theme } = useTheme();
-  const { coins, level, experience } = usePoints();
+  const { coins } = useCoins();
   const { getCurrentUser, updateUserName, updateUserAvatar, isTimerActive } = useUser();
   const { language, setLanguage, t } = useLanguage();
   const texts = landingTexts[language];
@@ -42,6 +42,7 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
 
   const currentUser = getCurrentUser();
   const isActive = isTimerActive();
+  const level = Math.floor(coins / 100) + 1;
 
   // Format time to HH:MM:SS
   const formatStudyTime = (seconds: number) => {
@@ -421,7 +422,7 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
                   }`}>
                     <div className={`text-3xl font-bold mb-2 bg-gradient-to-r bg-clip-text text-transparent ${
                       theme === 'light' ? 'from-green-600 to-emerald-600' : 'from-green-400 to-emerald-400'
-                    }`}>{experience}</div>
+                    }`}>{coins}</div>
                     <div className={`text-sm font-medium ${
                       theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                     }`}>⚡ {t.experience}</div>
@@ -431,7 +432,7 @@ export function CurrentUserSelector({ studyStreak }: { studyStreak?: number }) {
                   }`}>
                     <div className={`text-3xl font-bold mb-2 bg-gradient-to-r bg-clip-text text-transparent ${
                       theme === 'light' ? 'from-purple-600 to-pink-600' : 'from-purple-400 to-pink-400'
-                    }`}>{Math.floor((currentUser?.score || 0) / 100) + 1}</div>
+                    }`}>{level}</div>
                     <div className={`text-sm font-medium ${
                       theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                     }`}>🏆 {t.rank}</div>

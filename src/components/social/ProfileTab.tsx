@@ -3,6 +3,7 @@
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
+import { useCoins } from '@/contexts/CoinsContext';
 import { Edit, Share2, TrendingUp, Award, BarChart3, Heart, MessageCircle, Users, Zap, Crown, Shield, Star } from 'lucide-react';
 
 interface Post {
@@ -27,6 +28,8 @@ export function ProfileTab({ posts }: ProfileTabProps) {
   const { theme } = useTheme();
   const { language } = useLanguage();
   const currentUser = useUser().getCurrentUser();
+  const { coins } = useCoins();
+  const level = Math.floor(coins / 100) + 1;
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -98,7 +101,7 @@ export function ProfileTab({ posts }: ProfileTabProps) {
                 <div className="w-3 h-3 bg-white rounded-full"></div>
               </div>
               {/* Crown badge for high-level users */}
-              {Math.floor((currentUser?.score || 0) / 100) + 1 >= 10 && (
+              {level >= 10 && (
                 <div className="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-4 border-white flex items-center justify-center animate-pulse">
                   <Crown className="w-5 h-5 text-white" />
                 </div>
@@ -126,23 +129,19 @@ export function ProfileTab({ posts }: ProfileTabProps) {
                     : 'bg-blue-50 text-blue-600 border border-blue-200/50'
                 }`}>
                   <Shield className="w-4 h-4" />
-                  المستوى {Math.floor((currentUser?.score || 0) / 100) + 1}
+                  المستوى {level}
                 </div>
                 <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                  isDark
-                    ? 'bg-green-900/30 text-green-300 border border-green-800/30'
-                    : 'bg-green-50 text-green-600 border border-green-200/50'
+                  isDark ? 'bg-purple-600/20 text-purple-400' : 'bg-purple-100 text-purple-700'
                 }`}>
                   <Crown className="w-4 h-4" />
-                  المرتبة #{Math.floor((currentUser?.score || 0) / 100) + 1}
+                  المرتبة #{level}
                 </div>
                 <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                  isDark
-                    ? 'bg-purple-900/30 text-purple-300 border border-purple-800/30'
-                    : 'bg-purple-50 text-purple-600 border border-purple-200/50'
+                  isDark ? 'bg-yellow-600/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
                 }`}>
                   <Star className="w-4 h-4" />
-                  {currentUser?.score || 0} نقطة
+                  {coins} نقطة
                 </div>
               </div>
             </div>
@@ -205,7 +204,7 @@ export function ProfileTab({ posts }: ProfileTabProps) {
                     ? 'from-blue-400 to-purple-400 text-transparent' 
                     : 'from-blue-600 to-purple-600 text-transparent'
                 }`}>
-                  {currentUser?.score || 0}
+                  {coins}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -219,7 +218,7 @@ export function ProfileTab({ posts }: ProfileTabProps) {
                     ? 'from-green-400 to-emerald-400 text-transparent' 
                     : 'from-green-600 to-emerald-600 text-transparent'
                 }`}>
-                  {Math.floor((currentUser?.score || 0) / 100) + 1}
+                  {level}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -233,7 +232,7 @@ export function ProfileTab({ posts }: ProfileTabProps) {
                     ? 'from-yellow-400 to-orange-400 text-transparent' 
                     : 'from-yellow-600 to-orange-600 text-transparent'
                 }`}>
-                  #{Math.floor((currentUser?.score || 0) / 100) + 1}
+                  #{level}
                 </span>
               </div>
             </div>

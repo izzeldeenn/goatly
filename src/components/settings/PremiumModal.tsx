@@ -6,7 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { usePremium } from '@/contexts/PremiumContext';
-import { usePoints } from '@/contexts/PointsContext';
+import { useCoins } from '@/contexts/CoinsContext';
 
 interface PremiumModalProps {
   isOpen: boolean;
@@ -18,7 +18,7 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
   const { language } = useLanguage();
   const customTheme = useCustomThemeClasses();
   const { subscription, isPremium, subscribeMonthly, subscribeYearly, subscribeMonthlyWithCoins, subscribeYearlyWithCoins, subscribeMonthlyWithPayment, subscribeYearlyWithPayment, checkSubscription } = usePremium();
-  const { coins, removeCoins } = usePoints();
+  const { coins, removeCoins } = useCoins();
 
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -32,16 +32,20 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
     }
 
     setIsProcessing(true);
-    removeCoins(MONTHLY_COINS);
+    const success = await removeCoins(MONTHLY_COINS, 'subscription', 'Monthly premium subscription');
     
-    const subSuccess = await subscribeMonthlyWithCoins(MONTHLY_COINS);
-    if (subSuccess) {
-      await checkSubscription();
-      onClose();
+    if (success) {
+      const subSuccess = await subscribeMonthlyWithCoins(MONTHLY_COINS);
+      if (subSuccess) {
+        await checkSubscription();
+        onClose();
+      } else {
+        // Refund coins if subscription failed
+        await removeCoins(-MONTHLY_COINS, 'subscription_refund', 'Refund for failed monthly subscription');
+        alert(language === 'ar' ? 'فشل الاشتراك' : 'Subscription failed');
+      }
     } else {
-      // Refund coins if subscription failed
-      removeCoins(-MONTHLY_COINS);
-      alert(language === 'ar' ? 'فشل الاشتراك' : 'Subscription failed');
+      alert(language === 'ar' ? 'فشل خصم النقاط' : 'Failed to deduct coins');
     }
     
     setIsProcessing(false);
@@ -54,16 +58,20 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
     }
 
     setIsProcessing(true);
-    removeCoins(YEARLY_COINS);
+    const success = await removeCoins(YEARLY_COINS, 'subscription', 'Yearly premium subscription');
     
-    const subSuccess = await subscribeYearlyWithCoins(YEARLY_COINS);
-    if (subSuccess) {
-      await checkSubscription();
-      onClose();
+    if (success) {
+      const subSuccess = await subscribeYearlyWithCoins(YEARLY_COINS);
+      if (subSuccess) {
+        await checkSubscription();
+        onClose();
+      } else {
+        // Refund coins if subscription failed
+        await removeCoins(-YEARLY_COINS, 'subscription_refund', 'Refund for failed yearly subscription');
+        alert(language === 'ar' ? 'فشل الاشتراك' : 'Subscription failed');
+      }
     } else {
-      // Refund coins if subscription failed
-      removeCoins(-YEARLY_COINS);
-      alert(language === 'ar' ? 'فشل الاشتراك' : 'Subscription failed');
+      alert(language === 'ar' ? 'فشل خصم النقاط' : 'Failed to deduct coins');
     }
     
     setIsProcessing(false);

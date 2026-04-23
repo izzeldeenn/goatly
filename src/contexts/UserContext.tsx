@@ -53,7 +53,6 @@ interface UserContextType {
   updateUserAvatar: (avatar: string) => void;
   updateUserEmail: (email: string) => void;
   updateUserStudyTime: (additionalTime: number) => void;
-  updateUserScore: (additionalScore: number) => void;
   setTimerActive: (active: boolean) => void;
   isTimerActive: () => boolean;
   isVirtualUser: (accountId: string) => boolean;
@@ -485,42 +484,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     // No need to manually add coins here
   };
 
-  const updateUserScore = async (additionalScore: number) => {
-    if (!currentAccountId) return;
-
-    // Get current user to calculate new score
-    const currentUser = users.find(user => user.accountId === currentAccountId);
-    if (!currentUser) return;
-
-    const newScore = Math.max(0, currentUser.score + additionalScore);
-
-    // Update in Supabase first to ensure consistency
-    try {
-      const available = await isSupabaseAvailable();
-      if (available) {
-        const result = await userDB.updateUserByAccountId(currentAccountId, { score: newScore });
-        if (!result) {
-          console.error('Failed to update score in database');
-          return;
-        }
-      }
-    } catch (error) {
-      console.error('Error updating score in database:', error);
-      return;
-    }
-
-    // Only update local state after successful database update
-    setUsers(prevUsers => {
-      const newUsers = prevUsers.map(user => {
-        if (user.accountId === currentAccountId) {
-          return { ...user, score: newScore, lastActive: new Date().toISOString() };
-        }
-        return user;
-      });
-      return newUsers;
-    });
-  };
-
   const getAllDeviceUsers = (): UserAccountFrontend[] => {
     // Return only real users, no virtual users
     return users.map(user => ({
@@ -854,7 +817,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       updateUserAvatar,
       updateUserEmail,
       updateUserStudyTime,
-      updateUserScore,
       setTimerActive,
       isTimerActive,
       isVirtualUser,

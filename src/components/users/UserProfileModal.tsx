@@ -5,7 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { useUser } from '@/contexts/UserContext';
-import { usePoints } from '@/contexts/PointsContext';
+import { useCoins } from '@/contexts/CoinsContext';
 import { dailyActivityDB } from '@/lib/dailyActivity';
 import { SettingsButton } from '@/components/settings/Settings';
 
@@ -34,7 +34,7 @@ export function UserProfileModal({ isOpen, user, onClose }: UserProfileModalProp
   const { theme } = useTheme();
   const { language, t } = useLanguage();
   const customTheme = useCustomThemeClasses();
-  const { coins } = usePoints();
+  const { coins } = useCoins();
   const { getCurrentUser } = useUser();
   const [totalStudyTime, setTotalStudyTime] = useState(0);
   const [loadingTotalTime, setLoadingTotalTime] = useState(true);

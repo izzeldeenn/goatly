@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useUser } from './UserContext';
+import { useCoins } from './CoinsContext';
 
 interface PointsState {
   coins: number;
@@ -21,22 +22,23 @@ interface PointsContextType {
   coins: number;
   level: number;
   experience: number;
-  addCoins: (amount: number) => void;
-  removeCoins: (amount: number) => void;
+  addCoins: (amount: number) => Promise<void>;
+  removeCoins: (amount: number) => Promise<void>;
   // Helper functions for common operations
   calculateCoinsFromStudyTime: (studySeconds: number) => number;
-  rewardDailyLogin: () => boolean;
-  rewardSessionComplete: (minutes: number, pendingPoints?: number) => number;
-  rewardPomodoroSession: () => number;
-  rewardLevelUp: () => number;
-  rewardAchievement: (achievementId: string) => number;
-  purchaseItem: (price: number) => boolean;
+  rewardDailyLogin: () => Promise<boolean>;
+  rewardSessionComplete: (minutes: number, pendingPoints?: number) => Promise<number>;
+  rewardPomodoroSession: () => Promise<number>;
+  rewardLevelUp: () => Promise<number>;
+  rewardAchievement: (achievementId: string) => Promise<number>;
+  purchaseItem: (price: number) => Promise<boolean>;
 }
 
 const PointsContext = createContext<PointsContextType | undefined>(undefined);
 
 export function PointsProvider({ children }: { children: ReactNode }) {
-  const { getCurrentUser, updateUserScore } = useUser();
+  const { getCurrentUser } = useUser();
+  const { coins, addCoins: addCoinsToDB, removeCoins: removeCoinsFromDB } = useCoins();
   const currentUser = getCurrentUser();
   
   // Track if we're in the middle of a purchase operation
@@ -72,31 +74,27 @@ export function PointsProvider({ children }: { children: ReactNode }) {
     return Math.floor(exp / 100) + 1;
   };
 
-  const addCoins = (amount: number) => {
+  const addCoins = async (amount: number) => {
     // Set updating flag to prevent sync override
     setIsUpdating(true);
     
-    // Update real user score in database
-    if (currentUser) {
-      updateUserScore(amount);
-    }
+    // Update coins using CoinsContext
+    await addCoinsToDB(amount, 'points_reward', 'Points reward', undefined);
     
-    // Clear updating flag after a short delay to allow database update
+    // Clear updating flag after a short delay
     setTimeout(() => {
       setIsUpdating(false);
     }, 1000);
   };
 
-  const removeCoins = (amount: number) => {
+  const removeCoins = async (amount: number) => {
     // Set updating flag to prevent sync override
     setIsUpdating(true);
     
-    // Update real user score in database
-    if (currentUser) {
-      updateUserScore(-amount);
-    }
+    // Update coins using CoinsContext
+    await removeCoinsFromDB(amount, 'points_spend', 'Points spent', undefined);
     
-    // Clear updating flag after a short delay to allow database update
+    // Clear updating flag after a short delay
     setTimeout(() => {
       setIsUpdating(false);
     }, 1000);
@@ -109,7 +107,7 @@ export function PointsProvider({ children }: { children: ReactNode }) {
   };
 
   // Daily login reward
-  const rewardDailyLogin = (): boolean => {
+  const rewardDailyLogin = async (): Promise<boolean> => {
     if (!currentUser) return false;
 
     const today = new Date().toDateString();
@@ -117,7 +115,7 @@ export function PointsProvider({ children }: { children: ReactNode }) {
 
     if (lastReward !== today) {
       // Give daily reward
-      addCoins(10);
+      await addCoins(10);
       
       // Update streak
       const yesterday = new Date();
@@ -146,14 +144,14 @@ export function PointsProvider({ children }: { children: ReactNode }) {
   };
 
   // Session complete reward - adds pending points that were tracked during the session
-  const rewardSessionComplete = (minutes: number, pendingPoints: number = 0): number => {
+  const rewardSessionComplete = async (minutes: number, pendingPoints: number = 0): Promise<number> => {
     if (!currentUser) return 0;
 
     // Add pending points that were tracked during the session
     const totalReward = pendingPoints;
 
     if (totalReward > 0) {
-      setTimeout(() => addCoins(totalReward), 50);
+      await addCoins(totalReward);
 
       setRewardData((prev: RewardData) => ({
         ...prev,
@@ -165,12 +163,12 @@ export function PointsProvider({ children }: { children: ReactNode }) {
   };
 
   // Pomodoro session reward
-  const rewardPomodoroSession = (): number => {
+  const rewardPomodoroSession = async (): Promise<number> => {
     if (!currentUser) return 0;
 
     const rewardPoints = 15;
     
-    setTimeout(() => addCoins(rewardPoints), 50);
+    await addCoins(rewardPoints);
 
     setRewardData((prev: RewardData) => ({
       ...prev,
@@ -181,12 +179,12 @@ export function PointsProvider({ children }: { children: ReactNode }) {
   };
 
   // Level up reward
-  const rewardLevelUp = (): number => {
+  const rewardLevelUp = async (): Promise<number> => {
     if (!currentUser) return 0;
 
     const rewardPoints = 50;
     
-    setTimeout(() => addCoins(rewardPoints), 50);
+    await addCoins(rewardPoints);
 
     setRewardData((prev: RewardData) => ({
       ...prev,
@@ -197,7 +195,7 @@ export function PointsProvider({ children }: { children: ReactNode }) {
   };
 
   // Achievement reward
-  const rewardAchievement = (achievementId: string): number => {
+  const rewardAchievement = async (achievementId: string): Promise<number> => {
     if (!currentUser) return 0;
 
     // Check if achievement already rewarded
@@ -205,7 +203,7 @@ export function PointsProvider({ children }: { children: ReactNode }) {
 
     const rewardPoints = 25;
     
-    setTimeout(() => addCoins(rewardPoints), 50);
+    await addCoins(rewardPoints);
 
     setRewardData((prev: RewardData) => ({
       ...prev,
@@ -217,26 +215,28 @@ export function PointsProvider({ children }: { children: ReactNode }) {
   };
 
   // Purchase item
-  const purchaseItem = (price: number): boolean => {
+  const purchaseItem = async (price: number): Promise<boolean> => {
     if (!currentUser) return false;
 
-    if ((currentUser?.score || 0) < price) return false;
+    if (coins < price) return false;
 
-    removeCoins(price);
+    const success = await removeCoinsFromDB(price, 'purchase', 'Item purchase');
+    
+    if (success) {
+      setRewardData((prev: RewardData) => ({
+        ...prev,
+        totalSpent: prev.totalSpent + price
+      }));
+    }
 
-    setRewardData((prev: RewardData) => ({
-      ...prev,
-      totalSpent: prev.totalSpent + price
-    }));
-
-    return true;
+    return success;
   };
 
   return (
     <PointsContext.Provider value={{
-      coins: currentUser?.score || 0,
-      level: Math.floor((currentUser?.score || 0) / 100) + 1,
-      experience: currentUser?.score || 0,
+      coins: coins,
+      level: Math.floor(coins / 100) + 1,
+      experience: coins,
       addCoins,
       removeCoins,
       calculateCoinsFromStudyTime,

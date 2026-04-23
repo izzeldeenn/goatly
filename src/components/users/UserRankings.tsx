@@ -261,7 +261,10 @@ export function UserRankings({ onUserClick }: UserRankingsProps) {
                             } truncate`} title={user.username}>{user.username}</span>
                             
                             {isRecentlyActive(user) && (
-                              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0" title="نشط الآن"></span>
+                              <span className="flex items-center space-x-1">
+                                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0"></span>
+                                <span className="text-xs text-red-500 font-medium">يدرس الآن</span>
+                              </span>
                             )}
                           </div>
                         </div>

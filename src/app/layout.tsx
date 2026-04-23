@@ -5,6 +5,7 @@ import "../styles/effects.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { PointsProvider } from "@/contexts/PointsContext";
+import { CoinsProvider } from "@/contexts/CoinsContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { StudySessionProvider } from "@/contexts/StudySessionContext";
 import { Analytics } from "@vercel/analytics/next";
@@ -97,18 +98,20 @@ export default function RootLayout({
           <ThemeProvider>
             <CustomThemeProvider>
               <UserProvider>
-                <PointsProvider>
-                  <PremiumProvider>
-                    <StudySessionProvider>
-                      <MusicProvider>
-                        <RoomProvider>
-                          <FirstTimeSetup />
-                          {children}
-                        </RoomProvider>
-                      </MusicProvider>
-                    </StudySessionProvider>
-                  </PremiumProvider>
-                </PointsProvider>
+                <CoinsProvider>
+                  <PointsProvider>
+                    <PremiumProvider>
+                      <StudySessionProvider>
+                        <MusicProvider>
+                          <RoomProvider>
+                            <FirstTimeSetup />
+                            {children}
+                          </RoomProvider>
+                        </MusicProvider>
+                      </StudySessionProvider>
+                    </PremiumProvider>
+                  </PointsProvider>
+                </CoinsProvider>
               </UserProvider>
             </CustomThemeProvider>
           </ThemeProvider>

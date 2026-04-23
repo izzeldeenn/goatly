@@ -4,14 +4,15 @@ import { useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/contexts/UserContext';
-import { usePoints } from '@/contexts/PointsContext';
+import { useCoins } from '@/contexts/CoinsContext';
 import { referralDB, userDB } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export function ReferralInput() {
   const { theme } = useTheme();
   const { language, t } = useLanguage();
   const { getCurrentUser } = useUser();
-  const { addCoins } = usePoints();
+  const { addCoins } = useCoins();
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -72,14 +73,9 @@ export function ReferralInput() {
         return;
       }
 
-      // Add 40 points to referrer
-      await userDB.updateUserScore(
-        newReferral.referrer_id,
-        (await userDB.getUserByAccountId(newReferral.referrer_id))?.score || 0 + 40
-      );
-
-      // Add points to referrer using PointsContext
-      addCoins(40);
+      // Add 40 coins to referrer using CoinsContext
+      // Note: This adds coins to the current user (the person using the referral code)
+      await addCoins(40, 'referral', 'Referral bonus', newReferral.id);
 
       setSuccess(true);
       setReferralCode('');

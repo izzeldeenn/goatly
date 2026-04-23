@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { usePoints } from '@/contexts/PointsContext';
+import { useCoins } from '@/contexts/CoinsContext';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -17,7 +17,7 @@ const AVATARS = Array.from({ length: 250 }, (_, i) =>
 
 export function UserProfile() {
   const { theme } = useTheme();
-  const { coins, level, experience } = usePoints();
+  const { coins } = useCoins();
   const { getCurrentUser, updateUserName, updateUserAvatar } = useUser();
   const { language, setLanguage, t } = useLanguage();
   const texts = landingTexts[language];
@@ -28,6 +28,8 @@ export function UserProfile() {
   const [customAvatarUrl, setCustomAvatarUrl] = useState('');
   const [avatarPage, setAvatarPage] = useState(1);
   const [avatarSearch, setAvatarSearch] = useState('');
+  const level = Math.floor(coins / 100) + 1;
+  const experience = coins;
   const avatarsPerPage = 20;
 
   const currentUser = getCurrentUser();
@@ -372,7 +374,7 @@ export function UserProfile() {
                 }`}>
                   <div className={`text-2xl font-bold mb-1 ${
                     theme === 'light' ? 'text-green-600' : 'text-green-400'
-                  }`}>{Math.floor((currentUser?.score || 0) / 100) + 1}</div>
+                  }`}>{level}</div>
                   <div className={`text-sm ${
                     theme === 'light' ? 'text-gray-600' : 'text-gray-400'
                   }`}>🏆 {t.rank}</div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@/contexts/UserContext';
+import { useCoins } from '@/contexts/CoinsContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
@@ -84,7 +85,8 @@ export default function ChallengePage() {
   const { theme } = useTheme();
   const { language } = useLanguage();
   const texts = landingTexts[language];
-  const { getCurrentUser, updateUserScore, setTimerActive, isTimerActive } = useUser();
+  const { getCurrentUser, setTimerActive, isTimerActive } = useUser();
+  const { coins, addCoins } = useCoins();
   const router = useRouter();
   
   const [challengeState, setChallengeState] = useState<ChallengeState>({
@@ -603,11 +605,11 @@ export default function ChallengePage() {
                   <div className="mb-4 space-y-2">
                     <div className="flex justify-center items-center gap-2 text-sm">
                       <span className="text-gray-400">المستوى:</span>
-                      <span className="font-medium text-gray-100">{Math.floor((getCurrentUser()?.score || 0) / 100) + 1}</span>
+                      <span className="font-medium text-gray-100">{Math.floor(coins / 100) + 1}</span>
                     </div>
                     <div className="flex justify-center items-center gap-2 text-sm">
                       <span className="text-gray-400">العملات:</span>
-                      <span className="font-medium text-gray-100">{getCurrentUser()?.score || 0}</span>
+                      <span className="font-medium text-gray-100">{coins}</span>
                     </div>
                   </div>
                   
@@ -775,11 +777,11 @@ export default function ChallengePage() {
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-400">العملات:</span>
-                      <span className="font-medium text-gray-100">{getCurrentUser()?.score || 0}</span>
+                      <span className="font-medium text-gray-100">{coins}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-400">المستوى:</span>
-                      <span className="font-medium text-gray-100">{Math.floor((getCurrentUser()?.score || 0) / 100) + 1}</span>
+                      <span className="font-medium text-gray-100">{Math.floor(coins / 100) + 1}</span>
                     </div>
                   </div>
                   {challengeState.winner === 'user' && (
@@ -853,6 +855,15 @@ export default function ChallengePage() {
                   </div>
                   <div className="text-xs text-gray-400">مدة التحدي</div>
                 </div>
+              </div>
+              {/* Test Button */}
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <button
+                  onClick={() => addCoins(10, 'test', 'Test coins addition')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  إضافة 10 نقاط للتجربة
+                </button>
               </div>
             </div>
 

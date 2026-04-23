@@ -216,22 +216,60 @@ export class DailyActivityDB {
           });
       }
 
-      // Update users.score
-      const { data: userData } = await supabase
-        .from('users')
-        .select('score')
-        .eq('account_id', accountId)
-        .single();
+      // Update user_coins table instead of users.score
+      const { data: userCoins } = await supabase
+        .from('user_coins')
+        .select('*')
+        .eq('user_id', accountId)
+        .maybeSingle();
 
-      if (userData) {
-        const newScore = (userData.score || 0) + points;
+      if (userCoins) {
+        const newBalance = userCoins.balance + points;
+        const newTotalEarned = userCoins.total_earned + points;
+        
         await supabase
-          .from('users')
+          .from('user_coins')
           .update({
-            score: newScore,
-            last_active: new Date().toISOString()
+            balance: newBalance,
+            total_earned: newTotalEarned
           })
-          .eq('account_id', accountId);
+          .eq('user_id', accountId);
+
+        // Record transaction
+        await supabase
+          .from('coin_transactions')
+          .insert({
+            user_id: accountId,
+            type: 'earned',
+            amount: points,
+            balance_after: newBalance,
+            description: 'Daily activity points',
+            source: 'daily_activity',
+            source_id: `${accountId}_${targetDate}`
+          });
+      } else {
+        // Create user_coins record if it doesn't exist
+        await supabase
+          .from('user_coins')
+          .insert({
+            user_id: accountId,
+            balance: points,
+            total_earned: points,
+            total_spent: 0
+          });
+
+        // Record transaction
+        await supabase
+          .from('coin_transactions')
+          .insert({
+            user_id: accountId,
+            type: 'earned',
+            amount: points,
+            balance_after: points,
+            description: 'Daily activity points',
+            source: 'daily_activity',
+            source_id: `${accountId}_${targetDate}`
+          });
       }
     } catch (error) {
       console.error('Error adding points to user:', error);
@@ -501,23 +539,63 @@ export class DailyActivityDB {
 
       // Update user's total study time in their account
       if (activity && activity.study_seconds > 0) {
-        // Update user's score instead of study_time (column doesn't exist)
-        const { data: user, error: userError } = await supabase
-          .from('users')
-          .select('score')
-          .eq('account_id', accountId)
-          .single();
+        // Add points based on study time (1 point per 10 seconds)
+        const pointsToAdd = Math.floor(activity.study_seconds / 10);
+        
+        // Update user_coins table instead of users.score
+        const { data: userCoins } = await supabase
+          .from('user_coins')
+          .select('*')
+          .eq('user_id', accountId)
+          .maybeSingle();
 
-        if (!userError && user) {
-          // Add points based on study time (1 point per 10 seconds)
-          const pointsToAdd = Math.floor(activity.study_seconds / 10);
+        if (userCoins) {
+          const newBalance = userCoins.balance + pointsToAdd;
+          const newTotalEarned = userCoins.total_earned + pointsToAdd;
+          
           await supabase
-            .from('users')
+            .from('user_coins')
             .update({
-              score: user.score + pointsToAdd,
-              last_active: new Date().toISOString()
+              balance: newBalance,
+              total_earned: newTotalEarned
             })
-            .eq('account_id', accountId);
+            .eq('user_id', accountId);
+
+          // Record transaction
+          await supabase
+            .from('coin_transactions')
+            .insert({
+              user_id: accountId,
+              type: 'earned',
+              amount: pointsToAdd,
+              balance_after: newBalance,
+              description: 'Study session points',
+              source: 'study_session',
+              source_id: activity.id
+            });
+        } else {
+          // Create user_coins record if it doesn't exist
+          await supabase
+            .from('user_coins')
+            .insert({
+              user_id: accountId,
+              balance: pointsToAdd,
+              total_earned: pointsToAdd,
+              total_spent: 0
+            });
+
+          // Record transaction
+          await supabase
+            .from('coin_transactions')
+            .insert({
+              user_id: accountId,
+              type: 'earned',
+              amount: pointsToAdd,
+              balance_after: pointsToAdd,
+              description: 'Study session points',
+              source: 'study_session',
+              source_id: activity.id
+            });
         }
       }
       

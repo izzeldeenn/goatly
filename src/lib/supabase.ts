@@ -339,26 +339,6 @@ export class UserAccountDB {
     }
   }
 
-  // Update user study time and score
-  async updateUserScore(accountId: string, score: number): Promise<UserAccount | null> {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .update({
-          score: score,
-          last_active: new Date().toISOString()
-        })
-        .eq('account_id', accountId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      return null;
-    }
-  }
-
   // Update user profile
   async updateUserProfile(accountId: string, username: string, avatar?: string): Promise<UserAccount | null> {
     try {

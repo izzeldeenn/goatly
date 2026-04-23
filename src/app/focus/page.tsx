@@ -11,7 +11,7 @@ import { FullscreenProvider } from '@/contexts/FullscreenContext';
 import { CustomThemeProvider } from '@/contexts/CustomThemeContext';
 import { useCustomThemeClasses } from '@/hooks/useCustomThemeClasses';
 import { useUser } from '@/contexts/UserContext';
-import { usePoints } from '@/contexts/PointsContext';
+import { useCoins } from '@/contexts/CoinsContext';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { TimerIndicatorProvider } from '@/contexts/TimerIndicatorContext';
@@ -107,7 +107,7 @@ function HomeContent() {
   const { theme } = useTheme();
   const { language } = useLanguage();
   const { setTimerActive, isTimerActive, getCurrentUser } = useUser();
-  const { calculateCoinsFromStudyTime } = usePoints();
+  const { addCoins } = useCoins();
   const customTheme = useCustomThemeClasses();
   const { isFirstTime, isLoading: setupLoading, markOnboardingComplete } = useFirstTimeSetup();
   const [selectedBackground, setSelectedBackground] = useState('default');

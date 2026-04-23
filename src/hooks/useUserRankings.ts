@@ -5,6 +5,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useStudySession } from '@/contexts/StudySessionContext';
 import { usePoints } from '@/contexts/PointsContext';
 import { dailyActivityDB, DailyActivityFrontend } from '@/lib/dailyActivity';
+import { activitySessionDB } from '@/lib/activitySessions';
 
 interface UserAccount {
   accountId: string;
@@ -30,6 +31,7 @@ export function useUserRankings() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [activeUsers, setActiveUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // Don't update rankings if there's an active session
@@ -167,6 +169,37 @@ export function useUserRankings() {
     return () => clearInterval(interval);
   }, []);
 
+  // Check for active users in the database
+  useEffect(() => {
+    const checkActiveUsers = async () => {
+      if (isSessionActive) return;
+      
+      try {
+        const activeSet = new Set<string>();
+        
+        // Check all display users for active sessions
+        for (const user of displayUsers) {
+          const activeSession = await activitySessionDB.getActiveSession(user.accountId);
+          if (activeSession) {
+            activeSet.add(user.accountId);
+          }
+        }
+        
+        setActiveUsers(activeSet);
+      } catch (error) {
+        console.error('Error checking active users:', error);
+      }
+    };
+
+    // Check immediately
+    checkActiveUsers();
+    
+    // Check every 10 seconds
+    const interval = setInterval(checkActiveUsers, 10000);
+    
+    return () => clearInterval(interval);
+  }, [displayUsers, isSessionActive]);
+
   const formatStudyTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -194,13 +227,8 @@ export function useUserRankings() {
   };
 
   const isRecentlyActive = (user: UserAccount) => {
-    // Check if user was active in the last 2 minutes
-    const lastActiveTime = new Date(user.lastActive);
-    const now = new Date();
-    const timeDiff = now.getTime() - lastActiveTime.getTime();
-    const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
-    
-    return timeDiff < twoMinutes;
+    // Check if user has an active session in the database
+    return activeUsers.has(user.accountId);
   };
 
   const isCurrentUserActive = (user: UserAccount) => {

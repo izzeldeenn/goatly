@@ -4,17 +4,40 @@ import { useEffect, useState } from 'react';
 import { useAIRecommendations } from '@/hooks/useAI';
 import { useAI } from '@/hooks/useAI';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAdmin } from '@/contexts/AdminContext';
+import { useRouter } from 'next/navigation';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 import { AIRecommendation, aiRecommendationsDB } from '@/lib/ai/aiRecommendationsDB';
 import { landingTexts } from '@/constants/landingTexts';
 
 export default function AIRecommendationsPage() {
   const { language } = useLanguage();
   const texts = landingTexts[language];
+  const { currentAdmin, isLoggedIn, isLoading } = useAdmin();
+  const router = useRouter();
   const { recommendations, loading, error, fetchRecommendations, updateRecommendationStatus, deleteRecommendation, getRecommendationStats } = useAIRecommendations();
   const { analyzeUserBehavior, analyzeSales, analyzeStrategy, analyzeCode } = useAI();
   const [stats, setStats] = useState<any>(null);
   const [filter, setFilter] = useState<string>('all');
   const [analyzing, setAnalyzing] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      router.push('/admin-auth/login');
+    }
+  }, [isLoggedIn, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn || !currentAdmin) {
+    return null;
+  }
 
   useEffect(() => {
     loadRecommendations();
@@ -230,165 +253,174 @@ export default function AIRecommendationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">{texts.aiDashboard}</h1>
-
-        {/* Stats */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="text-gray-400">{texts.totalRecommendations}</div>
-            </div>
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-400">{stats.pending}</div>
-              <div className="text-gray-400">{texts.pending}</div>
-            </div>
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-blue-400">{stats.inProgress}</div>
-              <div className="text-gray-400">{texts.inProgress}</div>
-            </div>
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
-              <div className="text-gray-400">{texts.completed}</div>
-            </div>
+    <div className="min-h-screen bg-black">
+      <div className="flex">
+        <AdminSidebar />
+        
+        <main className="flex-1 p-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-white mb-1">AI Dashboard</h1>
+            <p className="text-gray-400 text-sm">
+              AI-powered recommendations and analysis
+            </p>
           </div>
-        )}
 
-        {/* Filters */}
-        <div className="mb-6 flex gap-4 flex-wrap">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded ${filter === 'all' ? 'bg-blue-600' : 'bg-gray-700'}`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter('developer')}
-            className={`px-4 py-2 rounded ${filter === 'developer' ? 'bg-blue-600' : 'bg-gray-700'}`}
-          >
-            Developer
-          </button>
-          <button
-            onClick={() => setFilter('user_behavior_analyst')}
-            className={`px-4 py-2 rounded ${filter === 'user_behavior_analyst' ? 'bg-blue-600' : 'bg-gray-700'}`}
-          >
-            User Behavior
-          </button>
-          <button
-            onClick={() => setFilter('sales_manager')}
-            className={`px-4 py-2 rounded ${filter === 'sales_manager' ? 'bg-blue-600' : 'bg-gray-700'}`}
-          >
-            Sales
-          </button>
-          <button
-            onClick={() => setFilter('strategic_analyst')}
-            className={`px-4 py-2 rounded ${filter === 'strategic_analyst' ? 'bg-blue-600' : 'bg-gray-700'}`}
-          >
-            Strategy
-          </button>
-        </div>
-
-        {/* AI Analysis Test Buttons */}
-        <div className="mb-6 p-4 bg-gray-800 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">{texts.testAiAnalysis}</h3>
-          <div className="flex gap-4 flex-wrap">
-            <button
-              onClick={handleAnalyzeUserBehavior}
-              disabled={analyzing}
-              className={`px-4 py-2 rounded ${analyzing ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
-            >
-              {analyzing ? 'Analyzing...' : 'Analyze User Behavior'}
-            </button>
-            <button
-              onClick={handleAnalyzeSales}
-              disabled={analyzing}
-              className={`px-4 py-2 rounded ${analyzing ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
-            >
-              {analyzing ? 'Analyzing...' : 'Analyze Sales'}
-            </button>
-            <button
-              onClick={handleAnalyzeStrategy}
-              disabled={analyzing}
-              className={`px-4 py-2 rounded ${analyzing ? 'bg-gray-600 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'}`}
-            >
-              {analyzing ? 'Analyzing...' : 'Analyze Strategy'}
-            </button>
-          </div>
-          <p className="text-sm text-gray-400 mt-2">
-            Make sure to set HUGGINGFACE_API_KEY in .env.local before testing
-          </p>
-        </div>
-
-        {/* Recommendations List */}
-        {loading ? (
-          <div className="text-center py-8">{texts.loading}</div>
-        ) : error ? (
-          <div className="text-red-500 py-8">{error}</div>
-        ) : filteredRecommendations.length === 0 ? (
-          <div className="text-gray-400 py-8">{texts.noRecommendationsFound}</div>
-        ) : (
-          <div className="space-y-4">
-            {filteredRecommendations.map((rec) => (
-              <div key={rec.id} className="bg-gray-800 p-6 rounded-lg border-l-4" style={{ borderColor: getPriorityColor(rec.priority) }}>
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-1 text-xs rounded ${getPriorityBadge(rec.priority)}`}>
-                        {rec.priority.toUpperCase()}
-                      </span>
-                      <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
-                        {getRoleLabel(rec.agent_role)}
-                      </span>
-                      <span className="px-2 py-1 text-xs rounded bg-purple-100 text-purple-800">
-                        {rec.type}
-                      </span>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">{rec.title}</h3>
-                    <p className="text-gray-300 mb-4">{rec.description}</p>
-                    {rec.estimated_impact && (
-                      <p className="text-sm text-gray-400 mb-2">
-                        <strong>{texts.estimatedImpact}:</strong> {rec.estimated_impact}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <select
-                      value={rec.status}
-                      onChange={(e) => handleStatusChange(rec.id, e.target.value)}
-                      className="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm"
-                    >
-                      <option value="pending">{texts.pending}</option>
-                      <option value="in_progress">{texts.inProgress}</option>
-                      <option value="completed">{texts.completed}</option>
-                      <option value="dismissed">{texts.dismissed}</option>
-                    </select>
-                    <button
-                      onClick={() => handleDelete(rec.id)}
-                      className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-                {rec.action_items && rec.action_items.length > 0 && (
-                  <div className="border-t border-gray-700 pt-4">
-                    <h4 className="font-semibold mb-2">{texts.actionItems}:</h4>
-                    <ul className="list-disc list-inside space-y-1">
-                      {rec.action_items.map((item, index) => (
-                        <li key={index} className="text-gray-300">{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <div className="text-xs text-gray-500 mt-4">
-                  Created: {new Date(rec.created_at).toLocaleString()}
-                </div>
+          {/* Stats */}
+          {stats && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-black rounded-lg p-4 border border-gray-800">
+                <div className="text-2xl font-bold text-white">{stats.total}</div>
+                <div className="text-gray-400">{texts.totalRecommendations}</div>
               </div>
-            ))}
+              <div className="bg-black rounded-lg p-4 border border-gray-800">
+                <div className="text-2xl font-bold text-yellow-400">{stats.pending}</div>
+                <div className="text-gray-400">{texts.pending}</div>
+              </div>
+              <div className="bg-black rounded-lg p-4 border border-gray-800">
+                <div className="text-2xl font-bold text-blue-400">{stats.inProgress}</div>
+                <div className="text-gray-400">{texts.inProgress}</div>
+              </div>
+              <div className="bg-black rounded-lg p-4 border border-gray-800">
+                <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
+                <div className="text-gray-400">{texts.completed}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Filters */}
+          <div className="mb-6 flex gap-4 flex-wrap">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-4 py-2 rounded-md text-sm ${filter === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilter('developer')}
+              className={`px-4 py-2 rounded-md text-sm ${filter === 'developer' ? 'bg-gray-800 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+            >
+              Developer
+            </button>
+            <button
+              onClick={() => setFilter('user_behavior_analyst')}
+              className={`px-4 py-2 rounded-md text-sm ${filter === 'user_behavior_analyst' ? 'bg-gray-800 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+            >
+              User Behavior
+            </button>
+            <button
+              onClick={() => setFilter('sales_manager')}
+              className={`px-4 py-2 rounded-md text-sm ${filter === 'sales_manager' ? 'bg-gray-800 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+            >
+              Sales
+            </button>
+            <button
+              onClick={() => setFilter('strategic_analyst')}
+              className={`px-4 py-2 rounded-md text-sm ${filter === 'strategic_analyst' ? 'bg-gray-800 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+            >
+              Strategy
+            </button>
           </div>
-        )}
+
+          {/* AI Analysis Test Buttons */}
+          <div className="mb-6 p-4 bg-black rounded-lg border border-gray-800">
+            <h3 className="text-lg font-semibold text-white mb-4">{texts.testAiAnalysis}</h3>
+            <div className="flex gap-4 flex-wrap">
+              <button
+                onClick={handleAnalyzeUserBehavior}
+                disabled={analyzing}
+                className={`px-4 py-2 rounded-md text-sm ${analyzing ? 'bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+              >
+                {analyzing ? 'Analyzing...' : 'Analyze User Behavior'}
+              </button>
+              <button
+                onClick={handleAnalyzeSales}
+                disabled={analyzing}
+                className={`px-4 py-2 rounded-md text-sm ${analyzing ? 'bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+              >
+                {analyzing ? 'Analyzing...' : 'Analyze Sales'}
+              </button>
+              <button
+                onClick={handleAnalyzeStrategy}
+                disabled={analyzing}
+                className={`px-4 py-2 rounded-md text-sm ${analyzing ? 'bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+              >
+                {analyzing ? 'Analyzing...' : 'Analyze Strategy'}
+              </button>
+            </div>
+            <p className="text-sm text-gray-400 mt-2">
+              Make sure to set HUGGINGFACE_API_KEY in .env.local before testing
+            </p>
+          </div>
+
+          {/* Recommendations List */}
+          {loading ? (
+            <div className="text-center py-8 text-gray-400">{texts.loading}</div>
+          ) : error ? (
+            <div className="text-red-400 py-8">{error}</div>
+          ) : filteredRecommendations.length === 0 ? (
+            <div className="text-gray-400 py-8">{texts.noRecommendationsFound}</div>
+          ) : (
+            <div className="space-y-4">
+              {filteredRecommendations.map((rec) => (
+                <div key={rec.id} className="bg-black p-6 rounded-lg border border-gray-800 border-l-4" style={{ borderColor: getPriorityColor(rec.priority) }}>
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`px-2 py-1 text-xs rounded ${getPriorityBadge(rec.priority)}`}>
+                          {rec.priority.toUpperCase()}
+                        </span>
+                        <span className="px-2 py-1 text-xs rounded bg-gray-800 text-white">
+                          {getRoleLabel(rec.agent_role)}
+                        </span>
+                        <span className="px-2 py-1 text-xs rounded bg-gray-800 text-white">
+                          {rec.type}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-white mb-2">{rec.title}</h3>
+                      <p className="text-gray-300 mb-4">{rec.description}</p>
+                      {rec.estimated_impact && (
+                        <p className="text-sm text-gray-400 mb-2">
+                          <strong>{texts.estimatedImpact}:</strong> {rec.estimated_impact}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <select
+                        value={rec.status}
+                        onChange={(e) => handleStatusChange(rec.id, e.target.value)}
+                        className="bg-gray-800 border border-gray-700 rounded-md px-3 py-1 text-sm text-white"
+                      >
+                        <option value="pending">{texts.pending}</option>
+                        <option value="in_progress">{texts.inProgress}</option>
+                        <option value="completed">{texts.completed}</option>
+                        <option value="dismissed">{texts.dismissed}</option>
+                      </select>
+                      <button
+                        onClick={() => handleDelete(rec.id)}
+                        className="bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded-md text-sm text-white"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  {rec.action_items && rec.action_items.length > 0 && (
+                    <div className="border-t border-gray-800 pt-4">
+                      <h4 className="font-semibold text-white mb-2">{texts.actionItems}:</h4>
+                      <ul className="list-disc list-inside space-y-1">
+                        {rec.action_items.map((item, index) => (
+                          <li key={index} className="text-gray-300">{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-500 mt-4">
+                    Created: {new Date(rec.created_at).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );

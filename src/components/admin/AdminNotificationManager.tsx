@@ -1,18 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useUser } from '@/contexts/UserContext';
+import { useAdmin } from '@/contexts/AdminContext';
 import { socialDB, AdminNotificationRequest, NotificationTemplate } from '@/lib/social';
 
 export function AdminNotificationManager() {
-  const { theme } = useTheme();
   const { language } = useLanguage();
-  const { getCurrentUser } = useUser();
-  const currentUser = getCurrentUser();
+  const { currentAdmin } = useAdmin();
 
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState('');
@@ -24,49 +20,26 @@ export function AdminNotificationManager() {
   const [result, setResult] = useState<{ success: boolean; message: string; sentCount?: number } | null>(null);
   const [stats, setStats] = useState<{ total: number; sent: number; read: number; unread: number } | null>(null);
 
-  // Check admin status and load templates
+  // Load templates and stats
   useEffect(() => {
-    const initializeAdmin = async () => {
-      if (!currentUser) {
-        console.log('No current user found');
-        setIsAdmin(false);
-        setLoading(false);
-        return;
-      }
-
-      console.log('Current user:', currentUser);
-      console.log('User account ID:', currentUser.accountId);
-
+    const initializeData = async () => {
       try {
-        const adminStatus = await socialDB.isAdmin();
-        console.log('Admin status result:', adminStatus);
-        setIsAdmin(adminStatus);
-
-        if (adminStatus) {
-          console.log('User is admin, loading templates and stats...');
-          const [templatesData, statsData] = await Promise.all([
-            socialDB.getNotificationTemplates(),
-            socialDB.getNotificationStats()
-          ]);
-          
-          console.log('Templates loaded:', templatesData);
-          console.log('Stats loaded:', statsData);
-          
-          setTemplates(templatesData);
-          setStats(statsData);
-        } else {
-          console.log('User is NOT admin');
-        }
+        const [templatesData, statsData] = await Promise.all([
+          socialDB.getNotificationTemplates(),
+          socialDB.getNotificationStats()
+        ]);
+        
+        setTemplates(templatesData);
+        setStats(statsData);
       } catch (error) {
-        console.error('Error initializing admin panel:', error);
-        setIsAdmin(false);
+        console.error('Error initializing notification manager:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    initializeAdmin();
-  }, [currentUser?.accountId]);
+    initializeData();
+  }, []);
 
   const handleSendNotification = async () => {
     if (!message.trim()) {
@@ -153,68 +126,24 @@ export function AdminNotificationManager() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="w-12 h-12 rounded-full border-2 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
-        <span className={`ml-3 text-lg font-medium ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+        <div className="w-12 h-12 rounded-full border-2 border-t-white border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+        <span className="ml-3 text-lg font-medium text-gray-400">
           {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
         </span>
       </div>
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className={`text-center py-16 rounded-2xl backdrop-blur-sm transition-all duration-300 ${
-        theme === 'light' 
-          ? 'bg-white/95 border border-gray-200/60 shadow-sm shadow-gray-500/10' 
-          : 'bg-gray-900/95 border border-gray-800/60 shadow-xl shadow-black/20'
-      }`}>
-        <div className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${
-          theme === 'light' ? 'bg-red-100' : 'bg-red-900/30'
-        }`}>
-          <svg className={`w-8 h-8 ${theme === 'light' ? 'text-red-500' : 'text-red-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 2.502-3.148V8.148c0-1.481-1.962-3.148-3.502-3.148H5.502C3.962 5 2 6.667 2 8.148v10.704c0 1.481 1.962 3.148 3.502 3.148h13.856z" />
-          </svg>
-        </div>
-        <h2 className={`text-2xl font-bold mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-          {language === 'ar' ? 'وصول غير مصرح به' : 'Access Denied'}
-        </h2>
-        <p className={`text-lg ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-          {language === 'ar' ? 'هذه الصفحة متاحة فقط للمسؤولين' : 'This page is only available to administrators'}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Background decoration */}
-      <div className="absolute inset-0 opacity-[0.02] pointer-events-none overflow-hidden -z-10">
-        <div className={`absolute top-10 left-10 w-32 h-32 rounded-full blur-2xl ${
-          theme === 'light' ? 'bg-red-400' : 'bg-red-300'
-        }`}></div>
-        <div className={`absolute bottom-20 right-20 w-24 h-24 rounded-full blur-xl ${
-          theme === 'light' ? 'bg-orange-400' : 'bg-orange-300'
-        }`}></div>
-      </div>
-
       {/* Header */}
-      <div className={`p-6 rounded-2xl border backdrop-blur-sm transition-all duration-300 ${
-        theme === 'light' 
-          ? 'bg-white/95 border-gray-200/60 shadow-sm shadow-gray-500/10' 
-          : 'bg-gray-900/95 border-gray-800/60 shadow-xl shadow-black/20'
-      }`}>
+      <div className="bg-black rounded-lg p-6 border border-gray-800">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className={`text-2xl font-bold bg-gradient-to-r bg-clip-text transition-all duration-300 ${
-              theme === 'light' 
-                ? 'from-red-600 via-orange-600 to-yellow-600 text-transparent' 
-                : 'from-red-400 via-orange-400 to-yellow-400 text-transparent'
-            }`}>
+            <h1 className="text-2xl font-bold text-white">
               {language === 'ar' ? 'مدير الإشعارات' : 'Notification Manager'}
             </h1>
-            <p className={`text-sm font-medium transition-colors duration-300 mt-1 ${
-              theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-            }`}>
+            <p className="text-sm text-gray-400 mt-1">
               {language === 'ar' ? 'إرسال إشعارات للمستخدمين' : 'Send notifications to users'}
             </p>
           </div>
@@ -223,43 +152,35 @@ export function AdminNotificationManager() {
         {/* Statistics */}
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className={`p-4 rounded-xl border transition-all duration-300 ${
-              theme === 'light' ? 'bg-blue-50 border-blue-200' : 'bg-blue-900/30 border-blue-700'
-            }`}>
-              <div className={`text-2xl font-bold ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>
+            <div className="bg-black p-4 rounded-lg border border-gray-800">
+              <div className="text-2xl font-bold text-blue-400">
                 {stats.total}
               </div>
-              <div className={`text-sm mt-1 ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>
+              <div className="text-sm mt-1 text-blue-400">
                 {language === 'ar' ? 'الإجمالي' : 'Total'}
               </div>
             </div>
-            <div className={`p-4 rounded-xl border transition-all duration-300 ${
-              theme === 'light' ? 'bg-green-50 border-green-200' : 'bg-green-900/30 border-green-700'
-            }`}>
-              <div className={`text-2xl font-bold ${theme === 'light' ? 'text-green-600' : 'text-green-400'}`}>
+            <div className="bg-black p-4 rounded-lg border border-gray-800">
+              <div className="text-2xl font-bold text-green-400">
                 {stats.read}
               </div>
-              <div className={`text-sm mt-1 ${theme === 'light' ? 'text-green-600' : 'text-green-400'}`}>
+              <div className="text-sm mt-1 text-green-400">
                 {language === 'ar' ? 'مقروء' : 'Read'}
               </div>
             </div>
-            <div className={`p-4 rounded-xl border transition-all duration-300 ${
-              theme === 'light' ? 'bg-orange-50 border-orange-200' : 'bg-orange-900/30 border-orange-700'
-            }`}>
-              <div className={`text-2xl font-bold ${theme === 'light' ? 'text-orange-600' : 'text-orange-400'}`}>
+            <div className="bg-black p-4 rounded-lg border border-gray-800">
+              <div className="text-2xl font-bold text-orange-400">
                 {stats.unread}
               </div>
-              <div className={`text-sm mt-1 ${theme === 'light' ? 'text-orange-600' : 'text-orange-400'}`}>
+              <div className="text-sm mt-1 text-orange-400">
                 {language === 'ar' ? 'غير مقروء' : 'Unread'}
               </div>
             </div>
-            <div className={`p-4 rounded-xl border transition-all duration-300 ${
-              theme === 'light' ? 'bg-purple-50 border-purple-200' : 'bg-purple-900/30 border-purple-700'
-            }`}>
-              <div className={`text-2xl font-bold ${theme === 'light' ? 'text-purple-600' : 'text-purple-400'}`}>
+            <div className="bg-black p-4 rounded-lg border border-gray-800">
+              <div className="text-2xl font-bold text-purple-400">
                 {Math.round((stats.read / stats.total) * 100) || 0}%
               </div>
-              <div className={`text-sm mt-1 ${theme === 'light' ? 'text-purple-600' : 'text-purple-400'}`}>
+              <div className="text-sm mt-1 text-purple-400">
                 {language === 'ar' ? 'معدل القراءة' : 'Read Rate'}
               </div>
             </div>
@@ -268,28 +189,18 @@ export function AdminNotificationManager() {
       </div>
 
       {/* Notification Form */}
-      <div className={`p-6 rounded-2xl border backdrop-blur-sm transition-all duration-300 ${
-        theme === 'light' 
-          ? 'bg-white/95 border-gray-200/60 shadow-sm shadow-gray-500/10' 
-          : 'bg-gray-900/95 border-gray-800/60 shadow-xl shadow-black/20'
-      }`}>
+      <div className="bg-black rounded-lg p-6 border border-gray-800">
         <div className="space-y-6">
           {/* Template Selection */}
           <div>
-            <label className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-            }`}>
+            <label className="block text-sm font-medium mb-2 text-gray-300">
               {language === 'ar' ? 'قالب الإشعار' : 'Notification Template'}
             </label>
             <div className="flex gap-2">
               <select
                 value={selectedTemplate}
                 onChange={(e) => handleTemplateSelect(e.target.value)}
-                className={`flex-1 px-4 py-2 rounded-lg border transition-all duration-300 ${
-                  theme === 'light'
-                    ? 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
-                    : 'bg-gray-800 border-gray-600 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800'
-                }`}
+                className="flex-1 px-4 py-2 rounded-md border bg-gray-800 border-gray-700 text-white focus:border-gray-600 focus:ring-2 focus:ring-gray-600"
               >
                 <option value="">{language === 'ar' ? 'اختر قالب' : 'Select template'}</option>
                 {templates.map((template) => (
@@ -300,11 +211,7 @@ export function AdminNotificationManager() {
               </select>
               <button
                 onClick={handleCreateTemplate}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
-                  theme === 'light'
-                    ? 'bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-200'
-                    : 'bg-purple-900/30 text-purple-400 hover:bg-purple-800/40 border border-purple-700'
-                }`}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-gray-800 text-white hover:bg-gray-700 border border-gray-700"
               >
                 {language === 'ar' ? 'حفظ كقالب' : 'Save as Template'}
               </button>
@@ -313,19 +220,13 @@ export function AdminNotificationManager() {
 
           {/* Notification Type */}
           <div>
-            <label className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-            }`}>
+            <label className="block text-sm font-medium mb-2 text-gray-300">
               {language === 'ar' ? 'نوع الإشعار' : 'Notification Type'}
             </label>
             <select
               value={notificationType}
               onChange={(e) => setNotificationType(e.target.value as any)}
-              className={`w-full px-4 py-2 rounded-lg border transition-all duration-300 ${
-                theme === 'light'
-                  ? 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
-                  : 'bg-gray-800 border-gray-600 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800'
-              }`}
+              className="w-full px-4 py-2 rounded-md border bg-gray-800 border-gray-700 text-white focus:border-gray-600 focus:ring-2 focus:ring-gray-600"
             >
               <option value="admin_announcement">{language === 'ar' ? 'إعلان إداري' : 'Admin Announcement'}</option>
               <option value="system_update">{language === 'ar' ? 'تحديث النظام' : 'System Update'}</option>
@@ -336,9 +237,7 @@ export function AdminNotificationManager() {
 
           {/* Message */}
           <div>
-            <label className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-            }`}>
+            <label className="block text-sm font-medium mb-2 text-gray-300">
               {language === 'ar' ? 'رسالة الإشعار' : 'Notification Message'}
             </label>
             <textarea
@@ -346,19 +245,13 @@ export function AdminNotificationManager() {
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
               placeholder={language === 'ar' ? 'أدخل رسالة الإشعار...' : 'Enter notification message...'}
-              className={`w-full px-4 py-2 rounded-lg border transition-all duration-300 ${
-                theme === 'light'
-                  ? 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
-                  : 'bg-gray-800 border-gray-600 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800'
-              }`}
+              className="w-full px-4 py-2 rounded-md border bg-gray-800 border-gray-700 text-white focus:border-gray-600 focus:ring-2 focus:ring-gray-600"
             />
           </div>
 
           {/* Target Selection */}
           <div>
-            <label className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-              theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-            }`}>
+            <label className="block text-sm font-medium mb-2 text-gray-300">
               {language === 'ar' ? 'المستهدفون' : 'Target Users'}
             </label>
             <div className="space-y-2">
@@ -369,7 +262,7 @@ export function AdminNotificationManager() {
                   onChange={() => setSendToAll(true)}
                   className="mr-2"
                 />
-                <span className={theme === 'light' ? 'text-gray-700' : 'text-gray-300'}>
+                <span className="text-gray-300">
                   {language === 'ar' ? 'جميع المستخدمين' : 'All Users'}
                 </span>
               </label>
@@ -380,7 +273,7 @@ export function AdminNotificationManager() {
                   onChange={() => setSendToAll(false)}
                   className="mr-2"
                 />
-                <span className={theme === 'light' ? 'text-gray-700' : 'text-gray-300'}>
+                <span className="text-gray-300">
                   {language === 'ar' ? 'مستخدمين محددين' : 'Specific Users'}
                 </span>
               </label>
@@ -391,11 +284,7 @@ export function AdminNotificationManager() {
                 value={targetUsers}
                 onChange={(e) => setTargetUsers(e.target.value)}
                 placeholder={language === 'ar' ? 'أدخل معرفات المستخدمين مفصولة بفواصل' : 'Enter user IDs separated by commas'}
-                className={`w-full px-4 py-2 rounded-lg border transition-all duration-300 ${
-                  theme === 'light'
-                    ? 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
-                    : 'bg-gray-800 border-gray-600 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800'
-                }`}
+                className="w-full px-4 py-2 rounded-md border bg-gray-800 border-gray-700 text-white focus:border-gray-600 focus:ring-2 focus:ring-gray-600"
               />
             )}
           </div>
@@ -404,11 +293,7 @@ export function AdminNotificationManager() {
           <button
             onClick={handleSendNotification}
             disabled={sending || !message.trim()}
-            className={`w-full py-3 rounded-lg text-base font-medium transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed ${
-              theme === 'light'
-                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 shadow-lg shadow-blue-500/25'
-                : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-xl shadow-blue-400/25'
-            }`}
+            className="w-full py-3 rounded-md text-base font-medium bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {sending ? (
               <div className="flex items-center justify-center">
@@ -423,14 +308,10 @@ export function AdminNotificationManager() {
 
         {/* Result Message */}
         {result && (
-          <div className={`mt-4 p-4 rounded-lg border transition-all duration-300 ${
+          <div className={`mt-4 p-4 rounded-md border ${
             result.success
-              ? theme === 'light'
-                ? 'bg-green-50 border-green-200 text-green-800'
-                : 'bg-green-900/30 border-green-700 text-green-300'
-              : theme === 'light'
-                ? 'bg-red-50 border-red-200 text-red-800'
-                : 'bg-red-900/30 border-red-700 text-red-300'
+              ? 'bg-gray-800 border-green-700 text-green-400'
+              : 'bg-gray-800 border-red-700 text-red-400'
           }`}>
             <div className="flex items-center">
               {result.success ? (

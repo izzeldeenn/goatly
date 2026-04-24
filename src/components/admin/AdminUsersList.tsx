@@ -44,12 +44,12 @@ export default function AdminUsersList() {
 
   if (loading) {
     return (
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-white/20 rounded w-1/4" />
-          <div className="space-y-3">
+      <div className="bg-black rounded-lg p-4 border border-gray-800">
+        <div className="animate-pulse space-y-3">
+          <div className="h-5 bg-gray-800 rounded w-1/4" />
+          <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-12 bg-white/10 rounded" />
+              <div key={i} className="h-10 bg-gray-800 rounded" />
             ))}
           </div>
         </div>
@@ -58,9 +58,9 @@ export default function AdminUsersList() {
   }
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-white">Users</h2>
+    <div className="bg-black rounded-lg p-4 border border-gray-800">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-white">Users</h2>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -68,26 +68,26 @@ export default function AdminUsersList() {
             placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+            className="pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-transparent text-sm"
           />
         </div>
       </div>
 
-      <div className="space-y-3 max-h-96 overflow-y-auto">
+      <div className="space-y-2 max-h-80 overflow-y-auto">
         {filteredUsers.length === 0 ? (
-          <p className="text-gray-400 text-center py-8">No users found</p>
+          <p className="text-gray-400 text-center py-6 text-sm">No users found</p>
         ) : (
           filteredUsers.map((user) => (
             <div
               key={user.accountId}
-              className="flex items-center gap-4 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all duration-200"
+              className="flex items-center gap-3 p-3 bg-gray-800 rounded-md hover:bg-gray-700 transition-all duration-150"
             >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
                 {user.avatar ? (
                   <img 
                     src={user.avatar} 
                     alt={user.username}
-                    className="w-10 h-10 rounded-full"
+                    className="w-8 h-8 rounded-full"
                   />
                 ) : (
                   <span className="text-white font-semibold text-sm">
@@ -97,24 +97,19 @@ export default function AdminUsersList() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="text-white font-medium truncate">{user.username}</h3>
-                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <h3 className="text-white font-medium text-sm truncate">{user.username}</h3>
+                <div className="flex items-center gap-1.5 text-gray-400 text-xs">
                   <Mail className="w-3 h-3" />
                   <span className="truncate">{user.email}</span>
                 </div>
               </div>
 
-              <div className="text-right flex-shrink-0">
-                <p className="text-white font-semibold">-</p>
-                <p className="text-gray-400 text-xs">points</p>
-              </div>
-
-              <div className="flex items-center gap-2 text-gray-400 text-xs flex-shrink-0">
+              <div className="flex items-center gap-1.5 text-gray-400 text-xs flex-shrink-0">
                 <Calendar className="w-3 h-3" />
                 <span>{new Date(user.lastActive).toLocaleDateString()}</span>
               </div>
 
-              <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <button className="p-1.5 hover:bg-gray-700 rounded-md transition-colors">
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </button>
             </div>
@@ -122,8 +117,8 @@ export default function AdminUsersList() {
         )}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-white/20">
-        <p className="text-gray-400 text-sm">
+      <div className="mt-3 pt-3 border-t border-gray-800">
+        <p className="text-gray-400 text-xs">
           Showing {filteredUsers.length} of {users.length} users
         </p>
       </div>

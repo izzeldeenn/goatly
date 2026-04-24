@@ -41,42 +41,38 @@ export default function AdminStats() {
       title: 'Total Users',
       value: stats.totalUsers,
       icon: Users,
-      color: 'from-blue-500 to-cyan-500',
-      bgColor: 'bg-blue-500/20'
+      bgColor: 'bg-gray-800'
     },
     {
       title: 'Active Users (7d)',
       value: stats.activeUsers,
       icon: UserCheck,
-      color: 'from-green-500 to-emerald-500',
-      bgColor: 'bg-green-500/20'
+      bgColor: 'bg-gray-800'
     },
     {
       title: 'Study Sessions',
       value: stats.totalStudyTime,
       icon: Clock,
-      color: 'from-orange-500 to-red-500',
-      bgColor: 'bg-orange-500/20'
+      bgColor: 'bg-gray-800'
     }
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {statCards.map((stat) => {
         const Icon = stat.icon;
         return (
           <div
             key={stat.title}
-            className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200"
+            className="bg-black rounded-lg p-4 border border-gray-800 hover:border-gray-700 transition-all duration-150"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                <Icon className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-2 rounded-md ${stat.bgColor}`}>
+                <Icon className="w-5 h-5 text-white" />
               </div>
-              <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${stat.color}`} />
             </div>
-            <h3 className="text-gray-400 text-sm font-medium mb-1">{stat.title}</h3>
-            <p className="text-3xl font-bold text-white">{stat.value.toLocaleString()}</p>
+            <h3 className="text-gray-400 text-xs font-medium mb-1">{stat.title}</h3>
+            <p className="text-2xl font-bold text-white">{stat.value.toLocaleString()}</p>
           </div>
         );
       })}

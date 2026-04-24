@@ -4,11 +4,9 @@ import { useEffect } from 'react';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useRouter } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import AdminStats from '@/components/admin/AdminStats';
 import AdminUsersList from '@/components/admin/AdminUsersList';
-import AdminAdminsList from '@/components/admin/AdminAdminsList';
 
-export default function AdminDashboard() {
+export default function AdminUsersPage() {
   const { currentAdmin, isLoggedIn, isLoading, logout } = useAdmin();
   const router = useRouter();
 
@@ -37,25 +35,13 @@ export default function AdminDashboard() {
         
         <main className="flex-1 p-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-white mb-1">Admin Dashboard</h1>
+            <h1 className="text-2xl font-bold text-white mb-1">Users Management</h1>
             <p className="text-gray-400 text-sm">
-              Welcome back, {currentAdmin.username}!
-              {currentAdmin.isSuperAdmin && (
-                <span className="ml-2 px-2 py-0.5 bg-gray-800 text-white text-xs rounded-full">
-                  Super Admin
-                </span>
-              )}
+              Manage all users in the system
             </p>
           </div>
 
-          <div className="space-y-6">
-            <AdminStats />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AdminUsersList />
-              {currentAdmin.isSuperAdmin && <AdminAdminsList />}
-            </div>
-          </div>
+          <AdminUsersList />
         </main>
       </div>
     </div>

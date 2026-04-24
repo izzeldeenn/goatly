@@ -2,12 +2,15 @@
 
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
+import { useCoins } from '@/contexts/CoinsContext';
 
 export function UserManager() {
   const { theme } = useTheme();
-  const { getAllDeviceUsers } = useUser();
+  const { getAllDeviceUsers, getCurrentUser } = useUser();
+  const { coins } = useCoins();
   
   const users = getAllDeviceUsers();
+  const currentUser = getCurrentUser();
 
   return (
     <div className="mb-6">
@@ -40,7 +43,7 @@ export function UserManager() {
                   ? 'bg-blue-600 text-white'
                   : 'bg-blue-500 text-white'
               }`}>
-                ترتيب {Math.floor((user.score || 0) / 100) + 1}
+                {user.accountId === currentUser?.accountId ? `${coins} نقطة` : 'نقطة'}
               </span>
             </div>
           ))

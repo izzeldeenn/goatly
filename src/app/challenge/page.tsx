@@ -14,7 +14,6 @@ interface Opponent {
   id: string;
   username: string;
   avatar: string;
-  score: number;
   studyTime: number;
   isStudying: boolean;
   studyStartTime?: number;
@@ -64,14 +63,13 @@ const generateAvatar = (seed: string) => `https://api.dicebear.com/7.x/avataaars
 
 // Convert UserAccount to Opponent interface
 const convertUserToOpponent = (user: UserAccount): Opponent => {
-  const rank = Math.floor(user.score / 100) + 1;
-  const level = Math.floor(user.score / 200) + 1;
+  const rank = 1;
+  const level = 1;
   
   return {
     id: user.id || '',
     username: user.username,
     avatar: user.avatar || generateAvatar(user.account_id),
-    score: user.score,
     studyTime: 0,
     isStudying: true,
     lastActive: new Date(user.last_active).getTime(),
@@ -674,7 +672,7 @@ export default function ChallengePage() {
                     </div>
                     <div className="flex justify-center items-center gap-2 text-sm">
                       <span className="text-gray-400">العملات:</span>
-                      <span className="font-medium text-gray-100">{challengeState.opponent.score}</span>
+                      <span className="font-medium text-gray-100">0</span>
                     </div>
                   </div>
                   
@@ -811,7 +809,7 @@ export default function ChallengePage() {
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-400">العملات:</span>
-                      <span className="font-medium text-gray-100">{challengeState.opponent?.score}</span>
+                      <span className="font-medium text-gray-100">0</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-400">المستوى:</span>

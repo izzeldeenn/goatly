@@ -33,7 +33,6 @@ interface UserAccount {
   email: string;
   hashKey: string;
   avatar?: string;
-  score: number;
   rank: number;
   dailyRank?: number;
   studyTime: number;

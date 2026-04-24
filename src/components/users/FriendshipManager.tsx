@@ -831,7 +831,7 @@ export default function FriendshipManager({ onSwitchToMessaging }: FriendshipMan
                               : 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-600 border border-purple-200/50'
                           }`}>
                             <Sparkles className="w-3 h-3" />
-                            المستوى {Math.floor((user.score || 0) / 100) + 1} • {user.score} نقطة
+                            مستخدم
                           </div>
                           
                           <div className="flex items-center justify-center mt-auto">

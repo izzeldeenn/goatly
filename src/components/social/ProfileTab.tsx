@@ -197,7 +197,7 @@ export function ProfileTab({ posts }: ProfileTabProps) {
                 <span className={`font-medium ${
                   isDark ? 'text-gray-300' : 'text-gray-600'
                 }`}>
-                  {language === 'ar' ? 'العملات' : 'Score'}
+                  {language === 'ar' ? 'العملات' : 'Coins'}
                 </span>
                 <span className={`font-bold text-lg bg-gradient-to-r bg-clip-text ${
                   isDark 

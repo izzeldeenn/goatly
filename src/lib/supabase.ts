@@ -34,7 +34,6 @@ export interface UserAccount {
   hash_key: string;
   password?: string; // Added for authentication
   avatar?: string;
-  score: number;
   referral_code?: string;
   country?: string; // User's country
   browser_id?: string; // Unique browser identifier
@@ -55,7 +54,6 @@ export interface UserAccountFrontend {
   email: string;
   hashKey: string;
   avatar?: string;
-  score: number;
   referralCode?: string;
   country?: string; // User's country
   browserId?: string; // Unique browser identifier
@@ -231,13 +229,13 @@ export class UserAccountDB {
     return UserAccountDB.instance;
   }
 
-  // Get all users sorted by score (for leaderboard)
+  // Get all users sorted by last_active (for leaderboard)
   async getAllUsers(): Promise<UserAccount[]> {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key, country, browser_id, device_id')
-        .order('last_active', { ascending: false }) // Sort by last_active instead of score
+        .select('id, account_id, username, email, avatar, last_active, created_at, hash_key, country, browser_id, device_id')
+        .order('last_active', { ascending: false })
 
       if (error) throw error;
       return data || [];
@@ -251,7 +249,7 @@ export class UserAccountDB {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key, country, browser_id, device_id')
+        .select('id, account_id, username, email, avatar, last_active, created_at, hash_key, country, browser_id, device_id')
         .eq('account_id', accountId)
         .maybeSingle();
 
@@ -267,7 +265,7 @@ export class UserAccountDB {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key, country, browser_id, device_id')
+        .select('id, account_id, username, email, avatar, last_active, created_at, hash_key, country, browser_id, device_id')
         .eq('id', id)
         .maybeSingle();
 
@@ -1234,7 +1232,7 @@ export class RoomDB {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, account_id, username, email, avatar, score, last_active, created_at, hash_key')
+        .select('id, account_id, username, email, avatar, last_active, created_at, hash_key')
         .in('id', userIds);
 
       if (error) throw error;
@@ -1244,6 +1242,33 @@ export class RoomDB {
       return [];
     }
   }
+}
+
+// Admin account interface for database (snake_case - matches Supabase)
+export interface AdminAccount {
+  id?: string;
+  admin_id: string;
+  username: string;
+  email: string;
+  password: string;
+  avatar?: string;
+  role: string;
+  is_super_admin: boolean;
+  created_at: string;
+  last_active: string;
+}
+
+// Admin account interface for frontend (camelCase)
+export interface AdminAccountFrontend {
+  id?: string;
+  adminId: string;
+  username: string;
+  email: string;
+  avatar?: string;
+  role: string;
+  isSuperAdmin: boolean;
+  createdAt: string;
+  lastActive: string;
 }
 
 // Discord OTP interface for database (snake_case - matches Supabase)
@@ -1264,6 +1289,180 @@ export interface DiscordOTPFrontend {
   expiresAt: string;
   used: boolean;
   createdAt: string;
+}
+
+// Database operations for admin accounts
+export class AdminDB {
+  private static instance: AdminDB;
+
+  static getInstance(): AdminDB {
+    if (!AdminDB.instance) {
+      AdminDB.instance = new AdminDB();
+    }
+    return AdminDB.instance;
+  }
+
+  // Get admin by admin ID
+  async getAdminByAdminId(adminId: string): Promise<AdminAccount | null> {
+    try {
+      const { data, error } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('admin_id', adminId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Get admin by email
+  async getAdminByEmail(email: string): Promise<AdminAccount | null> {
+    try {
+      const { data, error } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Get admin by ID
+  async getAdminById(id: string): Promise<AdminAccount | null> {
+    try {
+      const { data, error } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Get all admins
+  async getAllAdmins(): Promise<AdminAccount[]> {
+    try {
+      const { data, error } = await supabase
+        .from('admins')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  // Create new admin
+  async createAdmin(adminData: Partial<AdminAccount>): Promise<{ admin: AdminAccount | null; error: string | null }> {
+    try {
+      const { id, ...adminDataWithoutId } = adminData;
+      
+      console.log('Creating admin with data:', adminDataWithoutId);
+      
+      const { data, error } = await supabase
+        .from('admins')
+        .insert(adminDataWithoutId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error creating admin:', error);
+        return { admin: null, error: error.message || JSON.stringify(error) };
+      }
+      return { admin: data, error: null };
+    } catch (error: any) {
+      console.error('Error creating admin:', error?.message || error);
+      return { admin: null, error: error?.message || String(error) };
+    }
+  }
+
+  // Update admin by admin_id
+  async updateAdminByAdminId(adminId: string, adminData: Partial<AdminAccount>): Promise<AdminAccount | null> {
+    try {
+      const { id, ...adminDataWithoutId } = adminData;
+      
+      const { data, error } = await supabase
+        .from('admins')
+        .update(adminDataWithoutId)
+        .eq('admin_id', adminId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Delete admin by admin_id
+  async deleteAdminByAdminId(adminId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('admins')
+        .delete()
+        .eq('admin_id', adminId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Update admin last active
+  async updateAdminLastActive(adminId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('admins')
+        .update({ last_active: new Date().toISOString() })
+        .eq('admin_id', adminId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Subscribe to admin changes
+  subscribeToAdmins(callback: (payload: any) => void) {
+    try {
+      const subscription = supabase
+        .channel('admins_changes')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'admins' },
+          callback
+        )
+        .subscribe();
+
+      return subscription;
+    } catch (error) {
+      // Error subscribing to admins
+    }
+  }
+
+  // Unsubscribe from admin changes
+  unsubscribeFromAdmins() {
+    try {
+      supabase.channel('admins_changes').unsubscribe();
+    } catch (error) {
+      // Error unsubscribing from admins
+    }
+  }
 }
 
 // Discord OTP Database Operations
@@ -1387,6 +1586,7 @@ export const waitingListDB = WaitingListDB.getInstance();
 export const referralDB = ReferralDB.getInstance();
 export const roomDB = RoomDB.getInstance();
 export const discordOTPDB = DiscordOTPDB.getInstance();
+export const adminDB = AdminDB.getInstance();
 
 // Check if Supabase is available
 export const isSupabaseAvailable = async (): Promise<boolean> => {

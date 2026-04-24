@@ -16,7 +16,6 @@ const convertToUserAccountFrontend = (dbUser: UserAccount): UserAccountFrontend 
   email: dbUser.email,
   hashKey: dbUser.hash_key,
   avatar: dbUser.avatar,
-  score: dbUser.score,
   referralCode: dbUser.referral_code,
   country: dbUser.country,
   browserId: dbUser.browser_id,
@@ -33,7 +32,6 @@ const convertToUserAccount = (user: UserAccountFrontend): UserAccount => ({
   email: user.email,
   hash_key: user.hashKey,
   avatar: user.avatar,
-  score: user.score,
   referral_code: user.referralCode,
   country: user.country,
   browser_id: user.browserId,
@@ -140,7 +138,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 email: dbUser.email,
                 hashKey: dbUser.hash_key,
                 avatar: dbUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar77',
-                score: dbUser.score,
                 country: dbUser.country,
                 browserId: dbUser.browser_id,
                 deviceId: dbUser.device_id,
@@ -164,7 +161,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
                         
                         return {
                           ...user,
-                          score: changedUser.score,
                           // Use local data if it was modified more recently than database
                           username: localUsernameTimestamp > dbLastActive ? 
                             localStorage.getItem(`username_${currentAccountId}`) || user.username : 
@@ -183,7 +179,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
                           username: changedUser.username,
                           email: changedUser.email,
                           avatar: changedUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar77',
-                          score: changedUser.score,
                           lastActive: changedUser.last_active
                         };
                       }
@@ -234,7 +229,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
               email: dbUser.email,
               hashKey: dbUser.hash_key,
               avatar: dbUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=avatar77',
-              score: dbUser.score,
               country: dbUser.country,
               browserId: dbUser.browser_id,
               deviceId: dbUser.device_id,
@@ -299,7 +293,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       email: savedEmail,
       hashKey: accountInfo.hashKey,
       avatar: savedAvatar,
-      score: 0,
       country: country,
       browserId: browserId,
       deviceId: deviceId,
@@ -324,7 +317,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
           email: userAccount.email,
           hash_key: userAccount.hashKey,
           avatar: userAccount.avatar,
-          score: userAccount.score,
           country: userAccount.country,
           browser_id: userAccount.browserId,
           device_id: userAccount.deviceId,
@@ -345,7 +337,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
           email: userAccount.email,
           hash_key: userAccount.hashKey,
           avatar: userAccount.avatar,
-          score: userAccount.score,
           country: userAccount.country,
           browser_id: userAccount.browserId,
           device_id: userAccount.deviceId,
@@ -461,16 +452,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const updateUserStudyTime = async (additionalTime: number) => {
     if (!currentAccountId) return;
 
-    const pointsEarned = Math.floor(additionalTime / 600); // 1 point per 10 minutes (600 seconds)
-
-    // Only update local state, not database (to avoid double counting)
-    // Database will be updated by endStudySession
+    // Only update last_active timestamp
+    // Points are automatically added by the dailyActivity system
+    // No need to manually add score here
     setUsers(prevUsers => {
       const newUsers = prevUsers.map(user => {
         if (user.accountId === currentAccountId) {
           return {
             ...user,
-            score: user.score + pointsEarned,
             lastActive: new Date().toISOString()
           };
         }
@@ -479,9 +468,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
       return newUsers;
     });
-
-    // Note: Points are automatically added by the dailyActivity system
-    // No need to manually add coins here
   };
 
   const getAllDeviceUsers = (): UserAccountFrontend[] => {
@@ -667,7 +653,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         email: email, // Add email
         password: hashedPassword, // Add hashed password
         avatar: avatarUrl, // Generate DiceBear avatar with random number
-        score: currentUser.score, // Keep existing score
         referral_code: referralCode, // Add referral code
         country: currentUser.country || detectCountry(), // Add or update country
         browser_id: currentUser.browserId || getBrowserId(), // Add or update browser ID

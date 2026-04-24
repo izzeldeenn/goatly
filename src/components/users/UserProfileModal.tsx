@@ -15,7 +15,6 @@ interface UserAccount {
   email: string;
   hashKey: string;
   avatar?: string;
-  score: number;
   dailyRank?: number;
   dailyStudyTime?: number;
   studyTime?: number;
@@ -226,7 +225,7 @@ export function UserProfileModal({ isOpen, user, onClose }: UserProfileModalProp
             <div className={`text-2xl font-bold mb-1 bg-gradient-to-r ${
               theme === 'light' ? 'from-yellow-600 to-orange-500' : 'from-yellow-400 to-orange-300'
             } bg-clip-text text-transparent`}>
-              {isCurrentUser(user) ? coins : user.score}
+              {isCurrentUser(user) ? coins : 0}
             </div>
             <div className={`text-xs ${
               theme === 'light' ? 'text-gray-600' : 'text-gray-300'

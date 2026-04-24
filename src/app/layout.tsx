@@ -28,7 +28,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Goatly - مجتمع مفتوح المصدر للدراسة الجماعية | Open Source Study Community",
   description: "Goatly هو مجتمع مفتوح المصدر ومجاني للدراسة الجماعية. انضم لآلاف الطلاب للدراسة معاً، تحفيز بعضكم البعض، وتحقيق أهدافكم الأكاديمية معاً. مجاني دائماً ومفتوح المصدر.",
-  keywords: ["مجتمع دراسة", "دراسة جماعية", "مجتمع مفتوح المصدر", "طلاب", "دراسة معاً", "تحفيز أكاديمي", "Goatly", "مجتمع مجاني", "open source community", "study together", "student community", "collaborative study"],
+  keywords: ["مجتمع دراسة", "دراسة جماعية", "مجتمع مفتوح المصدر", "طلاب", "دراسة معاً", "تحفيز أكاديمي", "Goatly", "جوتلي", "مجتمع مجاني", "open source community", "study together", "student community", "collaborative study", "study rooms", "pomodoro timer", "academic motivation"],
   authors: [{ name: "Izzeldeenn" }],
   creator: "Izzeldeenn",
   publisher: "Goatly Community",
@@ -67,6 +67,9 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://goatly.app"),
   alternates: {
     canonical: "https://goatly.app"
+  },
+  verification: {
+    google: "your-google-verification-code"
   }
 };
 
@@ -90,6 +93,46 @@ export default function RootLayout({
             gtag('config', 'G-H148YKHBMV');
           `
         }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "Goatly",
+              "url": "https://goatly.app",
+              "description": "مجتمع مفتوح المصدر ومجاني للدراسة الجماعية",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://goatly.app/search?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+              },
+              "sameAs": [
+                "https://twitter.com/izzeldeenn"
+              ]
+            })
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Goatly",
+              "url": "https://goatly.app",
+              "logo": "https://goatly.app/goat.png",
+              "description": "مجتمع مفتوح المصدر ومجاني للدراسة الجماعية",
+              "founder": {
+                "@type": "Person",
+                "name": "Izzeldeenn"
+              },
+              "sameAs": [
+                "https://twitter.com/izzeldeenn"
+              ]
+            })
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

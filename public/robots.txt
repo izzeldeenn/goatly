@@ -4,18 +4,14 @@
 User-agent: *
 Allow: /
 
+# Disallow admin and private paths
+Disallow: /admin/
+Disallow: /admin-auth/
+Disallow: /api/
+Disallow: /private/
+
 # Sitemap
 Sitemap: https://goatly.app/sitemap.xml
 
 # Crawl-delay (optional)
 Crawl-delay: 1
-
-# Disallow specific paths if needed
-# Disallow: /api/
-# Disallow: /admin/
-# Disallow: /private/
-
-# Allow specific important paths
-Allow: /focus
-Allow: /extension
-Allow: /challenge

@@ -1209,15 +1209,15 @@ export class RoomDB {
     }
   }
 
-  // Clean up inactive members (no heartbeat for 2 minutes)
+  // Clean up inactive members (no heartbeat for 5 minutes)
   async cleanupInactiveMembers(): Promise<boolean> {
     try {
-      const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
       
       const { error } = await supabase
         .from('room_members')
         .delete()
-        .lt('last_heartbeat', twoMinutesAgo);
+        .lt('last_heartbeat', fiveMinutesAgo);
 
       if (error) throw error;
       return true;

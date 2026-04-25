@@ -834,22 +834,22 @@ function LandingPageContent() {
                   <li className={`cursor-pointer transition-colors ${
                     theme === 'light' ? 'hover:text-blue-600' : 'hover:text-blue-400'
                   }`}>
-                    {texts.features}
+                    <a href="/features" className="block">{texts.features}</a>
                   </li>
                   <li className={`cursor-pointer transition-colors ${
                     theme === 'light' ? 'hover:text-blue-600' : 'hover:text-blue-400'
                   }`}>
-                    {texts.pricing}
+                    <a href="/pricing" className="block">{texts.pricing}</a>
                   </li>
                   <li className={`cursor-pointer transition-colors ${
                     theme === 'light' ? 'hover:text-blue-600' : 'hover:text-blue-400'
                   }`}>
-                    {texts.blog}
+                    <a href="/blog" className="block">{texts.blog}</a>
                   </li>
                   <li className={`cursor-pointer transition-colors ${
                     theme === 'light' ? 'hover:text-blue-600' : 'hover:text-blue-400'
                   }`}>
-                    {texts.support}
+                    <a href="/support" className="block">{texts.support}</a>
                   </li>
                 </ul>
               </div>
@@ -866,22 +866,22 @@ function LandingPageContent() {
                   <li className={`cursor-pointer transition-colors ${
                     theme === 'light' ? 'hover:text-blue-600' : 'hover:text-blue-400'
                   }`}>
-                    {texts.aboutUs}
+                    <a href="/about" className="block">{texts.aboutUs}</a>
                   </li>
                   <li className={`cursor-pointer transition-colors ${
                     theme === 'light' ? 'hover:text-blue-600' : 'hover:text-blue-400'
                   }`}>
-                    {texts.team}
+                    <a href="/team" className="block">{texts.team}</a>
                   </li>
                   <li className={`cursor-pointer transition-colors ${
                     theme === 'light' ? 'hover:text-blue-600' : 'hover:text-blue-400'
                   }`}>
-                    {texts.careers}
+                    <a href="/contribute" className="block">{texts.careers}</a>
                   </li>
                   <li className={`cursor-pointer transition-colors ${
                     theme === 'light' ? 'hover:text-blue-600' : 'hover:text-blue-400'
                   }`}>
-                    {texts.contact}
+                    <a href="/contact" className="block">{texts.contact}</a>
                   </li>
                 </ul>
               </div>
@@ -893,10 +893,10 @@ function LandingPageContent() {
                   {texts.follow}
                 </h4>
                 <div className="flex gap-4 text-2xl">
-                  <span className="cursor-pointer hover:scale-110 transition-transform">📱</span>
-                  <span className="cursor-pointer hover:scale-110 transition-transform">💬</span>
-                  <span className="cursor-pointer hover:scale-110 transition-transform">📧</span>
-                  <span className="cursor-pointer hover:scale-110 transition-transform">🐦</span>
+                  <a href="/social" className="cursor-pointer hover:scale-110 transition-transform">📱</a>
+                  <a href="https://discord.gg/5wBNne8Z3f" target="_blank" rel="noopener noreferrer" className="cursor-pointer hover:scale-110 transition-transform">💬</a>
+                  <a href="/newsletter" className="cursor-pointer hover:scale-110 transition-transform">📧</a>
+                  <a href="/social/twitter" className="cursor-pointer hover:scale-110 transition-transform">🐦</a>
                 </div>
               </div>
             </div>

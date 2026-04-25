@@ -77,55 +77,39 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
     return calculatedSize;
   }, [currentRoomMembers.length]);
 
-  // Generate deterministic random positions based on member IDs with collision detection
+  // Generate organized grid positions for members
   const memberPositions = useMemo(() => {
     const positions: {[key: string]: {x: number, y: number}} = {};
-    const cardSize = 15; // Card size in percentage (approx 128px / 800px * 100)
-    const availableSpace = spaceSize - 20; // Available space minus margins
+    const cardSize = 15; // Card size in percentage
+    const spacing = 22; // Spacing between cards in percentage (increased to prevent overlap)
+    const margin = 10; // Margin from edges
     
     // Sort members by ID to ensure consistent positioning
     const sortedMembers = [...currentRoomMembers].sort((a, b) => (a.id || '').localeCompare(b.id || ''));
     
-    sortedMembers.forEach((member) => {
+    // Calculate grid dimensions
+    const memberCount = sortedMembers.length;
+    const columns = Math.ceil(Math.sqrt(memberCount));
+    const rows = Math.ceil(memberCount / columns);
+    
+    // Center the grid
+    const gridWidth = (columns - 1) * spacing;
+    const gridHeight = (rows - 1) * spacing;
+    const startX = (spaceSize - gridWidth) / 2;
+    const startY = (spaceSize - gridHeight) / 2;
+    
+    sortedMembers.forEach((member, index) => {
       if (member.id) {
-        let position: {x: number, y: number};
-        let attempts = 0;
-        const maxAttempts = 100;
+        const col = index % columns;
+        const row = Math.floor(index / columns);
         
-        do {
-          // Use member ID + attempt number as seed for deterministic random position
-          const seed = (member.id + attempts).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-          const random1 = ((seed * 9301 + 49297) % 233280) / 233280;
-          const random2 = ((seed * 9301 + 49297) % 233280 + 1) / 233281;
-          
-          // Deterministic position within available space
-          position = {
-            x: random1 * (availableSpace - cardSize) + 10,
-            y: random2 * (availableSpace - cardSize) + 10
-          };
-          
-          // Check for collision with existing positions
-          let hasCollision = false;
-          Object.values(positions).forEach((existingPos) => {
-            const distance = Math.sqrt(
-              Math.pow(position.x - existingPos.x, 2) + 
-              Math.pow(position.y - existingPos.y, 2)
-            );
-            if (distance < cardSize) {
-              hasCollision = true;
-            }
-          });
-          
-          if (!hasCollision) {
-            break;
-          }
-          
-          attempts++;
-        } while (attempts < maxAttempts);
-        
-        positions[member.id] = position;
+        positions[member.id] = {
+          x: startX + (col * spacing),
+          y: startY + (row * spacing)
+        };
       }
     });
+    
     return positions;
   }, [currentRoomMembers.map(m => m.id).join(','), spaceSize]);
 
@@ -142,15 +126,6 @@ export function StudyRoom({ roomId, roomName }: StudyRoomProps) {
     fetchMemberUsers();
   }, [currentRoomMembers]);
 
-  // Auto-center on user when joining the room
-  useEffect(() => {
-    if (currentUser && currentRoomMembers.length > 0) {
-      const currentMember = currentRoomMembers.find(m => m.user_id === currentUser.id);
-      if (currentMember && currentMember.id && memberPositions[currentMember.id]) {
-        handleResetToCenter();
-      }
-    }
-  }, [currentUser, currentRoomMembers, memberPositions]);
 
   // Handle drag start
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {

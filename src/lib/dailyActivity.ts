@@ -691,7 +691,7 @@ export class DailyActivityDB {
       return [];
     }
   }
-
+   
   // Update today's rankings
   async updateTodayRankings(): Promise<void> {
     try {
